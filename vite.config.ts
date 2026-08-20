@@ -32,7 +32,7 @@ export default defineConfig({
   },
   ...(isGithubPages
     ? {
-        nitro: { preset: "static" as const },
+        nitro: { preset: "node-server" as const },
         vite: { base: pagesBase },
       }
     : {}),
