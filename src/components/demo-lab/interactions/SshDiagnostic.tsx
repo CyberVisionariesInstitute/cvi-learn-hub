@@ -70,7 +70,7 @@ export function SshDiagnostic({
           </ul>
         </nav>
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <TerminalView key={active.id} className="screen-refresh origin-bottom-left @3xl:rotate-y-2" lines={[`analyst@cf-jump:~$ ssh analyst@cf-student-07`, active.output]} />
 
           <section
