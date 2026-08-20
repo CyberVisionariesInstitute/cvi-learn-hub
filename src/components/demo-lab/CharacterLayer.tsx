@@ -31,51 +31,30 @@ export const characterStateDescription: Record<CharacterState, string> = {
 };
 
 /**
- * Neutral stand-in figure. Deliberately abstract: this is a placeholder for
- * production Ivy artwork, not a character design. It reads as a person-shaped
- * marker with a state indicator so scene blocking can be built and reviewed
- * before final art exists.
+ * Fallback-only stand-in. Deliberately quiet and abstract: it marks where
+ * approved artwork will stand, and is never presented as Ivy's design.
  */
 function PlaceholderFigure({ state }: { state: CharacterState }) {
   return (
     <svg
       viewBox="0 0 60 140"
-      className="size-full"
+      className="size-full opacity-35"
       role="presentation"
       aria-hidden="true"
+      data-character-placeholder="true"
     >
-      <defs>
-        <linearGradient id="ivy-ph" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="var(--color-primary)" stopOpacity="0.55" />
-          <stop offset="100%" stopColor="var(--color-primary)" stopOpacity="0.12" />
-        </linearGradient>
-      </defs>
-      <ellipse cx="30" cy="134" rx="20" ry="5" fill="oklch(0 0 0 / 45%)" />
-      <circle cx="30" cy="20" r="12" fill="url(#ivy-ph)" />
+      <ellipse cx="30" cy="134" rx="18" ry="4" fill="oklch(0 0 0 / 35%)" />
+      <circle cx="30" cy="20" r="11" fill="var(--color-muted-foreground)" opacity="0.35" />
       <path
         d="M30 34c-11 0-18 7-18 17v34h36V51c0-10-7-17-18-17Z"
-        fill="url(#ivy-ph)"
+        fill="var(--color-muted-foreground)"
+        opacity="0.28"
       />
-      <rect x="17" y="85" width="10" height="45" rx="5" fill="url(#ivy-ph)" />
-      <rect x="33" y="85" width="10" height="45" rx="5" fill="url(#ivy-ph)" />
+      <rect x="17" y="85" width="10" height="45" rx="5" fill="var(--color-muted-foreground)" opacity="0.28" />
+      <rect x="33" y="85" width="10" height="45" rx="5" fill="var(--color-muted-foreground)" opacity="0.28" />
       {state === "ivy-point" ? (
-        <rect
-          x="42"
-          y="48"
-          width="26"
-          height="7"
-          rx="3.5"
-          fill="var(--color-primary)"
-          opacity="0.8"
-        />
+        <rect x="42" y="48" width="24" height="6" rx="3" fill="var(--color-muted-foreground)" opacity="0.35" />
       ) : null}
-      <circle
-        cx="30"
-        cy="55"
-        r="3.5"
-        fill="var(--color-primary)"
-        opacity={state === "ivy-thinking" ? 1 : 0.6}
-      />
     </svg>
   );
 }
@@ -83,14 +62,15 @@ function PlaceholderFigure({ state }: { state: CharacterState }) {
 /**
  * Character presentation layer.
  *
- * Resolves per-state media in this order:
+ * Per-state media resolution:
  *   1. motionSources (webm → mp4) when motion is allowed
  *   2. animatedSrc (animated WebP) when motion is allowed
- *   3. staticSrc (always used under prefers-reduced-motion)
- *   4. neutral placeholder figure
+ *   3. staticSrc (always used under prefers-reduced-motion, and as poster)
+ *   4. quiet fallback placeholder
  *
  * The frame is a fixed box, so state changes never shift layout, and media is
- * pointer-events-none unless the character is explicitly interactive.
+ * pointer-events-none unless the character is explicitly interactive, so it can
+ * never intercept interaction hotspots.
  */
 export function CharacterLayer({
   character,
@@ -98,6 +78,7 @@ export function CharacterLayer({
   variant = "portrait",
   className,
   interactive = false,
+  flip = false,
 }: {
   character: Character;
   state: CharacterState;
@@ -105,12 +86,17 @@ export function CharacterLayer({
   variant?: "portrait" | "figure";
   className?: string;
   interactive?: boolean;
+  /** Mirror the figure so she faces the surface she is working at. */
+  flip?: boolean;
 }) {
   const reducedMotion = usePrefersReducedMotion();
   const asset = character.assets?.[state];
+  const [mediaFailed, setMediaFailed] = useState(false);
+  useEffect(() => setMediaFailed(false), [state]);
+
   const description = characterStateDescription[state];
-  const motion = !reducedMotion ? asset?.motionSources : undefined;
-  const animated = !reducedMotion ? asset?.animatedSrc : undefined;
+  const motion = !reducedMotion && !mediaFailed ? asset?.motionSources : undefined;
+  const animated = !reducedMotion && !mediaFailed ? asset?.animatedSrc : undefined;
   const label = `${character.name}, ${character.role} — ${description}`;
 
   const frame =
@@ -170,17 +156,20 @@ export function CharacterLayer({
           variant === "figure" &&
             (state === "ivy-react" || state === "ivy-point") &&
             "drop-shadow-[0_18px_16px_color-mix(in_oklab,var(--color-primary)_28%,transparent)]",
+          flip && "-scale-x-100",
           !interactive && "pointer-events-none",
         )}
       >
         {motion?.length ? (
           <video
-            key={state}
-            className="size-full object-contain"
+            key={`${state}-motion`}
+            className="size-full object-contain object-bottom"
             poster={asset?.staticSrc}
             autoPlay
             muted
             playsInline
+            loop={AMBIENT_STATES.includes(state)}
+            onError={() => setMediaFailed(true)}
             aria-label={label}
           >
             {motion.map((source) => (
@@ -188,12 +177,19 @@ export function CharacterLayer({
             ))}
           </video>
         ) : animated ? (
-          <img key={state} src={animated} alt={label} className="size-full object-contain" />
+          <img
+            key={`${state}-anim`}
+            src={animated}
+            alt={label}
+            onError={() => setMediaFailed(true)}
+            className="size-full object-contain object-bottom"
+          />
         ) : asset?.staticSrc ? (
           <img
-            key={state}
+            key={`${state}-still`}
             src={asset.staticSrc}
             alt={asset.alt}
+            onError={() => setMediaFailed(true)}
             className={cn(
               "size-full object-contain",
               variant === "figure" && "object-bottom",
@@ -219,3 +215,12 @@ export function CharacterLayer({
     </figure>
   );
 }
+
+/** Holds that read as ambient; their clips loop, everything else plays once. */
+const AMBIENT_STATES: CharacterState[] = [
+  "ivy-idle",
+  "ivy-working",
+  "ivy-whiteboard",
+  "ivy-briefing",
+  "ivy-thinking",
+];
