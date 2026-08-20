@@ -70,7 +70,31 @@ export interface Character {
   portraitSrc?: string;
   /** Documented production asset slots that are not yet filled. */
   plannedAssets?: Partial<Record<CharacterState, string[]>>;
+  /** True once approved production artwork is wired for the character. */
+  productionArtwork?: boolean;
 }
+
+/**
+ * Scene-relative staging for the in-scene figure. All values are percentages
+ * of the environment stage, so anchors stay stable across breakpoints.
+ */
+export interface CharacterStaging {
+  /** Horizontal center of the figure, % from the left edge of the stage. */
+  x: number;
+  /** Distance from the bottom of the stage, %. */
+  bottom?: number;
+  /** Figure height, % of stage height. */
+  height?: number;
+  /** Mobile/tablet re-framing. */
+  mobileX?: number;
+  mobileBottom?: number;
+  mobileHeight?: number;
+  /** Mirror the figure so she faces the surface she is working at. */
+  flip?: boolean;
+  /** Depth relative to the interaction surface. Default: behind. */
+  layer?: "behind" | "front";
+}
+
 
 
 export type EnvironmentId =
