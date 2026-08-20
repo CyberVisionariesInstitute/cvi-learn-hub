@@ -515,6 +515,18 @@ export interface Scene {
   objective: string;
   environmentId: EnvironmentId;
   characterState: CharacterState;
+  /**
+   * Scene-specific staging for the in-scene figure. Optional: when absent the
+   * environment's surface default is used. Keeps coordinates in content, not
+   * in CharacterLayer.
+   */
+  characterStaging?: CharacterStaging;
+  /**
+   * Interaction owns the room surface directly (whiteboard wall, incident
+   * board, briefing display) — the generic panel chrome is dropped.
+   */
+  bareSurface?: boolean;
+
   intro: DialogueLine[];
   interaction?: Interaction;
   evidence?: EvidenceItem[];
