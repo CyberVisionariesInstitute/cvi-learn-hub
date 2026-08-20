@@ -27,3 +27,13 @@ npm run dev
 - TypeScript
 - React
 - Tailwind CSS
+
+## GitHub Pages deployment
+
+The site deploys to https://cybervisionariesinstitute.github.io/cvi-learn-hub/ via
+`.github/workflows/deploy.yml` on every push to `main` (Pages source: GitHub Actions).
+
+Locally: `bun run build:pages` produces a fully prerendered static site in `dist/client`
+(base path `/cvi-learn-hub/`, override with `PAGES_BASE`). Every route is prerendered to
+its own `index.html`, and `404.html` mirrors the app shell so direct links and refreshes
+resolve client-side. Normal `bun run build` and the Lovable preview are unaffected.
