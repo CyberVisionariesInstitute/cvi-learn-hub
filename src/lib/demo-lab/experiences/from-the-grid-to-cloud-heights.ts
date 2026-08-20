@@ -1545,7 +1545,7 @@ export const fromTheGridToCloudHeights: Experience = {
         confirm: {
           prompt:
             "Read it back. Every sentence should be one you could defend with a command you actually ran.",
-          action: "Confirm the briefing",
+          action: "Brief the team",
         },
         completion: {
           headline: "That's a briefing an operations lead can act on.",
