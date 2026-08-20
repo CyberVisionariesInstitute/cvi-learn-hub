@@ -110,6 +110,8 @@ export interface ExperienceController {
   /** Removes answer keys matching a predicate (e.g. a whiteboard "clear"). */
   clearAnswers: (match: (key: string) => boolean) => void;
   revealEvidenceIds: (ids: string[]) => void;
+  /** Completion flag per scene index — used by the instructor console. */
+  sceneCompletion: boolean[];
   /** Effective character state for the current scene. */
   characterState: CharacterState;
   setCharacterState: (state: CharacterState) => void;
