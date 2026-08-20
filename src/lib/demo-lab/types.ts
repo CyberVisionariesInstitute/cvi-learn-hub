@@ -66,6 +66,8 @@ export interface Character {
   accentToken: "signal" | "amber" | "violet" | "evidence";
   /** Optional per-state assets. Missing states fall back to a neutral figure. */
   assets?: Partial<Record<CharacterState, CharacterAsset>>;
+  /** Square headshot used by the dialogue portrait variant. */
+  portraitSrc?: string;
   /** Documented production asset slots that are not yet filled. */
   plannedAssets?: Partial<Record<CharacterState, string[]>>;
 }
