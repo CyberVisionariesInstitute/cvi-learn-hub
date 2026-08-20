@@ -1114,6 +1114,14 @@ export const fromTheGridToCloudHeights: Experience = {
         "Classify what each SSH message proves about reachability and about permission.",
       environmentId: "remote-access-workstation",
       characterState: "ivy-type",
+      characterStaging: {
+        x: 11,
+        bottom: 2,
+        height: 54,
+        mobileX: 14,
+        mobileHeight: 40,
+      },
+
       intro: [
         {
           id: "l1",
