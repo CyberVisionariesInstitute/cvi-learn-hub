@@ -237,6 +237,9 @@ export function useExperienceState(experience: Experience): ExperienceController
     markUsed,
     clearAnswers,
     revealEvidenceIds,
+    sceneCompletion: experience.scenes.map((s) =>
+      isSceneComplete(s, states[s.id] ?? emptySceneState),
+    ),
     characterState: sceneState.characterState ?? scene.characterState,
     setCharacterState,
   };
