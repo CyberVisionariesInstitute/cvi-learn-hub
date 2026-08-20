@@ -129,6 +129,12 @@
   --glass-border: 1px solid oklch(0.75 0.09 214 / 22%);
   --shadow-depth: 0 30px 70px -35px oklch(0.06 0.05 250 / 90%);
   --shadow-lift: 0 18px 40px -24px oklch(0.06 0.05 250 / 95%);
+  --shadow-object: 0 12px 24px -14px oklch(0.04 0.04 255 / 92%);
+  --shadow-screen: 0 24px 48px -24px oklch(0.03 0.05 255 / 96%), inset 0 0 0 1px oklch(0.86 0.08 210 / 8%);
+  --shadow-focus-light: 0 0 28px -10px color-mix(in oklab, var(--primary) 60%, transparent);
+  --board-surface: oklch(0.82 0.025 210 / 92%);
+  --board-ink: oklch(0.22 0.045 255);
+  --screen-bezel: oklch(0.12 0.025 255);
 }
 
 /* Program identity: CyberFoundations — The Grid to Cloud Heights */
@@ -187,6 +193,83 @@
   box-shadow: var(--shadow-lift);
 }
 
+@utility scene-depth {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+
+@utility physical-surface {
+  border: 1px solid color-mix(in oklab, var(--border) 78%, var(--foreground) 8%);
+  background: color-mix(in oklab, var(--surface) 88%, transparent);
+  box-shadow: var(--shadow-screen);
+}
+
+@utility monitor-surface {
+  border: 0.45rem solid var(--screen-bezel);
+  background: color-mix(in oklab, var(--terminal) 92%, transparent);
+  box-shadow: var(--shadow-screen);
+}
+
+@utility tactile-control {
+  box-shadow: var(--shadow-object);
+  transform: translateZ(0);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease,
+    background-color 180ms ease, opacity 180ms ease;
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-3px) translateZ(8px);
+    box-shadow: var(--shadow-focus-light), var(--shadow-object);
+  }
+  &:active {
+    transform: translateY(1px) scale(0.985);
+  }
+}
+
+@utility pinned-card {
+  box-shadow: 0 8px 16px -10px oklch(0.03 0.03 250 / 90%);
+  transform: rotate(var(--card-tilt, 0deg));
+  transition: transform 220ms ease, box-shadow 220ms ease;
+  &:hover,
+  &:focus-visible,
+  &[aria-pressed="true"] {
+    transform: translateY(-3px) rotate(0deg) scale(1.015);
+    box-shadow: var(--shadow-focus-light), var(--shadow-object);
+  }
+}
+
+@utility screen-refresh {
+  animation: screen-refresh 320ms ease-out both;
+}
+
+@utility route-draw {
+  stroke-dasharray: 130;
+  stroke-dashoffset: 130;
+  animation: route-draw 900ms ease-out forwards;
+}
+
+@utility settle-in {
+  animation: settle-in 260ms ease-out both;
+}
+
+@keyframes screen-refresh {
+  from { opacity: 0.35; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes route-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes settle-in {
+  from { opacity: 0.5; transform: translateY(-5px) rotate(1.5deg); }
+  to { opacity: 1; }
+}
+
+@keyframes ivy-idle-shift {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-1px) scale(1.002); }
+}
+
 @utility hairline {
   border: var(--glass-border);
 }
@@ -226,5 +309,12 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .route-draw,
+  .screen-refresh,
+  .settle-in {
+    animation: none !important;
+    stroke-dashoffset: 0;
   }
 }

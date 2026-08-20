@@ -85,13 +85,13 @@ function Home() {
                 key={program.id}
                 to={program.route}
                 aria-label={`Enter ${program.name}`}
-                className={`${program.themeClass} group relative isolate flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-2xl border border-border/70 sm:aspect-[16/10]`}
+                className={`${program.themeClass} scene-depth group relative isolate flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-xl border border-border/30 shadow-[var(--shadow-depth)] outline-offset-4 sm:aspect-[16/10]`}
               >
                 <img
                   src={art.src}
                   alt=""
                   aria-hidden="true"
-                  className="absolute inset-0 size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                  className="absolute -inset-2 size-[calc(100%+1rem)] object-cover transition-transform duration-700 ease-out group-hover:-translate-y-1 group-hover:scale-[1.045] group-focus-visible:-translate-y-1 group-focus-visible:scale-[1.045] motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100"
                 />
                 <span
                   aria-hidden="true"
@@ -101,7 +101,9 @@ function Home() {
                   aria-hidden="true"
                   className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-70"
                 />
-                <span className="relative block p-6 sm:p-8">
+                <span aria-hidden="true" className="absolute inset-0 opacity-0 shadow-[inset_0_0_70px_color-mix(in_oklab,var(--primary)_20%,transparent)] transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100" />
+                <span aria-hidden="true" className="absolute inset-x-[6%] bottom-0 h-8 rounded-[50%] bg-background/70 blur-xl" />
+                <span className="relative block translate-z-8 border-t border-border/25 bg-background/35 p-6 backdrop-blur-[2px] transition-transform duration-300 group-hover:-translate-y-1 group-focus-visible:-translate-y-1 sm:p-8 motion-reduce:transition-none">
                   <span className="block text-xs tracking-[0.24em] text-primary uppercase">
                     {program.tagline}
                   </span>
