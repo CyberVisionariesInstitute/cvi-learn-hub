@@ -601,6 +601,17 @@ export const fromTheGridToCloudHeights: Experience = {
         "Build the order you would actually check things in, and defend the first rung.",
       environmentId: "troubleshooting-room",
       characterState: "ivy-whiteboard",
+      bareSurface: true,
+      characterStaging: {
+        x: 88,
+        bottom: 7,
+        height: 60,
+        mobileX: 84,
+        mobileBottom: 4,
+        mobileHeight: 42,
+        flip: true,
+      },
+
       intro: [
         {
           id: "l1",
