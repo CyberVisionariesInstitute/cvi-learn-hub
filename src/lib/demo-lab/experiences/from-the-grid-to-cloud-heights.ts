@@ -275,6 +275,14 @@ export const fromTheGridToCloudHeights: Experience = {
         "Answer three real support questions by choosing the tool that actually answers each one, then say what the output proved.",
       environmentId: "ivy-workstation",
       characterState: "ivy-type",
+      characterStaging: {
+        x: 12,
+        bottom: 2,
+        height: 56,
+        mobileX: 14,
+        mobileHeight: 40,
+      },
+
       intro: [
         {
           id: "l1",
@@ -593,6 +601,17 @@ export const fromTheGridToCloudHeights: Experience = {
         "Build the order you would actually check things in, and defend the first rung.",
       environmentId: "troubleshooting-room",
       characterState: "ivy-whiteboard",
+      bareSurface: true,
+      characterStaging: {
+        x: 83,
+        bottom: 7,
+        height: 60,
+        mobileX: 84,
+        mobileBottom: 4,
+        mobileHeight: 42,
+        flip: true,
+      },
+
       intro: [
         {
           id: "l1",
@@ -697,6 +716,14 @@ export const fromTheGridToCloudHeights: Experience = {
         "Read the lobby access check and separate what it proves from what it only suggests.",
       environmentId: "secure-lobby",
       characterState: "ivy-read-screen",
+      characterStaging: {
+        x: 14,
+        bottom: 3,
+        height: 56,
+        mobileX: 15,
+        mobileHeight: 40,
+      },
+
       intro: [
         {
           id: "l1",
@@ -812,6 +839,14 @@ export const fromTheGridToCloudHeights: Experience = {
         "Run a real investigation: interpret the failure, choose the next question, and gather evidence that changes the topology wall.",
       environmentId: "noc",
       characterState: "ivy-briefing",
+      characterStaging: {
+        x: 9,
+        bottom: 4,
+        height: 58,
+        mobileX: 13,
+        mobileHeight: 42,
+      },
+
       intro: [
         {
           id: "l1",
@@ -1079,6 +1114,14 @@ export const fromTheGridToCloudHeights: Experience = {
         "Classify what each SSH message proves about reachability and about permission.",
       environmentId: "remote-access-workstation",
       characterState: "ivy-type",
+      characterStaging: {
+        x: 11,
+        bottom: 2,
+        height: 54,
+        mobileX: 14,
+        mobileHeight: 40,
+      },
+
       intro: [
         {
           id: "l1",
@@ -1203,6 +1246,17 @@ export const fromTheGridToCloudHeights: Experience = {
         "Separate what was observed from what was assumed, and name what is still unverified.",
       environmentId: "incident-response-room",
       characterState: "ivy-thinking",
+      bareSurface: true,
+      characterStaging: {
+        x: 86,
+        bottom: 6,
+        height: 56,
+        mobileX: 84,
+        mobileBottom: 4,
+        mobileHeight: 40,
+        flip: true,
+      },
+
       intro: [
         {
           id: "l1",
@@ -1364,6 +1418,17 @@ export const fromTheGridToCloudHeights: Experience = {
         "Assemble a statement you could defend to the operations lead, and say what remains open.",
       environmentId: "briefing-room",
       characterState: "ivy-briefing",
+      bareSurface: true,
+      characterStaging: {
+        x: 84,
+        bottom: 5,
+        height: 58,
+        mobileX: 84,
+        mobileBottom: 3,
+        mobileHeight: 42,
+        flip: true,
+      },
+
       intro: [
         {
           id: "l1",
@@ -1480,7 +1545,7 @@ export const fromTheGridToCloudHeights: Experience = {
         confirm: {
           prompt:
             "Read it back. Every sentence should be one you could defend with a command you actually ran.",
-          action: "Confirm the briefing",
+          action: "Brief the team",
         },
         completion: {
           headline: "That's a briefing an operations lead can act on.",

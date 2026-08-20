@@ -1,15 +1,25 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { CharacterLayer } from "./CharacterLayer";
-import type { Character, CharacterState, Environment } from "@/lib/demo-lab/types";
+import type {
+  Character,
+  CharacterStaging,
+  CharacterState,
+  Environment,
+} from "@/lib/demo-lab/types";
 
-/** Where Ivy stands inside each kind of space, so staging matches the scene. */
-const characterStagePosition: Record<Environment["surface"], string> = {
-  monitor: "bottom-2 left-2 h-[46%] w-[13%] min-w-16 @3xl:left-4 @3xl:h-[58%]",
-  "wall-display": "bottom-2 left-3 h-[52%] w-[14%] min-w-16 @3xl:h-[64%]",
-  whiteboard: "bottom-24 right-3 h-[50%] w-[14%] min-w-16 @3xl:h-[62%]",
-  "evidence-board": "bottom-24 right-3 h-[48%] w-[13%] min-w-16 @3xl:h-[60%]",
-  terminal: "bottom-2 left-2 h-[44%] w-[12%] min-w-16 @3xl:h-[56%]",
+/**
+ * Default staging per kind of space. Scenes can override this with
+ * `scene.characterStaging` — coordinates live in content, never in the
+ * character component.
+ */
+const defaultStaging: Record<Environment["surface"], CharacterStaging> = {
+  monitor: { x: 9, bottom: 2, height: 52, mobileX: 12, mobileHeight: 40 },
+  "wall-display": { x: 10, bottom: 2, height: 58, mobileX: 13, mobileHeight: 42 },
+  whiteboard: { x: 90, bottom: 6, height: 56, mobileX: 86, mobileHeight: 40, flip: true },
+  "evidence-board": { x: 89, bottom: 6, height: 54, mobileX: 86, mobileHeight: 40, flip: true },
+  terminal: { x: 8, bottom: 2, height: 50, mobileX: 12, mobileHeight: 38 },
 };
 
 const surfaceLabel: Record<Environment["surface"], string> = {
@@ -30,6 +40,9 @@ export function EnvironmentLayer({
   aside,
   character,
   characterState = "ivy-idle",
+  characterStaging,
+  bareSurface = false,
+  foreground,
 }: {
   environment: Environment;
   children: ReactNode;
@@ -37,7 +50,26 @@ export function EnvironmentLayer({
   /** In-scene figure; omit for environments that stage the character themselves. */
   character?: Character | undefined;
   characterState?: CharacterState;
+  /** Scene-level override for figure scale/position. */
+  characterStaging?: CharacterStaging;
+  /** The interaction owns the room surface: drop the generic panel chrome. */
+  bareSurface?: boolean;
+  /** Optional in-room foreground cues (table edge, chair silhouettes). */
+  foreground?: ReactNode;
 }) {
+  const isMobile = useIsMobile();
+  const staging = characterStaging ?? defaultStaging[environment.surface];
+  const x = (isMobile ? staging.mobileX : undefined) ?? staging.x;
+  const bottom = (isMobile ? staging.mobileBottom : undefined) ?? staging.bottom ?? 2;
+  const height = (isMobile ? staging.mobileHeight : undefined) ?? staging.height ?? 52;
+
+  const figureStyle: CSSProperties = {
+    left: `${x}%`,
+    bottom: `${bottom}%`,
+    height: `${height}%`,
+    transform: "translateX(-50%)",
+  };
+
   return (
     <section
       className="@container scene-depth relative min-h-[32rem] overflow-hidden rounded-xl border border-border/50 bg-surface/60 shadow-[var(--shadow-depth)]"
@@ -67,12 +99,18 @@ export function EnvironmentLayer({
 
       {character ? (
         <div
+          style={figureStyle}
           className={cn(
-            "pointer-events-none absolute z-0 transition-[left,right,bottom,opacity] duration-700 ease-out motion-reduce:transition-none",
-            characterStagePosition[environment.surface],
+            "pointer-events-none absolute w-[14%] min-w-16 transition-[left,bottom,height,opacity] duration-700 ease-out motion-reduce:transition-none",
+            staging.layer === "front" ? "z-20" : "z-0",
           )}
         >
-          <CharacterLayer character={character} state={characterState} variant="figure" />
+          <CharacterLayer
+            character={character}
+            state={characterState}
+            variant="figure"
+            flip={staging.flip ?? false}
+          />
         </div>
       ) : null}
 
@@ -88,24 +126,37 @@ export function EnvironmentLayer({
           {/* The surface inside the environment that carries the interaction */}
           <div
             className={cn(
-              "@container physical-surface relative max-h-[75vh] overflow-auto rounded-lg bg-surface/88 p-4 sm:p-6",
-              environment.surface === "terminal" && "bg-terminal/80 font-mono",
-              environment.surface === "monitor" && "@5xl:rotate-x-1 @5xl:-rotate-y-1",
-              environment.surface === "whiteboard" && "@5xl:rotate-y-1",
+              "@container relative max-h-[75vh] overflow-auto",
+              bareSurface
+                ? "rounded-none bg-transparent p-0"
+                : cn(
+                    "physical-surface rounded-lg bg-surface/88 p-4 sm:p-6",
+                    environment.surface === "terminal" && "bg-terminal/80 font-mono",
+                    environment.surface === "monitor" && "@5xl:rotate-x-1 @5xl:-rotate-y-1",
+                    environment.surface === "whiteboard" && "@5xl:rotate-y-1",
+                  ),
             )}
           >
-            <div className="mb-3 flex items-center gap-2 text-[0.65rem] tracking-[0.2em] text-muted-foreground uppercase">
-              <span
-                aria-hidden="true"
-                className="inline-block size-1.5 rounded-full bg-primary"
-              />
-              {surfaceLabel[environment.surface]}
-            </div>
+            {bareSurface ? null : (
+              <div className="mb-3 flex items-center gap-2 text-[0.65rem] tracking-[0.2em] text-muted-foreground uppercase">
+                <span
+                  aria-hidden="true"
+                  className="inline-block size-1.5 rounded-full bg-primary"
+                />
+                {surfaceLabel[environment.surface]}
+              </div>
+            )}
             {children}
           </div>
           {aside ? <div className="flex flex-col gap-4">{aside}</div> : null}
         </div>
       </div>
+
+      {foreground ? (
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-20">
+          {foreground}
+        </div>
+      ) : null}
     </section>
   );
 }
