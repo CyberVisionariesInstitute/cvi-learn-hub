@@ -839,6 +839,14 @@ export const fromTheGridToCloudHeights: Experience = {
         "Run a real investigation: interpret the failure, choose the next question, and gather evidence that changes the topology wall.",
       environmentId: "noc",
       characterState: "ivy-briefing",
+      characterStaging: {
+        x: 9,
+        bottom: 4,
+        height: 58,
+        mobileX: 13,
+        mobileHeight: 42,
+      },
+
       intro: [
         {
           id: "l1",
