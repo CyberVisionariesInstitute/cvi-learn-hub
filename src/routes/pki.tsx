@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DemoLabShell } from "@/components/demo-lab/DemoLabShell";
+import trustCampus from "@/assets/environments/pki/trust-campus.jpg";
 import { pki } from "@/lib/demo-lab/programs";
 import { statusLabels } from "@/lib/demo-lab/programs";
 
@@ -26,16 +27,30 @@ export const Route = createFileRoute("/pki")({
 function PkiPage() {
   return (
     <DemoLabShell themeClass={pki.themeClass}>
-      <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
-        <p className="text-xs tracking-[0.3em] text-primary uppercase">{pki.tagline}</p>
-        <h1 className="mt-4 font-display text-4xl font-semibold text-foreground sm:text-5xl">
-          PKI Demo Lab
-        </h1>
-        <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
-          {pki.description}
-        </p>
+      <section className="relative isolate overflow-hidden">
+        <img
+          src={trustCampus}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 size-full object-cover object-[50%_35%] opacity-55"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-[linear-gradient(180deg,oklch(0.13_0.05_265/0.5)_0%,oklch(0.11_0.04_265/0.82)_55%,var(--color-background)_100%)]"
+        />
+        <div className="relative mx-auto max-w-6xl px-5 pt-20 pb-24 sm:px-8 sm:pt-28">
+          <p className="text-xs tracking-[0.3em] text-primary uppercase">{pki.tagline}</p>
+          <h1 className="mt-4 font-display text-4xl font-semibold text-foreground sm:text-5xl">
+            PKI Demo Lab
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-relaxed text-foreground/85">
+            {pki.description}
+          </p>
+        </div>
+      </section>
 
-        <div className="mt-14 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2">
+      <div className="mx-auto max-w-6xl px-5 pt-4 pb-16 sm:px-8">
+        <div className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2">
           {pki.modules.map((module) => (
             <section key={module.id} className="bg-surface p-7">
               <h2 className="text-xs tracking-[0.24em] text-primary uppercase">

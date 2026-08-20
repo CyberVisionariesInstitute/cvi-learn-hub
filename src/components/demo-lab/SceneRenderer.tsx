@@ -2,9 +2,11 @@ import { DialogueLayer } from "./DialogueLayer";
 import { EnvironmentLayer } from "./EnvironmentLayer";
 import { EvidencePanel } from "./EvidencePanel";
 import { InteractionLayer } from "./InteractionLayer";
+import { NeighborhoodRoute } from "./interactions/NeighborhoodRoute";
 import { charactersById } from "@/lib/demo-lab/characters";
 import type { Environment } from "@/lib/demo-lab/types";
 import type { ExperienceController } from "@/lib/demo-lab/useExperienceState";
+
 
 /** Renders exactly one scene: environment, character, dialogue, interaction. */
 export function SceneRenderer({
@@ -23,8 +25,9 @@ export function SceneRenderer({
   const visibleEvidence = controller.evidenceRevealedByInstructor
     ? baseEvidence
     : baseEvidence.filter(
-        (e) => e.id !== "ev-scope" || sceneState.revealedEvidence.includes(e.id),
+        (e) => !e.hiddenUntilRevealed || sceneState.revealedEvidence.includes(e.id),
       );
+
 
   return (
     <article className="space-y-4">
@@ -41,34 +44,55 @@ export function SceneRenderer({
       {character ? (
         <DialogueLayer
           character={character}
-          characterState={scene.characterState}
+          characterState={controller.characterState}
           lines={scene.intro}
           visible={controller.dialogueVisible}
         />
       ) : null}
 
-      <EnvironmentLayer
-        environment={environment}
-        aside={
-          <>
-            <EvidencePanel items={visibleEvidence} title="On screen" />
+      {scene.interaction?.kind === "route-choice" ? (
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,18rem)]">
+          <NeighborhoodRoute
+            interaction={scene.interaction}
+            controller={controller}
+            environment={environment}
+            character={character}
+          />
+          <aside className="space-y-3">
+            <EvidencePanel items={visibleEvidence} title="Field notes" />
             {scene.retryPrompt ? (
               <p className="rounded-lg border border-border p-3 text-xs text-muted-foreground">
                 {scene.retryPrompt}
               </p>
             ) : null}
-          </>
-        }
-      >
-        {scene.interaction ? (
-          <InteractionLayer interaction={scene.interaction} controller={controller} />
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            This scene is defined in the experience configuration; its interaction is
-            authored in a later pass.
-          </p>
-        )}
-      </EnvironmentLayer>
+          </aside>
+        </div>
+      ) : (
+        <EnvironmentLayer
+          environment={environment}
+          aside={
+            <>
+              <EvidencePanel items={visibleEvidence} title="On screen" />
+              {scene.retryPrompt ? (
+                <p className="rounded-lg border border-border p-3 text-xs text-muted-foreground">
+                  {scene.retryPrompt}
+                </p>
+              ) : null}
+            </>
+          }
+        >
+          {scene.interaction ? (
+            <InteractionLayer interaction={scene.interaction} controller={controller} />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              This scene is defined in the experience configuration; its interaction is
+              authored in a later pass.
+            </p>
+          )}
+        </EnvironmentLayer>
+      )}
+
+
 
       <div aria-live="polite" className="space-y-3">
         {complete && scene.successSummary ? (

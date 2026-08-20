@@ -37,21 +37,21 @@ export const fromTheGridToCloudHeights: Experience = {
       id: "scene-01-know-your-neighborhood",
       title: "Mission 01 — Know Your Neighborhood",
       objective:
-        "Sort four destinations into the ones Ivy's workstation reaches directly and the ones that leave through the gateway.",
-      environmentId: "ivy-workstation",
-      characterState: "ivy-read-screen",
+        "Walk Ivy's four deliveries to where they actually go: the ones inside the 10.20.5 block, and the ones that have to leave through the gateway.",
+      environmentId: "grid-neighborhood",
+      characterState: "ivy-idle",
       intro: [
         {
           id: "l1",
           speaker: "Ivy",
-          text: "My workstation is 10.20.5.42 with a /24 mask. Four destinations are on today's ticket and I want to know which ones I can reach without leaving the block.",
-          characterState: "ivy-read-screen",
+          text: "This is my block. My van is at 10.20.5.42 and the mask is /24 — so every address that starts 10.20.5 is a building I can walk to.",
+          characterState: "ivy-point",
         },
         {
           id: "l2",
           speaker: "Ivy",
-          text: "Before you touch anything — take a guess. Which of these look like neighbors to you?",
-          characterState: "ivy-point",
+          text: "Four deliveries on the work order. Before you send me anywhere — guess which ones are on this street.",
+          characterState: "ivy-idle",
         },
       ],
       evidence: [
@@ -60,125 +60,201 @@ export const fromTheGridToCloudHeights: Experience = {
           label: "Interface address",
           value: "10.20.5.42/24",
           status: "healthy",
-          note: "Ivy's workstation on the service block.",
+          note: "Ivy's van on the service block.",
         },
         {
           id: "ev-gateway",
           label: "Default gateway",
           value: "10.20.5.1",
           status: "healthy",
-          note: "The exit from this neighborhood.",
+          note: "The road out of this neighborhood.",
         },
         {
           id: "ev-scope",
           label: "Local range (this example only)",
           value: "10.20.5.0 – 10.20.5.255",
           note: "For this /24 example, the first three numbers identify the neighborhood.",
+          hiddenUntilRevealed: true,
         },
       ],
       interaction: {
         id: "int-neighborhood",
-        kind: "classify",
-        prompt: "How does 10.20.5.42 reach each destination?",
+        kind: "route-choice",
+        prompt: "Where does each delivery actually go?",
         instruction:
-          "Select a destination, then choose Reached locally or Sent to the gateway. You can change any answer at any time.",
+          "Pick the place in the neighborhood that matches the address on Ivy's work order. If it isn't on this block, send her to the gateway road. Nothing is locked in — try any route and watch what happens.",
         scopeNote:
           "For this /24 example, addresses that share 10.20.5 are in the same neighborhood. Other masks split the address differently — that comes later.",
-        options: [
+        sign: {
+          title: "10.20.5 Service Block",
+          lines: [
+            "Addresses 10.20.5.1 – 10.20.5.255",
+            "Gateway road: 10.20.5.1",
+          ],
+        },
+        hotspots: [
           {
-            id: "local",
-            label: "Reached locally",
-            description: "Same neighborhood — the workstation talks to it directly.",
+            id: "hs-van",
+            kind: "origin",
+            label: "Ivy's van",
+            address: "10.20.5.42",
+            x: 16,
+            y: 62,
+            mobileX: 20,
+            mobileY: 58,
+            detail: "Where Ivy starts every route.",
           },
           {
-            id: "gateway",
-            label: "Sent to the gateway",
-            description: "Different neighborhood — traffic leaves via 10.20.5.1.",
+            id: "hs-printer",
+            kind: "location",
+            label: "Shop floor",
+            address: "10.20.5.20",
+            x: 38,
+            y: 55,
+            mobileX: 34,
+            mobileY: 47,
+          },
+          {
+            id: "hs-bench",
+            kind: "location",
+            label: "Bench lab",
+            address: "10.20.5.99",
+            x: 58,
+            y: 52,
+            mobileX: 62,
+            mobileY: 40,
+          },
+          {
+            id: "hs-gateway",
+            kind: "gateway",
+            label: "Gateway road",
+            address: "10.20.5.1",
+            signage: ["10.20.7 District →", "10.21.5 Region →"],
+            x: 84,
+            y: 50,
+            mobileX: 76,
+            mobileY: 52,
+            detail: "Everything that isn't 10.20.5 leaves this way.",
           },
         ],
-        items: [
+        characterAnchors: {
+          "ivy-enter": { x: 8, y: 88, mobileX: 12, mobileY: 84 },
+          "ivy-idle": { x: 22, y: 86, mobileX: 26, mobileY: 82 },
+          "ivy-point": { x: 26, y: 86, mobileX: 30, mobileY: 82 },
+          "ivy-thinking": { x: 22, y: 86, mobileX: 26, mobileY: 82 },
+          "ivy-nod": { x: 24, y: 86, mobileX: 28, mobileY: 82 },
+        },
+        requests: [
           {
             id: "d1",
-            label: "10.20.5.20",
-            detail: "Shop-floor printer",
-            correctOptionId: "local",
-            responses: {
-              local: {
-                headline: "Same neighborhood — 10.20.5",
-                body: "10.20.5.20 shares 10.20.5 with the workstation, so the frame goes straight across the local segment. No gateway involved.",
-              },
-              gateway: {
-                headline: "Watch what the gateway would see",
-                body: "Sending this to 10.20.5.1 means asking a neighbor's door to hand a letter back to the same street. Compare the first three numbers of 10.20.5.42 and 10.20.5.20 before you commit.",
+            address: "10.20.5.20",
+            workOrder: "Drop the replacement toner at 10.20.5.20.",
+            presentInEnvironment: true,
+            correctHotspotId: "hs-printer",
+            correct: {
+              headline: "Same neighborhood — 10.20.5",
+              body: "Ivy walks straight there. 10.20.5.20 shares 10.20.5 with her van, so the frame crosses the local segment with no gateway involved.",
+              characterState: "ivy-nod",
+            },
+            incorrect: {
+              "hs-gateway": {
+                headline: "She's leaving the block to reach a building on it",
+                body: "Sending this to 10.20.5.1 is asking the road out to hand a package back to the same street. Compare the first three numbers of 10.20.5.42 and 10.20.5.20 before you commit.",
                 revealsEvidenceIds: ["ev-scope"],
+                characterState: "ivy-thinking",
+              },
+              "*": {
+                headline: "Right street, wrong door",
+                body: "That address is on this block, but it isn't the one on the work order. Read the plaque before Ivy knocks.",
+                characterState: "ivy-thinking",
               },
             },
           },
           {
             id: "d2",
-            label: "10.20.5.99",
-            detail: "Bench test laptop",
-            correctOptionId: "local",
-            responses: {
-              local: {
-                headline: "Same neighborhood — 10.20.5",
-                body: "Only the last number changed. For this /24 example that is still the same block, so the workstation reaches it directly.",
-              },
-              gateway: {
+            address: "10.20.5.99",
+            workOrder: "Collect the bench test laptop at 10.20.5.99.",
+            presentInEnvironment: true,
+            correctHotspotId: "hs-bench",
+            correct: {
+              headline: "Same neighborhood — 10.20.5",
+              body: "Only the last number changed. For this /24 example that is still the same block, so Ivy reaches it directly.",
+              characterState: "ivy-nod",
+            },
+            incorrect: {
+              "hs-gateway": {
                 headline: "Only the last number differs",
-                body: "10.20.5.42 and 10.20.5.99 share 10.20.5. If a different final number were enough to leave the block, Ivy could not reach the printer either.",
+                body: "10.20.5.42 and 10.20.5.99 share 10.20.5. If a different final number were enough to leave the block, Ivy couldn't reach the shop floor either.",
                 revealsEvidenceIds: ["ev-scope"],
+                characterState: "ivy-thinking",
+              },
+              "*": {
+                headline: "Right street, wrong door",
+                body: "Both of these are on 10.20.5, so the routing is the same — but the plaque has to match the work order.",
+                characterState: "ivy-thinking",
               },
             },
           },
           {
             id: "d3",
-            label: "10.20.7.20",
-            detail: "Depot file server",
-            correctOptionId: "gateway",
-            responses: {
-              gateway: {
-                headline: "Different neighborhood — 10.20.7",
-                body: "The third number changed, so this is off-block for this /24 example. The workstation hands the traffic to 10.20.5.1.",
-              },
-              local: {
-                headline: "Check the third number",
-                body: "10.20.7.20 is not 10.20.5.something. Treating it as local means the workstation would shout on its own segment and nobody would answer — which is exactly what an ARP timeout looks like.",
-                revealsEvidenceIds: ["ev-gateway"],
+            address: "10.20.7.20",
+            workOrder: "Deliver the depot drive to 10.20.7.20.",
+            presentInEnvironment: false,
+            correctHotspotId: "hs-gateway",
+            correct: {
+              headline: "Different neighborhood — 10.20.7",
+              body: "The third number changed, so there is no building here with that plaque. Ivy takes the gateway road at 10.20.5.1 and lets the next street handle it.",
+              revealsEvidenceIds: ["ev-gateway"],
+              characterState: "ivy-point",
+            },
+            incorrect: {
+              "*": {
+                headline: "Look at the plaques again — nothing here says 10.20.7",
+                body: "Walking the block looking for an address that isn't on it means shouting on her own segment and getting no answer. That silence is exactly what an ARP timeout looks like.",
+                revealsEvidenceIds: ["ev-scope"],
+                characterState: "ivy-thinking",
               },
             },
           },
           {
             id: "d4",
-            label: "10.21.5.42",
-            detail: "Regional monitoring host",
-            correctOptionId: "gateway",
-            responses: {
-              gateway: {
-                headline: "Different neighborhood — 10.21.5",
-                body: "The second number changed too. Off-block, so it leaves through the gateway.",
-              },
-              local: {
-                headline: "A familiar-looking ending is not a neighborhood",
-                body: "10.21.5.42 ends the same way as Ivy's own address, which is exactly why it is worth checking. The neighborhood is decided by 10.21.5 versus 10.20.5, not by the last number.",
+            address: "10.21.5.42",
+            workOrder: "Hand the monitoring appliance to 10.21.5.42.",
+            presentInEnvironment: false,
+            correctHotspotId: "hs-gateway",
+            correct: {
+              headline: "Different neighborhood — 10.21.5",
+              body: "The second number changed too. Off-block, so it leaves through the gateway even though it ends the same way as Ivy's own address.",
+              characterState: "ivy-point",
+            },
+            incorrect: {
+              "*": {
+                headline: "A familiar ending is not a neighborhood",
+                body: "10.21.5.42 ends exactly like Ivy's own address, which is why it's worth checking. The neighborhood is decided by 10.21.5 versus 10.20.5, not by the last number.",
                 revealsEvidenceIds: ["ev-scope"],
+                characterState: "ivy-thinking",
               },
             },
           },
         ],
+        completion: {
+          headline: "Two doors on this street, two trips down the gateway road.",
+          body: "10.20.5.20 and 10.20.5.99 are buildings Ivy can walk to. 10.20.7.20 and 10.21.5.42 have no plaque on this block, so they leave through 10.20.5.1 — the same road that eventually reaches Cloud Heights.",
+        },
       },
       successSummary:
         "Two destinations sit on 10.20.5 and are reached directly. Two sit on different blocks and leave through 10.20.5.1. That single check — same neighborhood or not — is the first question in almost every connectivity call.",
       retryPrompt:
-        "Nothing is locked in. Change any destination and watch what the evidence does.",
+        "Nothing is locked in. Re-route any delivery and watch what the evidence does.",
       explanation:
         "For this /24 example the first three numbers identify the neighborhood. Matching neighborhood means direct local delivery; a different neighborhood means the workstation forwards to its default gateway at 10.20.5.1. Other mask lengths divide the address at a different point — Week 6 does not use binary subnetting.",
       instructorNotes: [
-        "Ask for predictions before anyone selects an option.",
+        "Ask for predictions before anyone clicks a building.",
         "If a student generalises the rule to every mask, restate the /24 framing.",
       ],
       continueLabel: "Continue to the ticket",
     },
+
     {
       id: "scene-02-the-ticket",
       title: "Mission 02 — The Ticket",
