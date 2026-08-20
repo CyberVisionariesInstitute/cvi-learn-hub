@@ -275,6 +275,14 @@ export const fromTheGridToCloudHeights: Experience = {
         "Answer three real support questions by choosing the tool that actually answers each one, then say what the output proved.",
       environmentId: "ivy-workstation",
       characterState: "ivy-type",
+      characterStaging: {
+        x: 12,
+        bottom: 2,
+        height: 56,
+        mobileX: 14,
+        mobileHeight: 40,
+      },
+
       intro: [
         {
           id: "l1",
