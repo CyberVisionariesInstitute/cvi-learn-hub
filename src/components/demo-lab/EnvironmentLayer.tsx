@@ -7,8 +7,8 @@ import type { Character, CharacterState, Environment } from "@/lib/demo-lab/type
 const characterStagePosition: Record<Environment["surface"], string> = {
   monitor: "bottom-2 left-2 h-[46%] w-[13%] min-w-16 @3xl:left-4 @3xl:h-[58%]",
   "wall-display": "bottom-2 left-3 h-[52%] w-[14%] min-w-16 @3xl:h-[64%]",
-  whiteboard: "bottom-2 right-3 h-[50%] w-[14%] min-w-16 @3xl:h-[62%]",
-  "evidence-board": "bottom-2 right-3 h-[48%] w-[13%] min-w-16 @3xl:h-[60%]",
+  whiteboard: "bottom-24 right-3 h-[50%] w-[14%] min-w-16 @3xl:h-[62%]",
+  "evidence-board": "bottom-24 right-3 h-[48%] w-[13%] min-w-16 @3xl:h-[60%]",
   terminal: "bottom-2 left-2 h-[44%] w-[12%] min-w-16 @3xl:h-[56%]",
 };
 
@@ -68,7 +68,7 @@ export function EnvironmentLayer({
       {character ? (
         <div
           className={cn(
-            "pointer-events-none absolute z-10 transition-[left,right,bottom,opacity] duration-700 ease-out motion-reduce:transition-none",
+            "pointer-events-none absolute z-0 transition-[left,right,bottom,opacity] duration-700 ease-out motion-reduce:transition-none",
             characterStagePosition[environment.surface],
           )}
         >
