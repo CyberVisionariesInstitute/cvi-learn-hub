@@ -1,6 +1,16 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import type { Environment } from "@/lib/demo-lab/types";
+import { CharacterLayer } from "./CharacterLayer";
+import type { Character, CharacterState, Environment } from "@/lib/demo-lab/types";
+
+/** Where Ivy stands inside each kind of space, so staging matches the scene. */
+const characterStagePosition: Record<Environment["surface"], string> = {
+  monitor: "bottom-2 left-2 h-[46%] w-[13%] min-w-16 @3xl:left-4 @3xl:h-[58%]",
+  "wall-display": "bottom-2 left-3 h-[52%] w-[14%] min-w-16 @3xl:h-[64%]",
+  whiteboard: "bottom-2 right-3 h-[50%] w-[14%] min-w-16 @3xl:h-[62%]",
+  "evidence-board": "bottom-2 right-3 h-[48%] w-[13%] min-w-16 @3xl:h-[60%]",
+  terminal: "bottom-2 left-2 h-[44%] w-[12%] min-w-16 @3xl:h-[56%]",
+};
 
 const surfaceLabel: Record<Environment["surface"], string> = {
   monitor: "Workstation monitor",
@@ -18,10 +28,15 @@ export function EnvironmentLayer({
   environment,
   children,
   aside,
+  character,
+  characterState = "ivy-idle",
 }: {
   environment: Environment;
   children: ReactNode;
   aside?: ReactNode;
+  /** In-scene figure; omit for environments that stage the character themselves. */
+  character?: Character;
+  characterState?: CharacterState;
 }) {
   return (
     <section
@@ -49,6 +64,17 @@ export function EnvironmentLayer({
       <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,var(--color-background)/20_0%,transparent_34%,var(--color-background)/82_100%)]" />
       <div aria-hidden="true" className="absolute inset-0 shadow-[inset_0_0_100px_color-mix(in_oklab,var(--background)_75%,transparent)]" />
       <div aria-hidden="true" className="absolute inset-x-[-5%] bottom-[-2rem] h-24 rounded-[50%] bg-background/80 blur-2xl" />
+
+      {character ? (
+        <div
+          className={cn(
+            "pointer-events-none absolute z-10 transition-[left,right,bottom,opacity] duration-700 ease-out motion-reduce:transition-none",
+            characterStagePosition[environment.surface],
+          )}
+        >
+          <CharacterLayer character={character} state={characterState} variant="figure" />
+        </div>
+      ) : null}
 
       <div className="relative flex min-h-[32rem] flex-col justify-end p-3 sm:p-5">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">

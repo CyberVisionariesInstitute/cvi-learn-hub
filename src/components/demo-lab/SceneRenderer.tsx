@@ -70,6 +70,8 @@ export function SceneRenderer({
       ) : (
         <EnvironmentLayer
           environment={environment}
+          character={character}
+          characterState={controller.characterState}
           aside={
             <>
               <EvidencePanel items={visibleEvidence} title="On screen" />
