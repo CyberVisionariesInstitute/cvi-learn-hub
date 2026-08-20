@@ -1,5 +1,12 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { ToolBench } from "./interactions/ToolBench";
+import { LadderBoard } from "./interactions/LadderBoard";
+import { AccessChain } from "./interactions/AccessChain";
+import { Investigation } from "./interactions/Investigation";
+import { SshDiagnostic } from "./interactions/SshDiagnostic";
+import { IncidentBoard } from "./interactions/IncidentBoard";
+import { BriefingBoard } from "./interactions/BriefingBoard";
 import type { ExperienceController } from "@/lib/demo-lab/useExperienceState";
 import type {
   ClassifyInteraction,
@@ -233,6 +240,20 @@ export function InteractionLayer({
       return <SelectObjectRenderer interaction={interaction} controller={controller} />;
     case "terminal":
       return <TerminalRenderer interaction={interaction} controller={controller} />;
+    case "tool-terminal":
+      return <ToolBench interaction={interaction} controller={controller} />;
+    case "sequence":
+      return <LadderBoard interaction={interaction} controller={controller} />;
+    case "evidence-select":
+      return <AccessChain interaction={interaction} controller={controller} />;
+    case "investigation":
+      return <Investigation interaction={interaction} controller={controller} />;
+    case "three-state":
+      return <SshDiagnostic interaction={interaction} controller={controller} />;
+    case "evidence-sort":
+      return <IncidentBoard interaction={interaction} controller={controller} />;
+    case "briefing":
+      return <BriefingBoard interaction={interaction} controller={controller} />;
     default:
       return null;
   }
