@@ -1418,6 +1418,17 @@ export const fromTheGridToCloudHeights: Experience = {
         "Assemble a statement you could defend to the operations lead, and say what remains open.",
       environmentId: "briefing-room",
       characterState: "ivy-briefing",
+      bareSurface: true,
+      characterStaging: {
+        x: 84,
+        bottom: 5,
+        height: 58,
+        mobileX: 84,
+        mobileBottom: 3,
+        mobileHeight: 42,
+        flip: true,
+      },
+
       intro: [
         {
           id: "l1",
