@@ -603,7 +603,7 @@ export const fromTheGridToCloudHeights: Experience = {
       characterState: "ivy-whiteboard",
       bareSurface: true,
       characterStaging: {
-        x: 88,
+        x: 83,
         bottom: 7,
         height: 60,
         mobileX: 84,
