@@ -74,7 +74,7 @@ function CyberFoundationsPage() {
           />
           <div className="relative max-w-2xl p-6 sm:p-10">
             <p className="text-xs tracking-[0.24em] text-primary uppercase">
-              Flagship live mission · {flagship.subtitle}
+              Flagship · {flagship.subtitle}
             </p>
             <h2
               id="flagship-heading"
