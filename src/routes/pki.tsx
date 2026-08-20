@@ -49,8 +49,8 @@ function PkiPage() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-6xl px-5 pb-16 sm:px-8">
-        <div className="-mt-10 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2">
+      <div className="mx-auto max-w-6xl px-5 pt-4 pb-16 sm:px-8">
+        <div className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2">
           {pki.modules.map((module) => (
             <section key={module.id} className="bg-surface p-7">
               <h2 className="text-xs tracking-[0.24em] text-primary uppercase">
