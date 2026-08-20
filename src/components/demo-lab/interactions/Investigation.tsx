@@ -105,8 +105,8 @@ export function Investigation({
           </ul>
         </aside>
 
-        <div className="grid gap-4 @4xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-          <div className="space-y-4">
+        <div className="grid min-w-0 gap-4 @4xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+          <div className="min-w-0 space-y-4">
             <p className="border-l-2 border-destructive bg-destructive/10 p-3 text-sm text-foreground">
               {interaction.opening.caption}
             </p>
@@ -117,7 +117,7 @@ export function Investigation({
               className="screen-refresh"
             />
           </div>
-          <div className="space-y-4">
+          <div className="min-w-0 space-y-4">
             {visibleSteps.map((step, i) => {
               const isActive = i === visibleSteps.length - 1 && !done;
               return (
