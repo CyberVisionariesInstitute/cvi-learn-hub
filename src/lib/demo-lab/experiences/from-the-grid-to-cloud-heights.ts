@@ -716,6 +716,14 @@ export const fromTheGridToCloudHeights: Experience = {
         "Read the lobby access check and separate what it proves from what it only suggests.",
       environmentId: "secure-lobby",
       characterState: "ivy-read-screen",
+      characterStaging: {
+        x: 14,
+        bottom: 3,
+        height: 56,
+        mobileX: 15,
+        mobileHeight: 40,
+      },
+
       intro: [
         {
           id: "l1",
