@@ -300,7 +300,7 @@ export function NeighborhoodRoute({
         })}
 
         {/* Ivy's work order, mounted in-scene */}
-        <div className="absolute right-3 bottom-3 left-3 z-20 rounded-lg border border-border/70 bg-background/85 p-3 backdrop-blur-sm sm:right-auto sm:left-5 sm:max-w-sm sm:bottom-5">
+        <div className="absolute right-3 bottom-3 left-3 z-20 rounded-lg border border-border/70 bg-background/85 p-3 backdrop-blur-sm sm:left-auto sm:right-5 sm:max-w-xs sm:bottom-5">
           <p className="text-[0.65rem] tracking-[0.2em] text-muted-foreground uppercase">
             Ivy's work order · {answeredCount} of {interaction.requests.length} routed
           </p>
