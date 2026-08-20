@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
-import type { Experience, Interaction, Scene } from "./types";
+import type { CharacterState, Experience, Interaction, Scene } from "./types";
 
 /** Interaction state for one scene. Keyed per scene so a reset is local. */
 export interface SceneState {
-  /** classify: itemId -> optionId */
+  /** classify: itemId -> optionId · route-choice: requestId -> hotspotId */
   answers: Record<string, string>;
   /** evidence ids surfaced by the learner's own actions */
   revealedEvidence: string[];
@@ -11,6 +11,8 @@ export interface SceneState {
   used: string[];
   /** learner-requested explanation */
   explanationRevealed: boolean;
+  /** in-scene character state, driven by the interaction */
+  characterState?: CharacterState;
 }
 
 const emptySceneState: SceneState = {
@@ -28,6 +30,11 @@ export function isSceneComplete(scene: Scene, state: SceneState): boolean {
       (item) => state.answers[item.id] === item.correctOptionId,
     );
   }
+  if (interaction.kind === "route-choice") {
+    return interaction.requests.every(
+      (request) => state.answers[request.id] === request.correctHotspotId,
+    );
+  }
   if (interaction.kind === "select-object") {
     return interaction.objects.some((o) => state.used.includes(o.id));
   }
@@ -36,6 +43,7 @@ export function isSceneComplete(scene: Scene, state: SceneState): boolean {
   }
   return true;
 }
+
 
 export interface ExperienceController {
   experience: Experience;
@@ -58,6 +66,10 @@ export interface ExperienceController {
   answer: (itemId: string, optionId: string) => void;
   markUsed: (id: string) => void;
   revealEvidenceIds: (ids: string[]) => void;
+  /** Effective character state for the current scene. */
+  characterState: CharacterState;
+  setCharacterState: (state: CharacterState) => void;
+
 }
 
 export function useExperienceState(experience: Experience): ExperienceController {
@@ -136,6 +148,13 @@ export function useExperienceState(experience: Experience): ExperienceController
 
   const complete = useMemo(() => isSceneComplete(scene, sceneState), [scene, sceneState]);
 
+  const setCharacterState = useCallback(
+    (next: CharacterState) => {
+      patch(scene.id, (prev) => ({ ...prev, characterState: next }));
+    },
+    [patch, scene.id],
+  );
+
   return {
     experience,
     scene,
@@ -158,5 +177,8 @@ export function useExperienceState(experience: Experience): ExperienceController
     answer,
     markUsed,
     revealEvidenceIds,
+    characterState: sceneState.characterState ?? scene.characterState,
+    setCharacterState,
   };
+
 }

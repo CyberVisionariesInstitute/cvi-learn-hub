@@ -214,7 +214,11 @@ function TerminalRenderer({
   );
 }
 
-/** Renderer registry — add new interaction patterns here. */
+/**
+ * Renderer registry — add new interaction patterns here.
+ * `route-choice` is not listed: it owns the whole environment stage and is
+ * mounted directly by SceneRenderer.
+ */
 export function InteractionLayer({
   interaction,
   controller,
@@ -233,3 +237,4 @@ export function InteractionLayer({
       return null;
   }
 }
+

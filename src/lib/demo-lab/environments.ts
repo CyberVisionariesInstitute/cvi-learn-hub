@@ -1,13 +1,22 @@
+import gridNeighborhoodDusk from "@/assets/environments/cyberfoundations/grid-neighborhood-dusk.jpg";
+import gridToCloudHeights from "@/assets/environments/cyberfoundations/grid-to-cloud-heights.jpg";
 import type { Environment } from "./types";
 
+/**
+ * Environment art convention:
+ *   src/assets/environments/<program>/<environment-id>.jpg
+ * Scene config selects the environment; no component hard-codes imagery.
+ */
 export const cyberfoundationsEnvironments: Environment[] = [
   {
     id: "grid-neighborhood",
-    name: "The Grid — Neighborhood",
+    name: "The Grid — 10.20.5 Neighborhood",
     description:
-      "A residential and light-industrial service block. Street cabinets, service pedestals and a technician van parked at the curb.",
+      "A small-business district at dusk: streets, sidewalks, landscaping and low offices, with a road leaving toward the arterial.",
     surface: "monitor",
+    backgroundSrc: gridNeighborhoodDusk,
   },
+
   {
     id: "ivy-workstation",
     name: "Ivy's Workstation",
@@ -26,7 +35,9 @@ export const cyberfoundationsEnvironments: Environment[] = [
     name: "Cloud Heights — Technology Campus",
     description: "A modern datacenter campus approach with glass frontage at dusk.",
     surface: "wall-display",
+    backgroundSrc: gridToCloudHeights,
   },
+
   {
     id: "secure-lobby",
     name: "Secure Lobby",

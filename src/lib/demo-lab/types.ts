@@ -32,12 +32,29 @@ export type CharacterState =
   | "ivy-nod"
   | "ivy-briefing";
 
-/** Motion assets are optional; a static fallback is always required. */
+/**
+ * Per-state character media.
+ *
+ * Asset convention (see src/assets/characters/ivy/README.md):
+ *   src/assets/characters/ivy/ivy-idle.webp        static / reduced-motion
+ *   src/assets/characters/ivy/ivy-enter.webm       transparent motion
+ *   src/assets/characters/ivy/ivy-enter.mp4        fallback motion
+ *
+ * A state with no media falls back to the neutral placeholder figure. The
+ * player never depends on media being present.
+ */
+export type CharacterMediaType =
+  | "video/webm"
+  | "video/mp4"
+  | "image/webp"
+  | "image/png";
+
 export interface CharacterAsset {
-  /** webm/mp4/webp animated source — optional. */
-  motionSrc?: string;
-  motionType?: "video/webm" | "video/mp4" | "image/webp";
-  /** Always present: used for reduced motion and as a load fallback. */
+  /** Ordered motion sources; first playable one wins (webm → mp4). */
+  motionSources?: Array<{ src: string; type: CharacterMediaType }>;
+  /** Animated WebP, used when no video source is available. */
+  animatedSrc?: string;
+  /** Always used for reduced motion, poster, and load fallback. */
   staticSrc?: string;
   alt: string;
 }
@@ -47,9 +64,12 @@ export interface Character {
   name: string;
   role: string;
   accentToken: "signal" | "amber" | "violet" | "evidence";
-  /** Optional per-state assets. Missing states fall back to a stylized marker. */
+  /** Optional per-state assets. Missing states fall back to a neutral figure. */
   assets?: Partial<Record<CharacterState, CharacterAsset>>;
+  /** Documented production asset slots that are not yet filled. */
+  plannedAssets?: Partial<Record<CharacterState, string[]>>;
 }
+
 
 export type EnvironmentId =
   | "grid-neighborhood"
@@ -94,7 +114,14 @@ export interface EvidenceItem {
   /** Neutral by default; status is always paired with a text label. */
   status?: "healthy" | "degraded" | "no-response" | "unknown";
   note?: string;
+  /**
+   * Declarative: the item stays out of the evidence panel until the learner's
+   * own actions reveal it (or the instructor reveals everything). Replaces the
+   * former hard-coded id check in SceneRenderer.
+   */
+  hiddenUntilRevealed?: boolean;
 }
+
 
 /* ------------------------------------------------------------------ */
 /* Interaction engine                                                  */
@@ -102,12 +129,14 @@ export interface EvidenceItem {
 
 export type InteractionKind =
   | "classify"
+  | "route-choice"
   | "select-object"
   | "sequence"
   | "terminal"
   | "evidence-board"
   | "branching"
   | "briefing";
+
 
 export interface ClassifyOption {
   id: string;
@@ -143,7 +172,71 @@ export interface ClassifyInteraction {
   scopeNote?: string;
 }
 
+/* ------------------------------------------------------------------ */
+/* route-choice: the environment itself is the interaction surface.    */
+/* ------------------------------------------------------------------ */
+
+export interface HotspotAnchor {
+  /** Percentage coordinates on the environment stage (0–100). */
+  x: number;
+  y: number;
+  /** Optional re-framed coordinates for the mobile crop of the stage. */
+  mobileX?: number;
+  mobileY?: number;
+}
+
+export interface EnvironmentHotspot extends HotspotAnchor {
+  id: string;
+  /** origin = where the character starts; gateway = the way out of the block. */
+  kind: "origin" | "location" | "gateway";
+  /** Plain-language place name, e.g. "Archive Office". */
+  label: string;
+  /** Address plaque text mounted on the place, e.g. "10.20.5.20". */
+  address?: string;
+  /** Extra signage, e.g. "10.20.7 District →". */
+  signage?: string[];
+  detail?: string;
+}
+
+export interface RouteResponse {
+  headline: string;
+  body: string;
+  revealsEvidenceIds?: string[];
+  /** Character state to hold after this response. */
+  characterState?: CharacterState;
+}
+
+export interface RouteRequest {
+  id: string;
+  /** Destination address on Ivy's work order. */
+  address: string;
+  /** How Ivy asks for it, in-world. */
+  workOrder: string;
+  /** Whether this destination physically exists inside the neighborhood. */
+  presentInEnvironment: boolean;
+  correctHotspotId: string;
+  correct: RouteResponse;
+  /** Keyed by chosen hotspot id; "*" is the fallback. */
+  incorrect: Record<string, RouteResponse>;
+}
+
+export interface RouteChoiceInteraction {
+  id: string;
+  kind: "route-choice";
+  prompt: string;
+  instruction: string;
+  scopeNote?: string;
+  /** Neighborhood directory sign rendered inside the scene. */
+  sign: { title: string; lines: string[] };
+  hotspots: EnvironmentHotspot[];
+  requests: RouteRequest[];
+  completion: { headline: string; body: string };
+  /** Character positions on the stage, per state. */
+  characterAnchors?: Partial<Record<CharacterState, HotspotAnchor>>;
+}
+
 export interface SelectObjectInteraction {
+
   id: string;
   kind: "select-object";
   prompt: string;
@@ -162,8 +255,10 @@ export interface TerminalInteraction {
 /** Extend this union to add new interaction patterns. */
 export type Interaction =
   | ClassifyInteraction
+  | RouteChoiceInteraction
   | SelectObjectInteraction
   | TerminalInteraction;
+
 
 /* ------------------------------------------------------------------ */
 /* Scenes and experiences                                              */
