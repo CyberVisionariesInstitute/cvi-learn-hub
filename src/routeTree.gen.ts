@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PkiRouteImport } from './routes/pki'
+import { Route as CyberfoundationsIndexRouteImport } from './routes/cyberfoundations.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PkiRoute = PkiRouteImport.update({
+  id: '/pki',
+  path: '/pki',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CyberfoundationsIndexRoute = CyberfoundationsIndexRouteImport.update({
+  id: '/cyberfoundations/',
+  path: '/cyberfoundations/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/pki': typeof PkiRoute
+  '/cyberfoundations/': typeof CyberfoundationsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/pki': typeof PkiRoute
+  '/cyberfoundations': typeof CyberfoundationsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/pki': typeof PkiRoute
+  '/cyberfoundations/': typeof CyberfoundationsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/pki' | '/cyberfoundations/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/pki' | '/cyberfoundations'
+  id: '__root__' | '/' | '/pki' | '/cyberfoundations/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PkiRoute: typeof PkiRoute
+  CyberfoundationsIndexRoute: typeof CyberfoundationsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +68,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pki': {
+      id: '/pki'
+      path: '/pki'
+      fullPath: '/pki'
+      preLoaderRoute: typeof PkiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cyberfoundations/': {
+      id: '/cyberfoundations/'
+      path: '/cyberfoundations'
+      fullPath: '/cyberfoundations/'
+      preLoaderRoute: typeof CyberfoundationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PkiRoute: PkiRoute,
+  CyberfoundationsIndexRoute: CyberfoundationsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
