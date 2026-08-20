@@ -25,7 +25,7 @@ export function EnvironmentLayer({
 }) {
   return (
     <section
-      className="@container relative overflow-hidden rounded-xl border border-border/70 bg-surface/60"
+      className="@container scene-depth relative min-h-[32rem] overflow-hidden rounded-xl border border-border/50 bg-surface/60 shadow-[var(--shadow-depth)]"
       aria-label={`Environment: ${environment.name}`}
     >
       {environment.backgroundSrc ? (
@@ -33,7 +33,7 @@ export function EnvironmentLayer({
           src={environment.backgroundSrc}
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 size-full object-cover opacity-70"
+          className="absolute -inset-2 size-[calc(100%+1rem)] object-cover opacity-85 transition-transform duration-1000 ease-out hover:scale-[1.015] motion-reduce:transition-none"
         />
       ) : (
         <div
@@ -46,7 +46,11 @@ export function EnvironmentLayer({
         />
       )}
 
-      <div className="relative p-4 sm:p-6">
+      <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,var(--color-background)/20_0%,transparent_34%,var(--color-background)/82_100%)]" />
+      <div aria-hidden="true" className="absolute inset-0 shadow-[inset_0_0_100px_color-mix(in_oklab,var(--background)_75%,transparent)]" />
+      <div aria-hidden="true" className="absolute inset-x-[-5%] bottom-[-2rem] h-24 rounded-[50%] bg-background/80 blur-2xl" />
+
+      <div className="relative flex min-h-[32rem] flex-col justify-end p-3 sm:p-5">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <h3 className="font-display text-sm tracking-[0.18em] text-foreground uppercase">
             {environment.name}
@@ -54,12 +58,14 @@ export function EnvironmentLayer({
           <p className="text-xs text-muted-foreground">{environment.description}</p>
         </div>
 
-        <div className="mt-4 grid gap-4 @4xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="mt-4 grid items-end gap-4 @5xl:grid-cols-[minmax(0,1fr)_18rem]">
           {/* The surface inside the environment that carries the interaction */}
           <div
             className={cn(
-              "@container glass-panel relative rounded-lg p-4 sm:p-6",
+              "@container physical-surface relative max-h-[75vh] overflow-auto rounded-lg bg-surface/88 p-4 sm:p-6",
               environment.surface === "terminal" && "bg-terminal/80 font-mono",
+              environment.surface === "monitor" && "@5xl:rotate-x-1 @5xl:-rotate-y-1",
+              environment.surface === "whiteboard" && "@5xl:rotate-y-1",
             )}
           >
             <div className="mb-3 flex items-center gap-2 text-[0.65rem] tracking-[0.2em] text-muted-foreground uppercase">

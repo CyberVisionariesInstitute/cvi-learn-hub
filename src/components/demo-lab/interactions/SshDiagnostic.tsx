@@ -39,7 +39,7 @@ export function SshDiagnostic({
         instruction={interaction.instruction}
       />
 
-      <div className="grid gap-4 @3xl:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
+      <div className="scene-depth grid gap-4 @3xl:grid-cols-[minmax(0,15rem)_minmax(0,1fr)]">
         <nav aria-label="Evidence scenarios">
           <h3 className="text-[0.65rem] tracking-[0.22em] text-muted-foreground uppercase">
             Captured messages
@@ -52,7 +52,7 @@ export function SshDiagnostic({
                   onClick={() => setIndex(i)}
                   aria-pressed={i === index}
                   className={cn(
-                    "min-h-14 w-full rounded-md border px-3 py-2 text-left transition-colors",
+                    "tactile-control min-h-14 w-full rounded-sm border px-3 py-2 text-left",
                     i === index
                       ? "border-primary bg-primary/15"
                       : "border-border hover:border-primary/60",
@@ -71,21 +71,21 @@ export function SshDiagnostic({
         </nav>
 
         <div className="space-y-4">
-          <TerminalView lines={[`analyst@cf-jump:~$ ssh analyst@cf-student-07`, active.output]} />
+          <TerminalView key={active.id} className="screen-refresh origin-bottom-left @3xl:rotate-y-2" lines={[`analyst@cf-jump:~$ ssh analyst@cf-student-07`, active.output]} />
 
           <section
-            className="rounded-lg border border-border bg-surface-raised/40 p-4"
+            className="monitor-surface origin-bottom-right rounded-md p-4 @3xl:-rotate-y-2"
             aria-label={interaction.monitorTitle}
           >
             <h3 className="font-display text-xs tracking-[0.2em] text-foreground uppercase">
               {interaction.monitorTitle}
             </h3>
-            <div className="mt-3 space-y-4">
+              <div className="relative mt-3 space-y-4 before:absolute before:top-10 before:bottom-10 before:left-3 before:w-px before:bg-primary/40">
               {interaction.dimensions.map((dim) => {
                 const chosen = answers[`${active.id}:${dim.id}`];
                 const isCorrect = chosen === active.correct[dim.id];
                 return (
-                  <fieldset key={dim.id}>
+                    <fieldset key={dim.id} className="relative pl-7 before:absolute before:top-2 before:left-1.5 before:size-3 before:rounded-full before:border before:border-primary before:bg-terminal">
                     <legend className="font-display text-sm text-foreground">
                       {dim.label}
                     </legend>
@@ -105,7 +105,7 @@ export function SshDiagnostic({
                           }}
                           aria-pressed={chosen === state.id}
                           className={cn(
-                            "min-h-11 rounded-md border px-3 py-2 text-sm transition-colors",
+                              "tactile-control min-h-11 rounded-sm border px-3 py-2 text-sm",
                             chosen === state.id
                               ? isCorrect
                                 ? "border-evidence/70 bg-evidence/10 text-foreground"

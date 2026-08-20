@@ -14,7 +14,7 @@ export function TerminalView({
   return (
     <div
       className={cn(
-        "rounded-lg border border-border/70 bg-terminal/90 shadow-inner",
+        "monitor-surface overflow-hidden rounded-md shadow-inner",
         className,
       )}
     >
@@ -71,7 +71,7 @@ export function SurfaceHeading({
   note?: string;
 }) {
   return (
-    <div>
+    <div className="border-l-2 border-primary/60 pl-3">
       {eyebrow ? (
         <p className="text-[0.65rem] tracking-[0.22em] text-primary uppercase">
           {eyebrow}
@@ -82,7 +82,7 @@ export function SurfaceHeading({
         <p className="mt-2 text-sm text-muted-foreground">{instruction}</p>
       ) : null}
       {note ? (
-        <p className="mt-3 rounded-md border border-amber/40 bg-amber/10 p-3 text-sm text-foreground">
+        <p className="mt-3 border-l-2 border-amber bg-amber/10 p-3 text-sm text-foreground">
           {note}
         </p>
       ) : null}
@@ -106,7 +106,7 @@ export function IvyNote({
     proven: "border-evidence/50 bg-evidence/10",
   }[tone];
   return (
-    <div className={cn("rounded-md border p-4", toneClass)}>
+    <div className={cn("border-l-2 p-3 shadow-[var(--shadow-object)]", toneClass)}>
       <p className="font-display text-sm text-foreground">{headline}</p>
       {children ? (
         <div className="mt-2 text-sm leading-relaxed text-foreground">{children}</div>
@@ -175,7 +175,8 @@ export function PlacementBoard({
                 onClick={() => onSelect(selectedId === item.id ? null : item.id)}
                 aria-pressed={selectedId === item.id}
                 className={cn(
-                  "min-h-11 rounded-md border px-3 py-2 text-left text-sm transition-colors",
+                  "pinned-card min-h-11 rounded-sm border px-3 py-2 text-left text-sm",
+                  "[--card-tilt:-0.6deg] odd:[--card-tilt:0.7deg]",
                   selectedId === item.id
                     ? "border-primary bg-primary/15 text-foreground"
                     : "border-border bg-surface-raised/50 text-foreground hover:border-primary/60",
@@ -203,7 +204,7 @@ export function PlacementBoard({
                 const id = e.dataTransfer.getData("text/plain");
                 if (id) onPlace(id, bucket.id);
               }}
-              className="rounded-lg border border-border bg-surface-raised/40 p-3"
+              className="relative min-h-44 rounded-sm border border-border/70 bg-surface-raised/50 p-3 shadow-inner before:absolute before:inset-x-0 before:top-9 before:border-t before:border-border/35"
               aria-label={bucket.label}
             >
               <h3 className="font-display text-xs tracking-[0.18em] text-foreground uppercase">
@@ -214,7 +215,7 @@ export function PlacementBoard({
                 type="button"
                 disabled={!selectedId}
                 onClick={() => selectedId && onPlace(selectedId, bucket.id)}
-                className="mt-3 min-h-11 w-full rounded-md border border-dashed border-border px-3 text-xs text-muted-foreground hover:border-primary/60 hover:text-foreground disabled:opacity-40"
+                className="tactile-control mt-4 min-h-11 w-full rounded-sm border border-dashed border-border px-3 text-xs text-muted-foreground hover:border-primary/60 hover:text-foreground disabled:opacity-40"
               >
                 {selectedId ? `Place here` : "Select a card first"}
               </button>
@@ -227,7 +228,8 @@ export function PlacementBoard({
                         type="button"
                         onClick={() => onUnplace(item.id)}
                         className={cn(
-                          "min-h-11 w-full rounded-md border px-3 py-2 text-left text-sm",
+                            "pinned-card settle-in min-h-11 w-full rounded-sm border px-3 py-2 text-left text-sm",
+                            "[--card-tilt:0.6deg] even:[--card-tilt:-0.7deg]",
                           status === "correct"
                             ? "border-evidence/60 bg-evidence/10"
                             : status === "incorrect"

@@ -40,14 +40,15 @@ export function AccessChain({
         instruction={interaction.instruction}
       />
 
-      {interaction.terminal ? (
-        <TerminalView lines={interaction.terminal.lines} label="Remote shell" />
-      ) : null}
+      <div className="scene-depth grid gap-4 @3xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+        {interaction.terminal ? (
+          <TerminalView lines={interaction.terminal.lines} label="Lobby workstation · remote shell" className="origin-bottom-left @3xl:rotate-y-2" />
+        ) : null}
 
-      <section
-        className="rounded-lg border border-border bg-surface-raised/40 p-4"
-        aria-label="Access path"
-      >
+        <section
+        className="monitor-surface origin-bottom-right rounded-md p-4 @3xl:-rotate-y-2"
+        aria-label="Access path status display"
+        >
         <h3 className="font-display text-xs tracking-[0.2em] text-foreground uppercase">
           Access path
         </h3>
@@ -58,9 +59,9 @@ export function AccessChain({
               <li key={node.id} className="flex items-center gap-2">
                 <div
                   className={cn(
-                    "rounded-md border px-3 py-2 text-center",
+                     "rounded-sm border px-3 py-2 text-center transition-[background-color,box-shadow,transform] duration-300",
                     lit
-                      ? "border-evidence/70 bg-evidence/15"
+                       ? "screen-refresh border-evidence/70 bg-evidence/15 shadow-[0_0_18px_color-mix(in_oklab,var(--evidence)_30%,transparent)]"
                       : "border-border bg-surface/60",
                   )}
                 >
@@ -78,13 +79,14 @@ export function AccessChain({
             );
           })}
         </ol>
-      </section>
+        </section>
+      </div>
 
       <fieldset>
         <legend className="text-[0.65rem] tracking-[0.22em] text-muted-foreground uppercase">
           What does this shell already prove?
         </legend>
-        <div className="mt-3 grid gap-2 @2xl:grid-cols-2">
+          <div className="mt-3 grid gap-2 @2xl:grid-cols-2">
           {interaction.options.map((option) => {
             const isOn = selected(option.id);
             return (
@@ -94,7 +96,7 @@ export function AccessChain({
                 onClick={() => toggle(option.id, option.supported)}
                 aria-pressed={isOn}
                 className={cn(
-                  "min-h-14 rounded-md border px-3 py-2.5 text-left transition-colors",
+                  "tactile-control min-h-14 rounded-sm border px-3 py-2.5 text-left font-mono",
                   isOn
                     ? option.supported
                       ? "border-evidence/70 bg-evidence/10"

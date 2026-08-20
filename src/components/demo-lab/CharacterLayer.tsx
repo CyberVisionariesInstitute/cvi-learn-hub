@@ -131,6 +131,12 @@ export function CharacterLayer({
         className={cn(
           "relative flex shrink-0 items-center justify-center overflow-hidden",
           frame,
+          variant === "figure" &&
+            "drop-shadow-[0_18px_12px_color-mix(in_oklab,var(--background)_65%,transparent)] transition-[opacity,transform] duration-500 ease-out motion-reduce:transition-none",
+          variant === "figure" && state === "ivy-enter" && "translate-x-3 opacity-70",
+          variant === "figure" && state === "ivy-thinking" && "-rotate-1 scale-[0.99]",
+          variant === "figure" && state === "ivy-point" && "translate-x-1",
+          variant === "figure" && state === "ivy-nod" && "-translate-y-0.5",
           !interactive && "pointer-events-none",
         )}
       >
@@ -141,7 +147,6 @@ export function CharacterLayer({
             poster={asset?.staticSrc}
             autoPlay
             muted
-            loop
             playsInline
             aria-label={label}
           >

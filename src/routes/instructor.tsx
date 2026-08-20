@@ -42,7 +42,7 @@ function InstructorConsole() {
   const experience = available.find((e) => e.id === experienceId) ?? null;
 
   return (
-    <DemoLabShell themeClass={program.themeClass}>
+    <DemoLabShell themeClass={program.themeClass} bare={false}>
       <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
         <p className="text-xs tracking-[0.3em] text-primary uppercase">Instructor mode</p>
         <h1 className="mt-3 font-display text-3xl font-semibold text-foreground">
@@ -176,28 +176,28 @@ function ExperienceConsole({ experience }: { experience: Experience }) {
   ];
 
   return (
-    <div className="space-y-6">
-      <section className="glass-panel rounded-lg p-4">
-        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+    <div className={cn("space-y-6", presenting && "fixed inset-0 z-50 overflow-auto bg-background p-3 sm:p-5")}>
+      <section className={cn("glass-panel rounded-lg p-4", presenting && "sticky top-2 z-50 ml-auto w-fit border-primary/40 bg-background/90 p-2")}>
+        <div className={cn("flex flex-wrap items-baseline gap-x-4 gap-y-1", presenting && "sr-only")}>
           <h2 className="font-display text-lg text-foreground">{experience.title}</h2>
           <p className="text-xs text-muted-foreground">
             {experienceTypeLabels[experience.type]} · {statusLabels[experience.status]} ·
             ~{experience.estimatedMinutes} min
           </p>
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className={cn("mt-4 flex flex-wrap gap-2", presenting && "mt-0")}>
           {controls.map((c) => (
             <button
               key={c.label}
               type="button"
               onClick={c.onClick}
-              className="min-h-11 rounded-md border border-border px-3 text-sm text-foreground hover:border-primary/60"
+              className={cn("min-h-11 rounded-md border border-border px-3 text-sm text-foreground hover:border-primary/60", presenting && !["Previous", "Next", "Exit present mode"].includes(c.label) && "hidden")}
             >
               {c.label}
             </button>
           ))}
         </div>
-        <p className="mt-3 text-xs text-muted-foreground" aria-live="polite">
+        <p className={cn("mt-3 text-xs text-muted-foreground", presenting && "sr-only")} aria-live="polite">
           Scene {controller.sceneIndex + 1} of {controller.sceneCount} · Evidence{" "}
           {controller.evidenceRevealedByInstructor ? "revealed" : "hidden"} · Explanation{" "}
           {controller.explanationRevealed ? "revealed" : "hidden"} · Dialogue{" "}
@@ -206,8 +206,8 @@ function ExperienceConsole({ experience }: { experience: Experience }) {
         </p>
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[16rem_minmax(0,1fr)]">
-        <nav className="glass-panel rounded-lg p-4" aria-label="Jump to scene">
+      <div className={cn("grid gap-6 xl:grid-cols-[16rem_minmax(0,1fr)]", presenting && "block")}>
+        <nav className={cn("glass-panel rounded-lg p-4", presenting && "hidden")} aria-label="Jump to scene">
           <h3 className="text-xs tracking-[0.2em] text-muted-foreground uppercase">
             Scenes
           </h3>
@@ -261,7 +261,7 @@ function ExperienceConsole({ experience }: { experience: Experience }) {
           ) : null}
         </nav>
 
-        <div className={cn(presenting && "xl:col-span-2")}>
+        <div className={cn(presenting && "mx-auto max-w-[110rem]")}>
           <SceneRenderer controller={controller} environments={program.environments} />
         </div>
       </div>
