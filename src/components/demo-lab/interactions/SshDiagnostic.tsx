@@ -39,7 +39,7 @@ export function SshDiagnostic({
         instruction={interaction.instruction}
       />
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
+      <div className="grid gap-4 @3xl:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
         <nav aria-label="Evidence scenarios">
           <h3 className="text-[0.65rem] tracking-[0.22em] text-muted-foreground uppercase">
             Captured messages

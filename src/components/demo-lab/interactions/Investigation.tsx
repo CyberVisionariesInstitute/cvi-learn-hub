@@ -84,7 +84,7 @@ export function Investigation({
         instruction={interaction.instruction}
       />
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,20rem)]">
+      <div className="grid gap-4 @3xl:grid-cols-[minmax(0,1fr)_minmax(0,20rem)]">
         <div className="space-y-4">
           <p className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-foreground">
             {interaction.opening.caption}

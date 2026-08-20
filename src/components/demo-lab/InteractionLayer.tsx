@@ -53,7 +53,7 @@ function ClassifyRenderer({
         </p>
       ) : null}
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-[minmax(0,15rem)_minmax(0,1fr)]">
+      <div className="mt-5 grid gap-4 @2xl:grid-cols-[minmax(0,15rem)_minmax(0,1fr)]">
         <ul className="space-y-2" aria-label="Destinations">
           {interaction.items.map((item) => {
             const chosen = sceneState.answers[item.id];

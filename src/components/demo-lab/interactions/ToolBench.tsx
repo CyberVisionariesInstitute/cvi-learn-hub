@@ -71,7 +71,7 @@ export function ToolBench({
         instruction={interaction.instruction}
       />
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_11rem]">
+      <div className="grid gap-4 @2xl:grid-cols-[minmax(0,1fr)_11rem]">
         <div className="space-y-4">
           {/* Ticket monitor */}
           <section
@@ -222,7 +222,7 @@ export function ToolBench({
             {completedRows.map((row) => (
               <li
                 key={row.tool + row.question}
-                className="grid gap-1 border-b border-border/50 pb-2 text-sm last:border-0 sm:grid-cols-[minmax(0,1fr)_7rem_minmax(0,1.2fr)] sm:gap-3"
+                className="grid gap-1 border-b border-border/50 pb-2 text-sm last:border-0 @xl:grid-cols-[minmax(0,1fr)_7rem_minmax(0,1.2fr)] @xl:gap-3"
               >
                 <span className="text-foreground">{row.question}</span>
                 <span className="font-mono text-primary">{row.tool}</span>

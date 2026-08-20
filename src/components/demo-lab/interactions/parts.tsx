@@ -191,7 +191,7 @@ export function PlacementBoard({
         </ul>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 @2xl:grid-cols-3">
         {buckets.map((bucket) => {
           const placed = items.filter((i) => placement[i.id] === bucket.id);
           return (

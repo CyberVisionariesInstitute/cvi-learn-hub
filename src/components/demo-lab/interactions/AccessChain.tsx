@@ -84,7 +84,7 @@ export function AccessChain({
         <legend className="text-[0.65rem] tracking-[0.22em] text-muted-foreground uppercase">
           What does this shell already prove?
         </legend>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <div className="mt-3 grid gap-2 @2xl:grid-cols-2">
           {interaction.options.map((option) => {
             const isOn = selected(option.id);
             return (
