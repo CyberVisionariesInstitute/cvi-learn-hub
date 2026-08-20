@@ -188,7 +188,10 @@ export function CharacterLayer({
             key={state}
             src={asset.staticSrc}
             alt={asset.alt}
-            className="size-full object-contain"
+            className={cn(
+              "size-full object-contain",
+              variant === "figure" && "object-bottom",
+            )}
           />
         ) : (
           <PlaceholderFigure state={state} />
