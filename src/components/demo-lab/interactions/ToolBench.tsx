@@ -71,11 +71,11 @@ export function ToolBench({
         instruction={interaction.instruction}
       />
 
-      <div className="grid gap-4 @2xl:grid-cols-[minmax(0,1fr)_11rem]">
+      <div className="scene-depth grid items-start gap-4 @2xl:grid-cols-[minmax(0,1fr)_11rem]">
         <div className="space-y-4">
           {/* Ticket monitor */}
           <section
-            className="rounded-lg border border-border bg-surface-raised/50 p-4"
+            className="physical-surface origin-bottom-left rounded-md border-[0.4rem] border-terminal bg-surface-raised/85 p-4 @3xl:rotate-y-2"
             aria-label="Support ticket"
           >
             <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -91,7 +91,12 @@ export function ToolBench({
             <p className="mt-1 text-sm text-muted-foreground">{active.body}</p>
           </section>
 
-          <TerminalView lines={history} label="Terminal — cf-support" />
+          <TerminalView
+            key={sceneState.used.join(":")}
+            lines={history}
+            label="Terminal — cf-support"
+            className="screen-refresh origin-bottom-right @3xl:-rotate-y-2"
+          />
 
           <div aria-live="polite" className="space-y-3">
             {run ? (
@@ -177,7 +182,7 @@ export function ToolBench({
 
         {/* Utility strip mounted beside the monitors */}
         <aside
-          className="rounded-lg border border-border bg-surface/60 p-3"
+          className="physical-surface origin-bottom-left rounded-md bg-surface/80 p-3 @3xl:translate-y-6 @3xl:rotate-y-[-6deg]"
           aria-label="Desk utility strip"
         >
           <h3 className="text-[0.6rem] tracking-[0.2em] text-muted-foreground uppercase">
@@ -191,7 +196,7 @@ export function ToolBench({
                   onClick={() => chooseTool(tool.id)}
                   aria-pressed={chosenToolId === tool.id}
                   className={cn(
-                    "min-h-14 w-full rounded-md border px-2.5 py-2 text-left transition-colors",
+                    "tactile-control min-h-14 w-full rounded-sm border px-2.5 py-2 text-left",
                     chosenToolId === tool.id
                       ? "border-primary bg-primary/15"
                       : "border-border hover:border-primary/60",
@@ -212,7 +217,7 @@ export function ToolBench({
 
       {completedRows.length ? (
         <section
-          className="rounded-lg border border-border bg-surface-raised/40 p-4"
+          className="monitor-surface rounded-md p-4"
           aria-label="Question to tool to evidence summary"
         >
           <h3 className="font-display text-xs tracking-[0.2em] text-foreground uppercase">

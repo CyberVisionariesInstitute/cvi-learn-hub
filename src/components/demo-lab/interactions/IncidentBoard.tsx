@@ -27,7 +27,7 @@ export function IncidentBoard({
       : undefined;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 rounded-sm border-[0.5rem] border-surface-raised bg-surface/85 p-4 shadow-[var(--shadow-screen)]">
       <SurfaceHeading
         eyebrow="Incident response room"
         title={interaction.prompt}
@@ -35,7 +35,7 @@ export function IncidentBoard({
       />
 
       {interaction.report ? (
-        <section className="rounded-md border border-amber/40 bg-amber/10 p-4">
+        <section className="rotate-[-0.5deg] border-l-4 border-amber bg-amber/10 p-4 shadow-[var(--shadow-object)]">
           <p className="text-[0.65rem] tracking-[0.2em] text-foreground uppercase">
             Reported by {interaction.report.from}
           </p>

@@ -33,7 +33,7 @@ export function BriefingBoard({
     .join(" ");
 
   return (
-    <div className="space-y-5">
+    <div className={confirmed ? "space-y-5 shadow-[inset_0_0_90px_color-mix(in_oklab,var(--amber)_10%,transparent)] transition-shadow duration-1000" : "space-y-5"}>
       <SurfaceHeading
         eyebrow="Operations briefing"
         title={interaction.prompt}
@@ -79,11 +79,11 @@ export function BriefingBoard({
         ) : null}
 
         {placedRight ? (
-          <section className="rounded-lg border border-primary/50 bg-surface-raised/60 p-4">
+          <section className="monitor-surface screen-refresh rounded-md p-5 shadow-[var(--shadow-screen)]">
             <h3 className="font-display text-xs tracking-[0.2em] text-foreground uppercase">
               Assembled analyst statement
             </h3>
-            <p className="mt-2 text-sm leading-relaxed text-foreground">{statement}</p>
+            <p className="mt-4 border-l-2 border-primary pl-4 text-base leading-relaxed text-foreground">{statement}</p>
             <p className="mt-4 text-sm text-muted-foreground">
               {interaction.confirm.prompt}
             </p>
@@ -109,7 +109,7 @@ export function BriefingBoard({
                 “{interaction.completion.finalLine}”
               </p>
             </IvyNote>
-            <p className="rounded-lg border border-evidence/50 bg-evidence/10 p-4 text-center font-display text-sm tracking-[0.2em] text-foreground uppercase">
+            <p className="screen-refresh monitor-surface rounded-md p-7 text-center font-display text-lg tracking-[0.2em] text-foreground uppercase">
               {interaction.completion.banner}
             </p>
           </>

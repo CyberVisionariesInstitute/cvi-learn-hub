@@ -74,7 +74,7 @@ export function LadderBoard({
         instruction={interaction.instruction}
       />
 
-      <div className="grid gap-4 @3xl:grid-cols-[minmax(0,17rem)_minmax(0,1fr)]">
+      <div className="scene-depth grid gap-4 @3xl:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
         <div>
           <h3 className="text-[0.65rem] tracking-[0.22em] text-muted-foreground uppercase">
             Marker cards
@@ -97,7 +97,7 @@ export function LadderBoard({
                   onClick={() => setSelected(selected === step.id ? null : step.id)}
                   aria-pressed={selected === step.id}
                   className={cn(
-                    "min-h-14 w-full rounded-md border px-3 py-2 text-left transition-colors",
+                    "pinned-card min-h-14 w-full rounded-sm border px-3 py-2 text-left [--card-tilt:-0.8deg] odd:[--card-tilt:0.7deg]",
                     selected === step.id
                       ? "border-primary bg-primary/15"
                       : "border-border bg-surface-raised/50 hover:border-primary/60",
@@ -121,10 +121,10 @@ export function LadderBoard({
         </div>
 
         <section
-          className="rounded-lg border border-border/70 bg-[color-mix(in_oklab,var(--surface-raised)_70%,transparent)] p-4"
+          className="origin-left rounded-sm border-[0.55rem] border-surface-raised bg-[var(--board-surface)] p-4 text-[var(--board-ink)] shadow-[var(--shadow-screen)] @3xl:rotate-y-[-2deg]"
           aria-label={interaction.boardTitle}
         >
-          <h3 className="font-display text-xs tracking-[0.2em] text-foreground uppercase">
+            <h3 className="font-display text-xs tracking-[0.2em] text-[var(--board-ink)] uppercase">
             {interaction.boardTitle}
           </h3>
           <ol className="mt-3 space-y-1">
@@ -149,24 +149,24 @@ export function LadderBoard({
                         else if (stepId) removeSlot(i);
                       }}
                       className={cn(
-                        "min-h-14 w-full rounded-md border px-3 py-2 text-left transition-colors",
+                        "pinned-card min-h-14 w-full rounded-sm border px-3 py-2 text-left [--card-tilt:0.35deg]",
                         step
                           ? rungCorrect
                             ? "border-evidence/60 bg-evidence/10"
                             : checked && firstWrongIndex === i
                               ? "border-amber/70 bg-amber/10"
                               : "border-border bg-surface/70"
-                          : "border-dashed border-border text-muted-foreground",
+                          : "border-dashed border-[color-mix(in_oklab,var(--board-ink)_35%,transparent)] text-[color-mix(in_oklab,var(--board-ink)_65%,transparent)]",
                       )}
                     >
-                      <span className="font-mono text-xs text-muted-foreground">
+                      <span className="font-mono text-xs text-[color-mix(in_oklab,var(--board-ink)_65%,transparent)]">
                         Rung {i + 1}
                       </span>
-                      <span className="mt-0.5 block font-display text-sm tracking-wide text-foreground uppercase">
+                      <span className="mt-0.5 block font-display text-sm tracking-wide text-[var(--board-ink)] uppercase">
                         {step ? step.label : selected ? "Place the selected card here" : "Empty rung"}
                       </span>
                       {step ? (
-                        <span className="block text-xs text-muted-foreground">
+                        <span className="block text-xs text-[color-mix(in_oklab,var(--board-ink)_72%,transparent)]">
                           {step.detail}
                           {checked
                             ? rungCorrect
@@ -183,11 +183,11 @@ export function LadderBoard({
                     <p
                       aria-hidden="true"
                       className={cn(
-                        "py-0.5 pl-4 font-mono text-sm",
-                        correct ? "text-evidence" : "text-muted-foreground/50",
+                        "relative py-0.5 pl-4 font-mono text-sm",
+                        correct ? "text-evidence" : "text-[color-mix(in_oklab,var(--board-ink)_40%,transparent)]",
                       )}
                     >
-                      ↓
+                      {checked && firstWrongIndex === i ? "↳ check this transition" : "↓"}
                     </p>
                   ) : null}
                 </li>
