@@ -35,7 +35,7 @@ export function EnvironmentLayer({
   children: ReactNode;
   aside?: ReactNode;
   /** In-scene figure; omit for environments that stage the character themselves. */
-  character?: Character;
+  character?: Character | undefined;
   characterState?: CharacterState;
 }) {
   return (
