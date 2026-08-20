@@ -154,16 +154,22 @@ export function CharacterLayer({
       data-character={character.id}
       data-character-state={state}
     >
+      {/*
+        Keyed on state so one-shot clips (enter, point, nod, react, read-screen)
+        replay every time the state machine transitions, while ambient clips
+        (idle, working, whiteboard, briefing) keep looping.
+      */}
       <div
+        key={state}
+        data-character-state={state}
         className={cn(
-          "relative flex shrink-0 items-center justify-center overflow-hidden",
+          "ivy-clip relative flex shrink-0 items-center justify-center overflow-hidden",
           frame,
           variant === "figure" &&
-            "drop-shadow-[0_18px_12px_color-mix(in_oklab,var(--background)_65%,transparent)] transition-[opacity,transform] duration-500 ease-out motion-reduce:transition-none",
-          variant === "figure" && state === "ivy-enter" && "translate-x-3 opacity-70",
-          variant === "figure" && state === "ivy-thinking" && "-rotate-1 scale-[0.99]",
-          variant === "figure" && state === "ivy-point" && "translate-x-1",
-          variant === "figure" && state === "ivy-nod" && "-translate-y-0.5",
+            "drop-shadow-[0_18px_12px_color-mix(in_oklab,var(--background)_65%,transparent)] transition-[opacity,filter] duration-500 ease-out motion-reduce:transition-none",
+          variant === "figure" &&
+            (state === "ivy-react" || state === "ivy-point") &&
+            "drop-shadow-[0_18px_16px_color-mix(in_oklab,var(--color-primary)_28%,transparent)]",
           !interactive && "pointer-events-none",
         )}
       >
