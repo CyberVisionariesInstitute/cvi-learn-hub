@@ -84,12 +84,33 @@ export function Investigation({
         instruction={interaction.instruction}
       />
 
-      <div className="grid gap-4 @3xl:grid-cols-[minmax(0,1fr)_minmax(0,20rem)]">
-        <div className="space-y-4">
-          <p className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-foreground">
+      <div className="scene-depth space-y-4">
+        <aside
+          className="monitor-surface relative overflow-hidden rounded-md p-4 @4xl:min-h-72"
+          aria-label="Topology wall"
+        >
+          <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,transparent_49.8%,var(--color-border)_50%,transparent_50.2%)] opacity-30" />
+          <h3 className="font-display text-xs tracking-[0.2em] text-foreground uppercase">
+            Live topology wall
+          </h3>
+          <ul className="relative mt-6 grid gap-4 @2xl:grid-cols-2 @4xl:grid-cols-4" aria-live="polite">
+            {topology.map((node, index) => (
+              <li key={node.id} className="relative flex min-h-28 flex-col justify-center rounded-sm border border-border/70 bg-terminal/80 p-3 text-center shadow-[var(--shadow-object)]">
+                {index > 0 ? <span aria-hidden="true" className="absolute top-1/2 -left-4 hidden h-px w-4 bg-primary/60 @4xl:block" /> : null}
+                <p className="text-sm text-foreground">{node.label}</p>
+                <p className="mt-1 font-mono text-xs text-muted-foreground">{node.reading}</p>
+                <p className="mt-2"><StatusPill tone={statusTone[node.status]}>{statusLabel[node.status]}</StatusPill></p>
+              </li>
+            ))}
+          </ul>
+        </aside>
+
+        <div className="grid gap-4 @4xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+          <div className="space-y-4">
+          <p className="border-l-2 border-destructive bg-destructive/10 p-3 text-sm text-foreground">
             {interaction.opening.caption}
           </p>
-          <TerminalView lines={terminalLines} label="Terminal — cf-student-07" />
+          <TerminalView key={sceneState.used.join(":")} lines={terminalLines} label="Telemetry console — cf-student-07" className="screen-refresh" />
 
           <div className="space-y-4">
             {visibleSteps.map((step, i) => {
@@ -98,7 +119,7 @@ export function Investigation({
                 <section
                   key={step.id}
                   className={cn(
-                    "rounded-lg border p-4",
+                    "rounded-sm border p-4 shadow-[var(--shadow-object)]",
                     isActive
                       ? "border-primary/50 bg-surface-raised/60"
                       : "border-border bg-surface-raised/30",
@@ -139,7 +160,7 @@ export function Investigation({
                             }}
                             aria-pressed={sceneState.used.includes(c.id)}
                             className={cn(
-                              "min-h-11 rounded-md border px-3 py-2 font-mono text-sm transition-colors",
+                              "tactile-control min-h-11 rounded-sm border px-3 py-2 font-mono text-sm",
                               sceneState.used.includes(c.id)
                                 ? "border-evidence/60 bg-evidence/10 text-foreground"
                                 : "border-border text-foreground hover:border-primary/60",
@@ -177,29 +198,9 @@ export function Investigation({
           ) : null}
         </div>
 
-        <aside
-          className="rounded-lg border border-border bg-surface/60 p-4"
-          aria-label="Topology wall"
-        >
-          <h3 className="font-display text-xs tracking-[0.2em] text-foreground uppercase">
-            Topology wall
-          </h3>
-          <ul className="mt-3 space-y-3" aria-live="polite">
-            {topology.map((node) => (
-              <li key={node.id} className="border-b border-border/40 pb-2 last:border-0">
-                <p className="text-sm text-foreground">{node.label}</p>
-                <p className="mt-1 font-mono text-xs text-muted-foreground">
-                  {node.reading}
-                </p>
-                <p className="mt-1">
-                  <StatusPill tone={statusTone[node.status]}>
-                    {statusLabel[node.status]}
-                  </StatusPill>
-                </p>
-              </li>
-            ))}
-          </ul>
-        </aside>
+          </div>
+          <div className="space-y-4">{done ? <IvyNote headline={interaction.completion.headline} tone="proven"><p>{interaction.completion.body}</p></IvyNote> : <p className="border-l-2 border-primary/60 pl-3 text-sm text-muted-foreground">Work the active question beside the topology wall. New evidence stays visible so contradictions can be compared.</p>}</div>
+        </div>
       </div>
     </div>
   );
@@ -225,7 +226,7 @@ function ChoiceStep({
             onClick={() => onChoose(option.id, option.correct)}
             aria-pressed={chosenId === option.id}
             className={cn(
-              "min-h-14 rounded-md border px-3 py-2.5 text-left text-sm transition-colors",
+              "tactile-control min-h-14 rounded-sm border px-3 py-2.5 text-left text-sm",
               chosenId === option.id
                 ? option.correct
                   ? "border-evidence/70 bg-evidence/10"

@@ -126,7 +126,7 @@ export function NeighborhoodRoute({
       {/* ---------------------------------------------------------- Stage */}
       <div
         className={cn(
-          "relative isolate w-full overflow-hidden rounded-xl border border-border/70",
+          "scene-depth relative isolate w-full overflow-hidden rounded-xl border border-border/50 shadow-[var(--shadow-depth)]",
           "aspect-[3/4] sm:aspect-[16/10] lg:aspect-[16/9]",
         )}
         data-complete={complete ? "true" : "false"}
@@ -136,7 +136,7 @@ export function NeighborhoodRoute({
             src={environment.backgroundSrc}
             alt=""
             aria-hidden="true"
-            className="absolute inset-0 size-full object-cover object-[62%_center] sm:object-center"
+            className={cn("absolute -inset-1 size-[calc(100%+0.5rem)] object-cover object-[62%_center] transition-[transform,filter] duration-1000 sm:object-center", complete ? "scale-[1.012] brightness-110" : "scale-100")}
           />
         ) : (
           <div aria-hidden="true" className="atmosphere absolute inset-0" />
@@ -151,6 +151,8 @@ export function NeighborhoodRoute({
           aria-hidden="true"
           className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-background/70 to-transparent"
         />
+        <div aria-hidden="true" className="absolute inset-x-[-8%] bottom-[-4%] h-[24%] rounded-[50%] bg-background/55 blur-xl" />
+        <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[18%] bg-[linear-gradient(180deg,transparent,var(--color-background)/65)]" />
 
         {/* distant Cloud Heights promise — brightens on completion */}
         <div
@@ -183,6 +185,7 @@ export function NeighborhoodRoute({
               }
               strokeDasharray={lastChoice.correct ? undefined : "2 2"}
               opacity={0.95}
+              className="route-draw"
             />
           ) : null}
           {complete
@@ -198,6 +201,7 @@ export function NeighborhoodRoute({
                     strokeWidth={0.5}
                     strokeLinecap="round"
                     opacity={0.5}
+                    className="route-draw"
                   />
                 );
               })
@@ -205,7 +209,7 @@ export function NeighborhoodRoute({
         </svg>
 
         {/* neighborhood directory sign */}
-        <div className="absolute top-3 left-3 max-w-[52%] rounded-md border border-primary/40 bg-background/80 px-3 py-2 backdrop-blur-sm sm:top-5 sm:left-5">
+        <div className={cn("absolute top-3 left-3 max-w-[52%] rounded-sm border border-primary/40 bg-background/85 px-3 py-2 shadow-[var(--shadow-object)] backdrop-blur-sm transition-[box-shadow,transform] duration-300 sm:top-5 sm:left-5", lastChoice && !lastChoice.correct && "translate-y-[-2px] shadow-[var(--shadow-focus-light)]")}>
           <p className="font-display text-[0.7rem] tracking-[0.18em] text-primary uppercase">
             {interaction.sign.title}
           </p>
@@ -239,7 +243,7 @@ export function NeighborhoodRoute({
           return (
             <div
               key={hotspot.id}
-              className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
+              className="absolute z-20 -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_10px_8px_color-mix(in_oklab,var(--background)_70%,transparent)]"
               style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
             >
               <button
@@ -254,12 +258,13 @@ export function NeighborhoodRoute({
                       }${hotspot.kind === "gateway" ? ", the neighborhood exit" : ""}`
                 }
                 className={cn(
-                  "group flex min-h-11 items-center gap-2 rounded-md border px-2.5 py-1.5 text-left backdrop-blur-sm transition-colors",
+                  "tactile-control group flex min-h-11 items-center gap-2 rounded-sm border px-2.5 py-1.5 text-left backdrop-blur-sm",
                   "bg-background/80 hover:border-primary hover:bg-background/95",
                   isOrigin && "cursor-default border-border/70 opacity-90",
                   !isOrigin && "border-primary/40",
                   chosen && !lastChoice?.correct && "border-amber",
-                  solved && "border-primary bg-primary/20",
+                  solved && "border-primary bg-primary/25 shadow-[var(--shadow-focus-light)]",
+                  complete && hotspot.kind === "gateway" && "border-evidence bg-evidence/20 shadow-[var(--shadow-focus-light)]",
                 )}
               >
                 <span
@@ -300,7 +305,7 @@ export function NeighborhoodRoute({
         })}
 
         {/* Ivy's work order, mounted in-scene */}
-        <div className="absolute right-3 bottom-3 left-3 z-20 rounded-lg border border-border/70 bg-background/85 p-3 backdrop-blur-sm sm:left-auto sm:right-5 sm:max-w-xs sm:bottom-5">
+        <div className="absolute right-3 bottom-3 left-3 z-20 rotate-[-0.4deg] rounded-sm border border-border/70 bg-background/90 p-3 shadow-[var(--shadow-object)] backdrop-blur-sm sm:left-auto sm:right-5 sm:max-w-xs sm:bottom-5">
           <p className="text-[0.65rem] tracking-[0.2em] text-muted-foreground uppercase">
             Ivy's work order · {answeredCount} of {interaction.requests.length} routed
           </p>
