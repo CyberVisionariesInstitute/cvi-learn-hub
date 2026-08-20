@@ -107,11 +107,16 @@ export function Investigation({
 
         <div className="grid gap-4 @4xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
           <div className="space-y-4">
-          <p className="border-l-2 border-destructive bg-destructive/10 p-3 text-sm text-foreground">
-            {interaction.opening.caption}
-          </p>
-          <TerminalView key={sceneState.used.join(":")} lines={terminalLines} label="Telemetry console — cf-student-07" className="screen-refresh" />
-
+            <p className="border-l-2 border-destructive bg-destructive/10 p-3 text-sm text-foreground">
+              {interaction.opening.caption}
+            </p>
+            <TerminalView
+              key={sceneState.used.join(":")}
+              lines={terminalLines}
+              label="Telemetry console — cf-student-07"
+              className="screen-refresh"
+            />
+          </div>
           <div className="space-y-4">
             {visibleSteps.map((step, i) => {
               const isActive = i === visibleSteps.length - 1 && !done;
@@ -129,15 +134,8 @@ export function Investigation({
                   <p className="text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
                     Step {i + 1} of {interaction.steps.length}
                   </p>
-                  <h3 className="mt-1 font-display text-sm text-foreground">
-                    {step.prompt}
-                  </h3>
-                  {step.instruction ? (
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {step.instruction}
-                    </p>
-                  ) : null}
-
+                  <h3 className="mt-1 font-display text-sm text-foreground">{step.prompt}</h3>
+                  {step.instruction ? <p className="mt-1 text-sm text-muted-foreground">{step.instruction}</p> : null}
                   {step.kind === "choice" ? (
                     <ChoiceStep
                       step={step}
@@ -150,56 +148,44 @@ export function Investigation({
                   ) : (
                     <div className="mt-3 space-y-3">
                       <div className="flex flex-wrap gap-2">
-                        {step.commands.map((c) => (
+                        {step.commands.map((command) => (
                           <button
-                            key={c.id}
+                            key={command.id}
                             type="button"
                             onClick={() => {
-                              markUsed(c.id);
+                              markUsed(command.id);
                               setCharacterState("ivy-read-screen");
                             }}
-                            aria-pressed={sceneState.used.includes(c.id)}
+                            aria-pressed={sceneState.used.includes(command.id)}
                             className={cn(
                               "tactile-control min-h-11 rounded-sm border px-3 py-2 font-mono text-sm",
-                              sceneState.used.includes(c.id)
+                              sceneState.used.includes(command.id)
                                 ? "border-evidence/60 bg-evidence/10 text-foreground"
                                 : "border-border text-foreground hover:border-primary/60",
                             )}
                           >
-                            {c.command}
+                            {command.command}
                             <span className="ml-2 font-sans text-[0.65rem] text-muted-foreground">
-                              {sceneState.used.includes(c.id) ? "run" : "not run"}
+                              {sceneState.used.includes(command.id) ? "run" : "not run"}
                             </span>
                           </button>
                         ))}
                       </div>
-                      <ul aria-live="polite" className="space-y-2">
-                        {step.commands
-                          .filter((c) => sceneState.used.includes(c.id))
-                          .map((c) => (
-                            <li key={c.id} className="text-sm text-foreground">
-                              <span className="font-mono text-primary">{c.command}</span>
-                              {" — "}
-                              {c.proves}
-                            </li>
-                          ))}
-                      </ul>
                     </div>
                   )}
                 </section>
               );
             })}
+            {done ? (
+              <IvyNote headline={interaction.completion.headline} tone="proven">
+                <p>{interaction.completion.body}</p>
+              </IvyNote>
+            ) : (
+              <p className="border-l-2 border-primary/60 pl-3 text-sm text-muted-foreground">
+                New evidence stays visible so contradictions can be compared.
+              </p>
+            )}
           </div>
-
-          {done ? (
-            <IvyNote headline={interaction.completion.headline} tone="proven">
-              <p>{interaction.completion.body}</p>
-            </IvyNote>
-          ) : null}
-        </div>
-
-          </div>
-          <div className="space-y-4">{done ? <IvyNote headline={interaction.completion.headline} tone="proven"><p>{interaction.completion.body}</p></IvyNote> : <p className="border-l-2 border-primary/60 pl-3 text-sm text-muted-foreground">Work the active question beside the topology wall. New evidence stays visible so contradictions can be compared.</p>}</div>
         </div>
       </div>
     </div>
