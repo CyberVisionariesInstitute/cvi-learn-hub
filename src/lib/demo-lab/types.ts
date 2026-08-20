@@ -131,10 +131,13 @@ export type InteractionKind =
   | "classify"
   | "route-choice"
   | "select-object"
-  | "sequence"
   | "terminal"
-  | "evidence-board"
-  | "branching"
+  | "tool-terminal"
+  | "sequence"
+  | "evidence-select"
+  | "investigation"
+  | "three-state"
+  | "evidence-sort"
   | "briefing";
 
 
@@ -252,12 +255,252 @@ export interface TerminalInteraction {
   commands: Array<{ id: string; command: string; output: string[] }>;
 }
 
+/* ------------------------------------------------------------------ */
+/* tool-terminal: map a question to a tool, run it, read the evidence. */
+/* ------------------------------------------------------------------ */
+
+export interface ToolDefinition {
+  id: string;
+  /** Command as typed, e.g. "ip addr". */
+  command: string;
+  /** Short human label shown on the utility strip. */
+  label: string;
+  /** What the tool is actually for. */
+  purpose: string;
+}
+
+export interface ToolRun {
+  /** Full command line echoed into the simulated terminal. */
+  command: string;
+  output: string[];
+  /** What this run does — or does not — establish. Never says "wrong". */
+  verdict: string;
+}
+
+export interface ToolTicket {
+  id: string;
+  /** Ticket reference shown on the ticket monitor, e.g. "CF-1042". */
+  ref: string;
+  /** The actual question, shown before any tool is chosen. */
+  question: string;
+  /** In-world ticket body. */
+  body: string;
+  correctToolId: string;
+  /** Authored output for every tool, correct or not. */
+  runs: Record<string, ToolRun>;
+  /** Follow-up: what did the result tell us? */
+  followUp: {
+    prompt: string;
+    options: Array<{ id: string; label: string; correct: boolean; response: string }>;
+  };
+  /** Row added to the QUESTION → TOOL → EVIDENCE summary. */
+  summaryRow: { question: string; tool: string; evidence: string };
+}
+
+export interface ToolTerminalInteraction {
+  id: string;
+  kind: "tool-terminal";
+  prompt: string;
+  instruction: string;
+  tools: ToolDefinition[];
+  tickets: ToolTicket[];
+  completion: { headline: string; body: string };
+}
+
+/* ------------------------------------------------------------------ */
+/* sequence: whiteboard ordering                                       */
+/* ------------------------------------------------------------------ */
+
+export interface SequenceInteraction {
+  id: string;
+  kind: "sequence";
+  prompt: string;
+  instruction: string;
+  boardTitle: string;
+  steps: Array<{ id: string; label: string; detail: string }>;
+  /** Ordered list of step ids. */
+  correctOrder: string[];
+  /**
+   * Ivy's challenge for the first questionable transition, keyed by the step
+   * id placed earlier than it should be. "*" is the fallback.
+   */
+  challenges: Record<string, string>;
+  completion: { headline: string; body: string };
+  /** In-world message that arrives once the ladder is correct. */
+  transitionMessage?: { from: string; subject: string; body: string };
+}
+
+/* ------------------------------------------------------------------ */
+/* evidence-select: what has already been proven?                      */
+/* ------------------------------------------------------------------ */
+
+export interface EvidenceSelectInteraction {
+  id: string;
+  kind: "evidence-select";
+  prompt: string;
+  instruction: string;
+  /** Terminal proof shown above the interaction. */
+  terminal?: { lines: string[] };
+  /** Access chain illuminated as supported evidence is selected. */
+  chain: Array<{ id: string; label: string }>;
+  options: Array<{
+    id: string;
+    label: string;
+    supported: boolean;
+    /** Chain node this evidence illuminates. */
+    chainId?: string;
+    response: string;
+  }>;
+  completion: { headline: string; body: string };
+}
+
+/* ------------------------------------------------------------------ */
+/* investigation: stepped reasoning with a live topology               */
+/* ------------------------------------------------------------------ */
+
+export type TopologyStatus =
+  | "unknown"
+  | "healthy"
+  | "no-response"
+  | "degraded";
+
+export interface TopologyNode {
+  id: string;
+  label: string;
+  /** Status before any evidence is gathered. */
+  initialStatus: TopologyStatus;
+  /** Reading shown next to the node before evidence changes it. */
+  initialReading: string;
+}
+
+export interface InvestigationChoiceStep {
+  id: string;
+  kind: "choice";
+  prompt: string;
+  instruction?: string;
+  options: Array<{
+    id: string;
+    label: string;
+    correct: boolean;
+    /** Flagged in the UI as an unproven assumption rather than an error. */
+    assumption?: boolean;
+    response: string;
+  }>;
+}
+
+export interface InvestigationDiagnosticStep {
+  id: string;
+  kind: "diagnostic";
+  prompt: string;
+  instruction?: string;
+  commands: Array<{
+    id: string;
+    command: string;
+    output: string[];
+    proves: string;
+    topologyUpdate?: { nodeId: string; status: TopologyStatus; reading: string };
+  }>;
+}
+
+export type InvestigationStep = InvestigationChoiceStep | InvestigationDiagnosticStep;
+
+export interface InvestigationInteraction {
+  id: string;
+  kind: "investigation";
+  prompt: string;
+  instruction: string;
+  /** The event that opens the scene. */
+  opening: { command: string; output: string[]; caption: string };
+  topology: TopologyNode[];
+  steps: InvestigationStep[];
+  completion: { headline: string; body: string };
+}
+
+/* ------------------------------------------------------------------ */
+/* three-state: two diagnostic dimensions, three states each           */
+/* ------------------------------------------------------------------ */
+
+export interface ThreeStateInteraction {
+  id: string;
+  kind: "three-state";
+  prompt: string;
+  instruction: string;
+  monitorTitle: string;
+  dimensions: Array<{ id: string; label: string; question: string }>;
+  states: Array<{ id: string; label: string; glyph: string }>;
+  scenarios: Array<{
+    id: string;
+    /** The literal terminal message. */
+    output: string;
+    /** dimensionId -> stateId */
+    correct: Record<string, string>;
+    /** dimensionId -> explanation shown after a wrong classification. */
+    hints: Record<string, string>;
+    /** Shown once both dimensions are right. */
+    explanation: string;
+  }>;
+  completion: { headline: string; body: string; shell: string[] };
+}
+
+/* ------------------------------------------------------------------ */
+/* evidence-sort: incident board columns                               */
+/* ------------------------------------------------------------------ */
+
+export interface EvidenceSortInteraction {
+  id: string;
+  kind: "evidence-sort";
+  prompt: string;
+  instruction: string;
+  /** The report that opened the incident. */
+  report?: { from: string; text: string };
+  buckets: Array<{ id: string; label: string; description: string }>;
+  items: Array<{
+    id: string;
+    label: string;
+    correctBucketId: string;
+    /** Ivy's question when placed in the wrong bucket. */
+    challenge?: Record<string, string>;
+    explanation: string;
+  }>;
+  completion: { headline: string; body: string };
+}
+
+/* ------------------------------------------------------------------ */
+/* briefing: assemble a defensible statement from placed evidence      */
+/* ------------------------------------------------------------------ */
+
+export interface BriefingInteraction {
+  id: string;
+  kind: "briefing";
+  prompt: string;
+  instruction: string;
+  sections: Array<{ id: string; label: string; description: string }>;
+  items: Array<{
+    id: string;
+    label: string;
+    correctSectionId: string;
+    /** Sentence fragment this item contributes to the assembled statement. */
+    statementFragment: string;
+    explanation: string;
+  }>;
+  confirm: { prompt: string; action: string };
+  completion: { headline: string; body: string; finalLine: string; banner: string };
+}
+
 /** Extend this union to add new interaction patterns. */
 export type Interaction =
   | ClassifyInteraction
   | RouteChoiceInteraction
   | SelectObjectInteraction
-  | TerminalInteraction;
+  | TerminalInteraction
+  | ToolTerminalInteraction
+  | SequenceInteraction
+  | EvidenceSelectInteraction
+  | InvestigationInteraction
+  | ThreeStateInteraction
+  | EvidenceSortInteraction
+  | BriefingInteraction;
+
 
 
 /* ------------------------------------------------------------------ */

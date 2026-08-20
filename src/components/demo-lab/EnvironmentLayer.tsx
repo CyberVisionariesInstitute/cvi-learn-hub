@@ -25,7 +25,7 @@ export function EnvironmentLayer({
 }) {
   return (
     <section
-      className="relative overflow-hidden rounded-xl border border-border/70 bg-surface/60"
+      className="@container relative overflow-hidden rounded-xl border border-border/70 bg-surface/60"
       aria-label={`Environment: ${environment.name}`}
     >
       {environment.backgroundSrc ? (
@@ -54,11 +54,11 @@ export function EnvironmentLayer({
           <p className="text-xs text-muted-foreground">{environment.description}</p>
         </div>
 
-        <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="mt-4 grid gap-4 @4xl:grid-cols-[minmax(0,1fr)_20rem]">
           {/* The surface inside the environment that carries the interaction */}
           <div
             className={cn(
-              "glass-panel relative rounded-lg p-4 sm:p-6",
+              "@container glass-panel relative rounded-lg p-4 sm:p-6",
               environment.surface === "terminal" && "bg-terminal/80 font-mono",
             )}
           >

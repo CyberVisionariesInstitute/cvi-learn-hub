@@ -1,5 +1,12 @@
 import gridNeighborhoodDusk from "@/assets/environments/cyberfoundations/grid-neighborhood-dusk.jpg";
 import gridToCloudHeights from "@/assets/environments/cyberfoundations/grid-to-cloud-heights.jpg";
+import ivyWorkstation from "@/assets/environments/cyberfoundations/ivy-workstation.jpg";
+import troubleshootingRoom from "@/assets/environments/cyberfoundations/troubleshooting-room.jpg";
+import secureLobby from "@/assets/environments/cyberfoundations/secure-lobby.jpg";
+import noc from "@/assets/environments/cyberfoundations/noc.jpg";
+import remoteAccessWorkstation from "@/assets/environments/cyberfoundations/remote-access-workstation.jpg";
+import incidentResponseRoom from "@/assets/environments/cyberfoundations/incident-response-room.jpg";
+import briefingRoom from "@/assets/environments/cyberfoundations/briefing-room.jpg";
 import type { Environment } from "./types";
 
 /**
@@ -23,12 +30,14 @@ export const cyberfoundationsEnvironments: Environment[] = [
     description:
       "A field technician desk with two monitors, a network map printout and a ticket queue.",
     surface: "monitor",
+    backgroundSrc: ivyWorkstation,
   },
   {
     id: "troubleshooting-room",
     name: "Troubleshooting Room",
     description: "A small IT support room with a working whiteboard and a test bench.",
     surface: "whiteboard",
+    backgroundSrc: troubleshootingRoom,
   },
   {
     id: "cloud-heights-campus",
@@ -43,30 +52,35 @@ export const cyberfoundationsEnvironments: Environment[] = [
     name: "Secure Lobby",
     description: "Badge-controlled reception with an access-status display.",
     surface: "wall-display",
+    backgroundSrc: secureLobby,
   },
   {
     id: "noc",
     name: "Network Operations Center",
     description: "Tiered operations floor with a topology wall and analyst desks.",
     surface: "wall-display",
+    backgroundSrc: noc,
   },
   {
     id: "remote-access-workstation",
     name: "Remote Access Workstation",
     description: "An analyst desk configured for jump-host and terminal work.",
     surface: "terminal",
+    backgroundSrc: remoteAccessWorkstation,
   },
   {
     id: "incident-response-room",
     name: "Incident Response Room",
     description: "A closed room with a physical evidence board and a shared timeline.",
     surface: "evidence-board",
+    backgroundSrc: incidentResponseRoom,
   },
   {
     id: "briefing-room",
     name: "Briefing Room",
     description: "A conference room with a briefing display for the analyst statement.",
     surface: "wall-display",
+    backgroundSrc: briefingRoom,
   },
 ];
 

@@ -225,7 +225,12 @@ function ExperienceConsole({ experience }: { experience: Experience }) {
                       : "border-border text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  {index + 1}. {scene.title}
+                  <span className="block">
+                    {index + 1}. {scene.title}
+                  </span>
+                  <span className="block text-xs text-muted-foreground">
+                    {controller.sceneCompletion[index] ? "Complete" : "In progress"}
+                  </span>
                 </button>
               </li>
             ))}
@@ -237,6 +242,18 @@ function ExperienceConsole({ experience }: { experience: Experience }) {
               </h3>
               <ul className="mt-2 space-y-2 text-xs leading-relaxed text-muted-foreground">
                 {controller.scene.instructorNotes.map((note) => (
+                  <li key={note}>{note}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {experience.instructorNotes?.length ? (
+            <div className="mt-5 border-t border-border pt-4">
+              <h3 className="text-xs tracking-[0.2em] text-muted-foreground uppercase">
+                Mission notes
+              </h3>
+              <ul className="mt-2 space-y-2 text-xs leading-relaxed text-muted-foreground">
+                {experience.instructorNotes.map((note) => (
                   <li key={note}>{note}</li>
                 ))}
               </ul>
