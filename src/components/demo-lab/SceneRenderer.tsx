@@ -72,7 +72,10 @@ export function SceneRenderer({
           environment={environment}
           character={character}
           characterState={controller.characterState}
+          {...(scene.characterStaging ? { characterStaging: scene.characterStaging } : {})}
+          bareSurface={scene.bareSurface ?? false}
           aside={
+
             <>
               <EvidencePanel items={visibleEvidence} title="On screen" />
               {scene.retryPrompt ? (
