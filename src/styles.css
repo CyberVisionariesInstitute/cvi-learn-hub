@@ -318,3 +318,136 @@
     stroke-dashoffset: 0;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Ivy motion clips.
+ *
+ * Each character state gets a procedural "clip" driven straight off the Ivy
+ * state machine (data-character-state). One-shot clips replay on every state
+ * change because CharacterLayer remounts the media node per state; ambient
+ * clips (idle / working / whiteboard) loop slowly so she never freezes.
+ * All clips are disabled under prefers-reduced-motion.
+ * ------------------------------------------------------------------------- */
+@layer components {
+  .ivy-clip {
+    transform-origin: 50% 100%;
+    will-change: transform, opacity, filter;
+  }
+
+  .ivy-clip[data-character-state="ivy-idle"] {
+    animation: ivy-breathe 6s ease-in-out infinite;
+  }
+  .ivy-clip[data-character-state="ivy-enter"] {
+    animation: ivy-enter 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .ivy-clip[data-character-state="ivy-walk-left"] {
+    animation: ivy-walk-left 800ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  }
+  .ivy-clip[data-character-state="ivy-walk-right"] {
+    animation: ivy-walk-right 800ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  }
+  .ivy-clip[data-character-state="ivy-working"] {
+    animation: ivy-work 3.2s ease-in-out infinite;
+  }
+  .ivy-clip[data-character-state="ivy-type"] {
+    animation: ivy-type 1.6s ease-in-out infinite;
+  }
+  .ivy-clip[data-character-state="ivy-read-screen"] {
+    animation: ivy-read 700ms ease-out both;
+  }
+  .ivy-clip[data-character-state="ivy-point"] {
+    animation: ivy-point 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .ivy-clip[data-character-state="ivy-whiteboard"] {
+    animation: ivy-whiteboard 4.5s ease-in-out infinite;
+  }
+  .ivy-clip[data-character-state="ivy-thinking"] {
+    animation: ivy-thinking 5s ease-in-out infinite;
+  }
+  .ivy-clip[data-character-state="ivy-react"] {
+    animation: ivy-react 520ms cubic-bezier(0.36, 1.4, 0.5, 1) both;
+  }
+  .ivy-clip[data-character-state="ivy-nod"] {
+    animation: ivy-nod 780ms ease-in-out both;
+  }
+  .ivy-clip[data-character-state="ivy-briefing"] {
+    animation: ivy-briefing 5.5s ease-in-out infinite;
+  }
+}
+
+@keyframes ivy-breathe {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  50% { transform: translateY(-1.5px) scaleY(1.004); }
+}
+
+@keyframes ivy-enter {
+  0% { opacity: 0; transform: translateX(-7%) translateY(0) scale(0.985); }
+  55% { opacity: 1; transform: translateX(-2%) translateY(-2px) scale(0.995); }
+  100% { opacity: 1; transform: translateX(0) translateY(0) scale(1); }
+}
+
+@keyframes ivy-walk-left {
+  0% { transform: translateX(6%) rotate(0.4deg); }
+  50% { transform: translateX(3%) translateY(-2px) rotate(-0.4deg); }
+  100% { transform: translateX(0) rotate(0deg); }
+}
+
+@keyframes ivy-walk-right {
+  0% { transform: translateX(-6%) rotate(-0.4deg); }
+  50% { transform: translateX(-3%) translateY(-2px) rotate(0.4deg); }
+  100% { transform: translateX(0) rotate(0deg); }
+}
+
+@keyframes ivy-work {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  40% { transform: translateY(-1px) rotate(-0.35deg); }
+  70% { transform: translateY(1px) rotate(0.25deg); }
+}
+
+@keyframes ivy-type {
+  0%, 100% { transform: translateY(0) skewX(0deg); }
+  50% { transform: translateY(-0.8px) skewX(0.25deg); }
+}
+
+@keyframes ivy-read {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-1px) scale(1.012); }
+}
+
+@keyframes ivy-point {
+  0% { transform: translateX(0) rotate(0deg); }
+  60% { transform: translateX(2.5%) rotate(1.2deg); }
+  100% { transform: translateX(1.5%) rotate(0.6deg); }
+}
+
+@keyframes ivy-whiteboard {
+  0%, 100% { transform: translateX(0) rotate(0.3deg); }
+  50% { transform: translateX(1.5%) rotate(-0.4deg); }
+}
+
+@keyframes ivy-thinking {
+  0%, 100% { transform: rotate(-0.8deg) scale(0.995); }
+  50% { transform: rotate(-1.4deg) translateY(-1px) scale(0.997); }
+}
+
+@keyframes ivy-react {
+  0% { transform: translateX(0) scale(1); }
+  35% { transform: translateX(-2%) scale(1.02) rotate(-1.2deg); }
+  100% { transform: translateX(0) scale(1) rotate(0deg); }
+}
+
+@keyframes ivy-nod {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(2px) rotate(0.6deg); }
+  60% { transform: translateY(-1px) rotate(-0.3deg); }
+}
+
+@keyframes ivy-briefing {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  35% { transform: translateY(-1.5px) rotate(0.5deg); }
+  70% { transform: translateY(0.5px) rotate(-0.4deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ivy-clip { animation: none !important; }
+}
