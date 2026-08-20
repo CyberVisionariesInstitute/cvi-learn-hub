@@ -76,7 +76,7 @@ export function EnvironmentLayer({
         </div>
       ) : null}
 
-      <div className="relative flex min-h-[32rem] flex-col justify-end p-3 sm:p-5">
+      <div className="relative z-10 flex min-h-[32rem] flex-col justify-end p-3 sm:p-5">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <h3 className="font-display text-sm tracking-[0.18em] text-foreground uppercase">
             {environment.name}
