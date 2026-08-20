@@ -1246,6 +1246,17 @@ export const fromTheGridToCloudHeights: Experience = {
         "Separate what was observed from what was assumed, and name what is still unverified.",
       environmentId: "incident-response-room",
       characterState: "ivy-thinking",
+      bareSurface: true,
+      characterStaging: {
+        x: 86,
+        bottom: 6,
+        height: 56,
+        mobileX: 84,
+        mobileBottom: 4,
+        mobileHeight: 40,
+        flip: true,
+      },
+
       intro: [
         {
           id: "l1",
