@@ -118,6 +118,33 @@ export function CharacterLayer({
       ? "size-12 rounded-full border border-primary/50 bg-surface-raised"
       : "h-full w-full";
 
+  if (variant === "portrait" && character.portraitSrc) {
+    return (
+      <figure
+        className={cn("flex items-center gap-3", className)}
+        data-character={character.id}
+        data-character-state={state}
+      >
+        <img
+          src={character.portraitSrc}
+          alt={label}
+          className={cn(
+            "size-12 shrink-0 rounded-full border border-primary/50 object-cover object-top",
+            !interactive && "pointer-events-none",
+          )}
+        />
+        <figcaption className="min-w-0">
+          <span className="block text-sm font-medium text-foreground">
+            {character.name}
+          </span>
+          <span className="block text-xs text-muted-foreground">
+            {character.role} — {description}
+          </span>
+        </figcaption>
+      </figure>
+    );
+  }
+
   return (
     <figure
       className={cn(
@@ -161,7 +188,10 @@ export function CharacterLayer({
             key={state}
             src={asset.staticSrc}
             alt={asset.alt}
-            className="size-full object-contain"
+            className={cn(
+              "size-full object-contain",
+              variant === "figure" && "object-bottom",
+            )}
           />
         ) : (
           <PlaceholderFigure state={state} />
