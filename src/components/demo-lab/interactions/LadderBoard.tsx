@@ -99,7 +99,7 @@ export function LadderBoard({
   const full = placedIds.length === interaction.correctOrder.length;
 
   return (
-    <div className="scene-depth relative">
+    <div className="relative">
       {/* Wall plane: the board is mounted, not floating. */}
       <div className="board-plane relative mx-auto max-w-4xl">
         <div className="board-frame relative rounded-[0.35rem] p-2">
