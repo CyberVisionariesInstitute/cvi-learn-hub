@@ -30,7 +30,7 @@ export function SceneRenderer({
 
 
   return (
-    <article className="space-y-4">
+    <article className="@container space-y-4">
       <header>
         <p className="text-xs tracking-[0.2em] text-muted-foreground uppercase">
           {experience.title}
@@ -51,7 +51,7 @@ export function SceneRenderer({
       ) : null}
 
       {scene.interaction?.kind === "route-choice" ? (
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,18rem)]">
+        <div className="grid gap-4 @4xl:grid-cols-[minmax(0,1fr)_minmax(0,18rem)]">
           <NeighborhoodRoute
             interaction={scene.interaction}
             controller={controller}

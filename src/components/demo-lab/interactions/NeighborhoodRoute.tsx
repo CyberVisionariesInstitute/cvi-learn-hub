@@ -122,12 +122,12 @@ export function NeighborhoodRoute({
   const to = activeTarget ? anchorOf(activeTarget, mobile) : undefined;
 
   return (
-    <div className="space-y-4">
+    <div className="@container space-y-4">
       {/* ---------------------------------------------------------- Stage */}
       <div
         className={cn(
           "scene-depth relative isolate w-full overflow-hidden rounded-xl border border-border/50 shadow-[var(--shadow-depth)]",
-          "aspect-[3/4] sm:aspect-[16/10] lg:aspect-[16/9]",
+          "aspect-[3/4] @md:aspect-[16/10] @3xl:aspect-[16/9]",
         )}
         data-complete={complete ? "true" : "false"}
       >
@@ -136,7 +136,7 @@ export function NeighborhoodRoute({
             src={environment.backgroundSrc}
             alt=""
             aria-hidden="true"
-            className={cn("absolute -inset-1 size-[calc(100%+0.5rem)] object-cover object-[62%_center] transition-[transform,filter] duration-1000 sm:object-center", complete ? "scale-[1.012] brightness-110" : "scale-100")}
+            className={cn("absolute -inset-1 size-[calc(100%+0.5rem)] object-cover object-[62%_center] transition-[transform,filter] duration-1000 @md:object-center", complete ? "scale-[1.012] brightness-110" : "scale-100")}
           />
         ) : (
           <div aria-hidden="true" className="atmosphere absolute inset-0" />
@@ -209,12 +209,12 @@ export function NeighborhoodRoute({
         </svg>
 
         {/* neighborhood directory sign */}
-        <div className={cn("absolute top-3 left-3 max-w-[52%] rounded-sm border border-primary/40 bg-background/85 px-3 py-2 shadow-[var(--shadow-object)] backdrop-blur-sm transition-[box-shadow,transform] duration-300 sm:top-5 sm:left-5", lastChoice && !lastChoice.correct && "translate-y-[-2px] shadow-[var(--shadow-focus-light)]")}>
+        <div className={cn("absolute top-3 left-3 max-w-[52%] rounded-sm border border-primary/40 bg-background/85 px-3 py-2 shadow-[var(--shadow-object)] backdrop-blur-sm transition-[box-shadow,transform] duration-300 @md:top-5 @md:left-5", lastChoice && !lastChoice.correct && "translate-y-[-2px] shadow-[var(--shadow-focus-light)]")}>
           <p className="font-display text-[0.7rem] tracking-[0.18em] text-primary uppercase">
             {interaction.sign.title}
           </p>
           {interaction.sign.lines.map((line) => (
-            <p key={line} className="font-mono text-[0.7rem] text-foreground sm:text-xs">
+            <p key={line} className="font-mono text-[0.7rem] text-foreground @md:text-xs">
               {line}
             </p>
           ))}
@@ -279,21 +279,21 @@ export function NeighborhoodRoute({
                   )}
                 />
                 <span className="min-w-0">
-                  <span className="block text-[0.68rem] leading-tight font-medium text-foreground sm:text-xs">
+                  <span className="block text-[0.68rem] leading-tight font-medium text-foreground @md:text-xs">
                     {hotspot.label}
                     {solved ? (
                       <span className="ml-1 text-[0.6rem] text-primary">routed</span>
                     ) : null}
                   </span>
                   {hotspot.address ? (
-                    <span className="block font-mono text-[0.62rem] leading-tight text-muted-foreground sm:text-[0.7rem]">
+                    <span className="block font-mono text-[0.62rem] leading-tight text-muted-foreground @md:text-[0.7rem]">
                       {hotspot.address}
                     </span>
                   ) : null}
                   {hotspot.signage?.map((line) => (
                     <span
                       key={line}
-                      className="block text-[0.62rem] leading-tight text-amber sm:text-[0.68rem]"
+                      className="block text-[0.62rem] leading-tight text-amber @md:text-[0.68rem]"
                     >
                       {line}
                     </span>
@@ -305,7 +305,7 @@ export function NeighborhoodRoute({
         })}
 
         {/* Ivy's work order, mounted in-scene */}
-        <div className="absolute right-3 bottom-3 left-3 z-20 rotate-[-0.4deg] rounded-sm border border-border/70 bg-background/90 p-3 shadow-[var(--shadow-object)] backdrop-blur-sm sm:left-auto sm:right-5 sm:max-w-xs sm:bottom-5">
+        <div className="absolute right-3 bottom-3 left-3 z-20 rotate-[-0.4deg] rounded-sm border border-border/70 bg-background/90 p-3 shadow-[var(--shadow-object)] backdrop-blur-sm @md:left-auto @md:right-5 @md:bottom-5 @md:max-w-xs">
           <p className="text-[0.65rem] tracking-[0.2em] text-muted-foreground uppercase">
             Ivy's work order · {answeredCount} of {interaction.requests.length} routed
           </p>
@@ -319,7 +319,7 @@ export function NeighborhoodRoute({
       </div>
 
       {/* ------------------------------------------------ Below the stage */}
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)]">
+      <div className="grid gap-4 @3xl:grid-cols-[minmax(0,1fr)_minmax(0,20rem)]">
         <div aria-live="polite" className="space-y-3">
           {complete ? (
             <div className="rounded-lg border border-primary/40 bg-primary/10 p-4">
