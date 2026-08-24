@@ -21,6 +21,12 @@ export function IncidentBoard({
   const [selected, setSelected] = useState<string | null>(null);
   const [lastId, setLastId] = useState<string | null>(null);
   const [rejecting, setRejecting] = useState<string | null>(null);
+  const pointerDrag = useRef<{
+    id: string;
+    pointerId: number;
+    startX: number;
+    startY: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!rejecting) return;
