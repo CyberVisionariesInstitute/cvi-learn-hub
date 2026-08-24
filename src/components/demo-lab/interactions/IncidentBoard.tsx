@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { EvidenceSortInteraction } from "@/lib/demo-lab/types";
 import type { ExperienceController } from "@/lib/demo-lab/useExperienceState";
