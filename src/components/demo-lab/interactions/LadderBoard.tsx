@@ -57,9 +57,17 @@ export function LadderBoard({
     const moved = Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) > 6;
     if (!moved) return;
 
-    const target = document
-      .elementFromPoint(e.clientX, e.clientY)
-      ?.closest<HTMLElement>("[data-ladder-slot]");
+    const target = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-ladder-slot]"),
+    ).find((slot) => {
+      const rect = slot.getBoundingClientRect();
+      return (
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom
+      );
+    });
     const slotIndex = Number(target?.dataset["ladderSlot"]);
     if (target && Number.isInteger(slotIndex)) place(drag.id, slotIndex);
   }
