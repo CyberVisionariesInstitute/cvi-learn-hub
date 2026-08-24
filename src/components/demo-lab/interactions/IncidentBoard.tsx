@@ -81,7 +81,7 @@ export function IncidentBoard({
   }
 
   return (
-    <div className="scene-depth space-y-4">
+    <div className="space-y-4">
       {/* Ticket monitor mounted in the room carries the report. */}
       {interaction.report ? (
         <section className="monitor-surface screen-refresh mx-auto max-w-3xl rounded-[0.2rem] px-4 py-3">
