@@ -72,7 +72,7 @@ export function EnvironmentLayer({
 
   return (
     <section
-      className="@container scene-depth relative min-h-[32rem] overflow-hidden rounded-xl border border-border/50 bg-surface/60 shadow-[var(--shadow-depth)]"
+      className="@container relative min-h-[32rem] overflow-hidden rounded-xl border border-border/50 bg-surface/60 shadow-[var(--shadow-depth)]"
       aria-label={`Environment: ${environment.name}`}
     >
       {environment.backgroundSrc ? (

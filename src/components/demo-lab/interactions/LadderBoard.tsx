@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { SequenceInteraction } from "@/lib/demo-lab/types";
 import type { ExperienceController } from "@/lib/demo-lab/useExperienceState";
@@ -23,6 +23,12 @@ export function LadderBoard({
   const { sceneState, answer, clearAnswers, setCharacterState } = controller;
   const { answers } = sceneState;
   const [selected, setSelected] = useState<string | null>(null);
+  const pointerDrag = useRef<{
+    id: string;
+    pointerId: number;
+    startX: number;
+    startY: number;
+  } | null>(null);
 
   const slots = interaction.correctOrder.map((_, i) => answers[`${SLOT_PREFIX}${i}`]);
   const placedIds = slots.filter(Boolean) as string[];
@@ -41,6 +47,29 @@ export function LadderBoard({
     answer(`${SLOT_PREFIX}${slotIndex}`, stepId);
     setSelected(null);
     invalidateCheck();
+  }
+
+  function finishPointerDrag(e: React.PointerEvent<HTMLElement>) {
+    const drag = pointerDrag.current;
+    pointerDrag.current = null;
+    if (!drag || drag.pointerId !== e.pointerId) return;
+
+    const moved = Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) > 6;
+    if (!moved) return;
+
+    const target = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-ladder-slot]"),
+    ).find((slot) => {
+      const rect = slot.getBoundingClientRect();
+      return (
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom
+      );
+    });
+    const slotIndex = Number(target?.dataset["ladderSlot"]);
+    if (target && Number.isInteger(slotIndex)) place(drag.id, slotIndex);
   }
 
   function removeSlot(slotIndex: number) {
@@ -70,7 +99,7 @@ export function LadderBoard({
   const full = placedIds.length === interaction.correctOrder.length;
 
   return (
-    <div className="scene-depth relative">
+    <div className="relative">
       {/* Wall plane: the board is mounted, not floating. */}
       <div className="board-plane relative mx-auto max-w-4xl">
         <div className="board-frame relative rounded-[0.35rem] p-2">
@@ -111,6 +140,7 @@ export function LadderBoard({
                     <div>
                       <button
                         type="button"
+                        data-ladder-slot={i}
                         onDragEnter={(e) => e.preventDefault()}
                         onDragOver={(e) => {
                           e.preventDefault();
@@ -226,12 +256,23 @@ export function LadderBoard({
                 <div
                   role="button"
                   tabIndex={0}
-                  draggable
-                  onDragStart={(e) => {
-                    e.dataTransfer.effectAllowed = "move";
-                    e.dataTransfer.setData("text/plain", step.id);
-                    setSelected(step.id);
-                  }}
+                   onPointerDown={(e) => {
+                     if (!e.isPrimary || e.button !== 0) return;
+                     pointerDrag.current = {
+                       id: step.id,
+                       pointerId: e.pointerId,
+                       startX: e.clientX,
+                       startY: e.clientY,
+                     };
+                     e.currentTarget.setPointerCapture(e.pointerId);
+                   }}
+                   onPointerMove={(e) => {
+                     if (pointerDrag.current?.pointerId === e.pointerId) e.preventDefault();
+                   }}
+                   onPointerUp={finishPointerDrag}
+                   onPointerCancel={() => {
+                     pointerDrag.current = null;
+                   }}
                   onClick={() => setSelected(selected === step.id ? null : step.id)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
@@ -241,7 +282,7 @@ export function LadderBoard({
                   }}
                   aria-pressed={selected === step.id}
                   className={cn(
-                    "pinned-card min-h-14 max-w-64 rounded-[0.15rem] border px-3 py-2 text-left [--card-tilt:-0.9deg] odd:[--card-tilt:0.8deg]",
+                     "pinned-card min-h-14 max-w-64 touch-none cursor-grab select-none rounded-[0.15rem] border px-3 py-2 text-left active:cursor-grabbing [--card-tilt:-0.9deg] odd:[--card-tilt:0.8deg]",
                     selected === step.id
                       ? "border-primary bg-primary/15"
                       : "border-border bg-surface-raised/70 hover:border-primary/60",
