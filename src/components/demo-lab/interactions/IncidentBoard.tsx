@@ -53,6 +53,27 @@ export function IncidentBoard({
     setCharacterState(ok ? "ivy-nod" : "ivy-point");
   }
 
+  function finishPointerDrag(e: React.PointerEvent<HTMLElement>) {
+    const drag = pointerDrag.current;
+    pointerDrag.current = null;
+    if (!drag || drag.pointerId !== e.pointerId) return;
+    const moved = Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) > 6;
+    if (!moved) return;
+    const target = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-incident-bucket]"),
+    ).find((el) => {
+      const rect = el.getBoundingClientRect();
+      return (
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom
+      );
+    });
+    const bucketId = target?.dataset["incidentBucket"];
+    if (bucketId) place(drag.id, bucketId);
+  }
+
   return (
     <div className="scene-depth space-y-4">
       {/* Ticket monitor mounted in the room carries the report. */}
