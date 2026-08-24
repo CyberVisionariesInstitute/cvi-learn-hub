@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { SequenceInteraction } from "@/lib/demo-lab/types";
 import type { ExperienceController } from "@/lib/demo-lab/useExperienceState";
@@ -23,6 +23,12 @@ export function LadderBoard({
   const { sceneState, answer, clearAnswers, setCharacterState } = controller;
   const { answers } = sceneState;
   const [selected, setSelected] = useState<string | null>(null);
+  const pointerDrag = useRef<{
+    id: string;
+    pointerId: number;
+    startX: number;
+    startY: number;
+  } | null>(null);
 
   const slots = interaction.correctOrder.map((_, i) => answers[`${SLOT_PREFIX}${i}`]);
   const placedIds = slots.filter(Boolean) as string[];
@@ -41,6 +47,21 @@ export function LadderBoard({
     answer(`${SLOT_PREFIX}${slotIndex}`, stepId);
     setSelected(null);
     invalidateCheck();
+  }
+
+  function finishPointerDrag(e: React.PointerEvent<HTMLElement>) {
+    const drag = pointerDrag.current;
+    pointerDrag.current = null;
+    if (!drag || drag.pointerId !== e.pointerId) return;
+
+    const moved = Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) > 6;
+    if (!moved) return;
+
+    const target = document
+      .elementFromPoint(e.clientX, e.clientY)
+      ?.closest<HTMLElement>("[data-ladder-slot]");
+    const slotIndex = Number(target?.dataset.ladderSlot);
+    if (target && Number.isInteger(slotIndex)) place(drag.id, slotIndex);
   }
 
   function removeSlot(slotIndex: number) {
@@ -111,6 +132,7 @@ export function LadderBoard({
                     <div>
                       <button
                         type="button"
+                        data-ladder-slot={i}
                         onDragEnter={(e) => e.preventDefault()}
                         onDragOver={(e) => {
                           e.preventDefault();
@@ -227,6 +249,20 @@ export function LadderBoard({
                   role="button"
                   tabIndex={0}
                   draggable
+                   onPointerDown={(e) => {
+                     if (!e.isPrimary || e.button !== 0) return;
+                     pointerDrag.current = {
+                       id: step.id,
+                       pointerId: e.pointerId,
+                       startX: e.clientX,
+                       startY: e.clientY,
+                     };
+                     e.currentTarget.setPointerCapture(e.pointerId);
+                   }}
+                   onPointerUp={finishPointerDrag}
+                   onPointerCancel={() => {
+                     pointerDrag.current = null;
+                   }}
                   onDragStart={(e) => {
                     e.dataTransfer.effectAllowed = "move";
                     e.dataTransfer.setData("text/plain", step.id);
