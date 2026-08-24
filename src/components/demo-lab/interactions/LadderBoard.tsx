@@ -223,14 +223,22 @@ export function LadderBoard({
             ) : null}
             {tray.map((step) => (
               <li key={step.id}>
-                <button
-                  type="button"
+                <div
+                  role="button"
+                  tabIndex={0}
                   draggable
                   onDragStart={(e) => {
+                    e.dataTransfer.effectAllowed = "move";
                     e.dataTransfer.setData("text/plain", step.id);
                     setSelected(step.id);
                   }}
                   onClick={() => setSelected(selected === step.id ? null : step.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelected(selected === step.id ? null : step.id);
+                    }
+                  }}
                   aria-pressed={selected === step.id}
                   className={cn(
                     "pinned-card min-h-14 max-w-64 rounded-[0.15rem] border px-3 py-2 text-left [--card-tilt:-0.9deg] odd:[--card-tilt:0.8deg]",
