@@ -156,7 +156,7 @@ export function IncidentBoard({
                       ? "Selected — choose a column"
                       : "Select to file it"}
                   </span>
-                </button>
+                </div>
               </li>
             ))}
           </ul>
