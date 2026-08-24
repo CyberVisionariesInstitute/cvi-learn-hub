@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { EvidenceSortInteraction } from "@/lib/demo-lab/types";
 import type { ExperienceController } from "@/lib/demo-lab/useExperienceState";
@@ -21,6 +21,12 @@ export function IncidentBoard({
   const [selected, setSelected] = useState<string | null>(null);
   const [lastId, setLastId] = useState<string | null>(null);
   const [rejecting, setRejecting] = useState<string | null>(null);
+  const pointerDrag = useRef<{
+    id: string;
+    pointerId: number;
+    startX: number;
+    startY: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!rejecting) return;
@@ -53,8 +59,29 @@ export function IncidentBoard({
     setCharacterState(ok ? "ivy-nod" : "ivy-point");
   }
 
+  function finishPointerDrag(e: React.PointerEvent<HTMLElement>) {
+    const drag = pointerDrag.current;
+    pointerDrag.current = null;
+    if (!drag || drag.pointerId !== e.pointerId) return;
+    const moved = Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) > 6;
+    if (!moved) return;
+    const target = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-incident-bucket]"),
+    ).find((el) => {
+      const rect = el.getBoundingClientRect();
+      return (
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom
+      );
+    });
+    const bucketId = target?.dataset["incidentBucket"];
+    if (bucketId) place(drag.id, bucketId);
+  }
+
   return (
-    <div className="scene-depth space-y-4">
+    <div className="space-y-4">
       {/* Ticket monitor mounted in the room carries the report. */}
       {interaction.report ? (
         <section className="monitor-surface screen-refresh mx-auto max-w-3xl rounded-[0.2rem] px-4 py-3">
@@ -86,17 +113,36 @@ export function IncidentBoard({
             ) : null}
             {tray.map((item, index) => (
               <li key={item.id}>
-                <button
-                  type="button"
-                  draggable
-                  onDragStart={(e) => {
-                    e.dataTransfer.setData("text/plain", item.id);
-                    setSelected(item.id);
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onPointerDown={(e) => {
+                    if (!e.isPrimary || e.button !== 0) return;
+                    pointerDrag.current = {
+                      id: item.id,
+                      pointerId: e.pointerId,
+                      startX: e.clientX,
+                      startY: e.clientY,
+                    };
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                  }}
+                  onPointerMove={(e) => {
+                    if (pointerDrag.current?.pointerId === e.pointerId) e.preventDefault();
+                  }}
+                  onPointerUp={finishPointerDrag}
+                  onPointerCancel={() => {
+                    pointerDrag.current = null;
                   }}
                   onClick={() => setSelected(selected === item.id ? null : item.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelected(selected === item.id ? null : item.id);
+                    }
+                  }}
                   aria-pressed={selected === item.id}
                   className={cn(
-                    "pinned-card lift-on-select min-h-14 w-full rounded-[0.12rem] border px-3 py-2 text-left text-sm",
+                    "pinned-card lift-on-select min-h-14 w-full touch-none cursor-grab select-none rounded-[0.12rem] border px-3 py-2 text-left text-sm active:cursor-grabbing",
                     index % 2 ? "[--card-tilt:0.8deg]" : "[--card-tilt:-0.7deg]",
                     rejecting === item.id && "card-reject",
                     selected === item.id
@@ -110,7 +156,7 @@ export function IncidentBoard({
                       ? "Selected — choose a column"
                       : "Select to file it"}
                   </span>
-                </button>
+                </div>
               </li>
             ))}
           </ul>
@@ -131,6 +177,7 @@ export function IncidentBoard({
                   return (
                     <section
                       key={bucket.id}
+                      data-incident-bucket={bucket.id}
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={(e) => {
                         e.preventDefault();
