@@ -177,6 +177,7 @@ export function IncidentBoard({
                   return (
                     <section
                       key={bucket.id}
+                      data-incident-bucket={bucket.id}
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={(e) => {
                         e.preventDefault();
