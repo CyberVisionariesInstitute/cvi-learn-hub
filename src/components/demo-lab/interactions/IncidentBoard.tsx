@@ -113,17 +113,36 @@ export function IncidentBoard({
             ) : null}
             {tray.map((item, index) => (
               <li key={item.id}>
-                <button
-                  type="button"
-                  draggable
-                  onDragStart={(e) => {
-                    e.dataTransfer.setData("text/plain", item.id);
-                    setSelected(item.id);
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onPointerDown={(e) => {
+                    if (!e.isPrimary || e.button !== 0) return;
+                    pointerDrag.current = {
+                      id: item.id,
+                      pointerId: e.pointerId,
+                      startX: e.clientX,
+                      startY: e.clientY,
+                    };
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                  }}
+                  onPointerMove={(e) => {
+                    if (pointerDrag.current?.pointerId === e.pointerId) e.preventDefault();
+                  }}
+                  onPointerUp={finishPointerDrag}
+                  onPointerCancel={() => {
+                    pointerDrag.current = null;
                   }}
                   onClick={() => setSelected(selected === item.id ? null : item.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelected(selected === item.id ? null : item.id);
+                    }
+                  }}
                   aria-pressed={selected === item.id}
                   className={cn(
-                    "pinned-card lift-on-select min-h-14 w-full rounded-[0.12rem] border px-3 py-2 text-left text-sm",
+                    "pinned-card lift-on-select min-h-14 w-full touch-none cursor-grab select-none rounded-[0.12rem] border px-3 py-2 text-left text-sm active:cursor-grabbing",
                     index % 2 ? "[--card-tilt:0.8deg]" : "[--card-tilt:-0.7deg]",
                     rejecting === item.id && "card-reject",
                     selected === item.id
