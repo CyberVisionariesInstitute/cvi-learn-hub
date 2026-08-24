@@ -60,7 +60,7 @@ export function LadderBoard({
     const target = document
       .elementFromPoint(e.clientX, e.clientY)
       ?.closest<HTMLElement>("[data-ladder-slot]");
-    const slotIndex = Number(target?.dataset.ladderSlot);
+    const slotIndex = Number(target?.dataset["ladderSlot"]);
     if (target && Number.isInteger(slotIndex)) place(drag.id, slotIndex);
   }
 
