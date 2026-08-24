@@ -258,7 +258,7 @@ export function LadderBoard({
                       Selected — choose a rung
                     </span>
                   ) : null}
-                </button>
+                </div>
               </li>
             ))}
           </ul>
