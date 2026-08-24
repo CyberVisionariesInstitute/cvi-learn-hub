@@ -230,7 +230,6 @@ export function LadderBoard({
                   onDragStart={(e) => {
                     e.dataTransfer.effectAllowed = "move";
                     e.dataTransfer.setData("text/plain", step.id);
-                    setSelected(step.id);
                   }}
                   onClick={() => setSelected(selected === step.id ? null : step.id)}
                   onKeyDown={(e) => {
