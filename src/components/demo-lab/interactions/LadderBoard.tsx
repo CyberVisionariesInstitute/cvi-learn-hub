@@ -248,7 +248,6 @@ export function LadderBoard({
                 <div
                   role="button"
                   tabIndex={0}
-                  draggable
                    onPointerDown={(e) => {
                      if (!e.isPrimary || e.button !== 0) return;
                      pointerDrag.current = {
@@ -259,14 +258,13 @@ export function LadderBoard({
                      };
                      e.currentTarget.setPointerCapture(e.pointerId);
                    }}
+                   onPointerMove={(e) => {
+                     if (pointerDrag.current?.pointerId === e.pointerId) e.preventDefault();
+                   }}
                    onPointerUp={finishPointerDrag}
                    onPointerCancel={() => {
                      pointerDrag.current = null;
                    }}
-                  onDragStart={(e) => {
-                    e.dataTransfer.effectAllowed = "move";
-                    e.dataTransfer.setData("text/plain", step.id);
-                  }}
                   onClick={() => setSelected(selected === step.id ? null : step.id)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
@@ -276,7 +274,7 @@ export function LadderBoard({
                   }}
                   aria-pressed={selected === step.id}
                   className={cn(
-                    "pinned-card min-h-14 max-w-64 rounded-[0.15rem] border px-3 py-2 text-left [--card-tilt:-0.9deg] odd:[--card-tilt:0.8deg]",
+                     "pinned-card min-h-14 max-w-64 touch-none cursor-grab select-none rounded-[0.15rem] border px-3 py-2 text-left active:cursor-grabbing [--card-tilt:-0.9deg] odd:[--card-tilt:0.8deg]",
                     selected === step.id
                       ? "border-primary bg-primary/15"
                       : "border-border bg-surface-raised/70 hover:border-primary/60",
