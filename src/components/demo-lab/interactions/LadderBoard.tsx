@@ -108,16 +108,19 @@ export function LadderBoard({
                 const questioned = checked && firstWrongIndex === i;
                 return (
                   <li key={i} className="relative pl-6">
-                    <div
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        const id = e.dataTransfer.getData("text/plain");
-                        if (id) place(id, i);
-                      }}
-                    >
+                    <div>
                       <button
                         type="button"
+                        onDragEnter={(e) => e.preventDefault()}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = "move";
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const id = e.dataTransfer.getData("text/plain") || selected;
+                          if (id) place(id, i);
+                        }}
                         onClick={() => {
                           if (selected) place(selected, i);
                           else if (stepId) removeSlot(i);
