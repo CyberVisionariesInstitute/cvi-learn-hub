@@ -7,6 +7,9 @@ import { Investigation } from "./interactions/Investigation";
 import { SshDiagnostic } from "./interactions/SshDiagnostic";
 import { IncidentBoard } from "./interactions/IncidentBoard";
 import { BriefingBoard } from "./interactions/BriefingBoard";
+import { InvestigationRequestBoard } from "./interactions/InvestigationRequestBoard";
+import { RuleEvaluationBoard } from "./interactions/RuleEvaluationBoard";
+import { TestComparisonPanel } from "./interactions/TestComparisonPanel";
 import type { ExperienceController } from "@/lib/demo-lab/useExperienceState";
 import type {
   ClassifyInteraction,
