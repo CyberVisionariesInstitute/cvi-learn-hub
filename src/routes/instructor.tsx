@@ -9,7 +9,7 @@ import {
   statusLabels,
 } from "@/lib/demo-lab/programs";
 import { useExperienceState } from "@/lib/demo-lab/useExperienceState";
-import type { Experience, Program, ProgramId } from "@/lib/demo-lab/types";
+import type { Experience, Program, ProgramId, Scene } from "@/lib/demo-lab/types";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/instructor")({
@@ -235,6 +235,24 @@ function ExperienceConsole({ experience }: { experience: Experience }) {
               </li>
             ))}
           </ol>
+          {experience.runOfShow?.length ? (
+            <div className="mt-5 border-t border-border pt-4">
+              <h3 className="text-xs tracking-[0.2em] text-muted-foreground uppercase">
+                Run of show · {experience.estimatedMinutes} min
+              </h3>
+              <ol className="mt-2 space-y-2 text-xs leading-relaxed text-muted-foreground">
+                {experience.runOfShow.map((row) => (
+                  <li key={row.order}>
+                    <span className="text-foreground">
+                      {row.order}. {row.title}
+                    </span>{" "}
+                    — {row.minutes} min
+                    <span className="block">{row.focus}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ) : null}
           {controller.scene.instructorNotes?.length ? (
             <div className="mt-5 border-t border-border pt-4">
               <h3 className="text-xs tracking-[0.2em] text-muted-foreground uppercase">
@@ -261,10 +279,107 @@ function ExperienceConsole({ experience }: { experience: Experience }) {
           ) : null}
         </nav>
 
-        <div className={cn(presenting && "mx-auto max-w-[110rem]")}>
+        <div className={cn("min-w-0 space-y-6", presenting && "mx-auto max-w-[110rem]")}>
+          {controller.scene.facilitation ? (
+            <FacilitationGuide
+              key={controller.scene.id}
+              scene={controller.scene}
+              index={controller.sceneIndex}
+              presenting={presenting}
+            />
+          ) : null}
           <SceneRenderer controller={controller} environments={program.environments} />
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * Facilitator-only package for the current scene. Closed by default in
+ * present mode so nothing reaches the projector unless the instructor opens it.
+ */
+function FacilitationGuide({
+  scene,
+  index,
+  presenting,
+}: {
+  scene: Scene;
+  index: number;
+  presenting: boolean;
+}) {
+  const guide = scene.facilitation!;
+  const lists: Array<{ title: string; items: string[] }> = [
+    { title: "On screen", items: guide.onScreen },
+    { title: "Questions to ask", items: guide.questionsToAsk },
+    { title: "Expected student reasoning", items: guide.expectedReasoning },
+    { title: "Likely misconceptions", items: guide.misconceptions },
+    { title: "Follow-up questions", items: guide.followUpQuestions },
+    { title: "Evidence reveal order", items: guide.evidenceRevealOrder },
+  ];
+
+  return (
+    <details
+      open={!presenting}
+      className="glass-panel min-w-0 rounded-lg border border-amber/30 p-4"
+    >
+      <summary className="cursor-pointer font-display text-sm text-foreground">
+        Facilitation guide — Scene {index + 1}: {scene.title}
+        <span className="ml-2 text-xs text-muted-foreground">
+          ({guide.recommendedMinutes} min · instructor only)
+        </span>
+      </summary>
+
+      <div className="mt-4 space-y-4 text-sm leading-relaxed">
+        <p className="border-l-2 border-primary/60 pl-3 text-foreground">
+          <span className="block text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+            Scene objective
+          </span>
+          {scene.objective}
+        </p>
+        <p className="border-l-2 border-primary/60 pl-3 text-foreground">
+          <span className="block text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+            Opening statement
+          </span>
+          {guide.openingStatement}
+        </p>
+
+        <div className="grid gap-4 @2xl:grid-cols-2 xl:grid-cols-2">
+          {lists.map((list) => (
+            <section key={list.title} className="min-w-0">
+              <h4 className="text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+                {list.title}
+              </h4>
+              <ul className="mt-1.5 space-y-1.5 text-sm text-foreground">
+                {list.items.map((item) => (
+                  <li key={item} className="break-words">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+
+        <p className="border-l-2 border-amber bg-amber/10 p-3 text-foreground">
+          <span className="block text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+            Processing pause
+          </span>
+          {guide.processingPause}
+        </p>
+        <p className="border-l-2 border-evidence bg-evidence/10 p-3 text-foreground">
+          <span className="block text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+            Correct answer and reasoning
+          </span>
+          {guide.correctAnswer}
+        </p>
+        <p className="border-l-2 border-border pl-3 text-muted-foreground">
+          <span className="block text-[0.62rem] tracking-[0.2em] uppercase">
+            Transition to the next scene
+          </span>
+          {guide.transition}
+        </p>
+      </div>
+    </details>
   );
 }

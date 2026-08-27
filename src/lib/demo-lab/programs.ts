@@ -1,9 +1,13 @@
 import { cyberfoundationsCharacters, pkiCharacters } from "./characters";
 import { cyberfoundationsEnvironments, pkiEnvironments } from "./environments";
 import { fromTheGridToCloudHeights } from "./experiences/from-the-grid-to-cloud-heights";
+import { cloudHeightsGuardPost } from "./experiences/cloud-heights-guard-post";
 import type { Experience, Program, ProgramId } from "./types";
 
-export const experiences: Experience[] = [fromTheGridToCloudHeights];
+export const experiences: Experience[] = [
+  fromTheGridToCloudHeights,
+  cloudHeightsGuardPost,
+];
 
 export const cyberfoundations: Program = {
   id: "cyberfoundations",
@@ -60,10 +64,11 @@ export const cyberfoundations: Program = {
         {
           id: "cf-week-07",
           label: "Week 7",
-          title: "Coming Next",
-          summary: "Experience design in progress.",
-          experienceIds: [],
-          status: "planned",
+          title: "Firewalls, Security Groups & Network Defense",
+          summary:
+            "Rule priority, least privilege and paired testing, worked as a live security incident at the Cloud Heights Guard Post.",
+          experienceIds: [cloudHeightsGuardPost.id],
+          status: "available",
         },
       ],
     },

@@ -164,7 +164,10 @@ export type InteractionKind =
   | "investigation"
   | "three-state"
   | "evidence-sort"
-  | "briefing";
+  | "briefing"
+  | "investigation-request"
+  | "rule-evaluation"
+  | "test-comparison";
 
 
 export interface ClassifyOption {
@@ -513,6 +516,127 @@ export interface BriefingInteraction {
   completion: { headline: string; body: string; finalLine: string; banner: string };
 }
 
+/* ------------------------------------------------------------------ */
+/* investigation-request: choose the questions before changing anything */
+/* ------------------------------------------------------------------ */
+
+export interface InvestigationRequestInteraction {
+  id: string;
+  kind: "investigation-request";
+  prompt: string;
+  instruction: string;
+  /** The incident ticket as it arrives — deliberately incomplete. */
+  ticket: {
+    ref: string;
+    title: string;
+    rows: Array<{ label: string; value: string }>;
+    note: string;
+  };
+  questions: Array<{
+    id: string;
+    label: string;
+    /** Essential questions must be asked before the scene is complete. */
+    essential: boolean;
+    /** What the operations team answers when the question is asked. */
+    answer: string;
+    /** Ivy's read on why the question does or does not move the work forward. */
+    response: string;
+    revealsEvidenceIds?: string[];
+  }>;
+  completion: { headline: string; body: string };
+}
+
+/* ------------------------------------------------------------------ */
+/* rule-evaluation: ordered rule ledger, first match wins              */
+/* ------------------------------------------------------------------ */
+
+export interface FirewallRule {
+  id: string;
+  priority: number;
+  name: string;
+  action: "ALLOW" | "DENY";
+  source: string;
+  destination: string;
+  protocol: string;
+  port: string;
+  /** Protected baseline rule: visible context, never a change target. */
+  locked?: boolean;
+}
+
+export interface RuleEvaluationInteraction {
+  id: string;
+  kind: "rule-evaluation";
+  prompt: string;
+  instruction: string;
+  ledgerTitle: string;
+  directionLabel: string;
+  /** Ordering/priority rules restated on the surface, never colour-only. */
+  principles: string[];
+  rules: FirewallRule[];
+  packet: {
+    label: string;
+    source: string;
+    destination: string;
+    protocol: string;
+    port: string;
+  };
+  prediction: {
+    prompt: string;
+    options: Array<{ id: string; label: string; correct: boolean; response: string }>;
+  };
+  evaluation: {
+    /** Ordered walk of the ledger; rules after the match stay UNEVALUATED. */
+    steps: Array<{ ruleId: string; result: string; note: string }>;
+    verdict: string;
+    summary: string;
+  };
+  remediation: {
+    prompt: string;
+    options: Array<{ id: string; label: string; correct: boolean; response: string }>;
+    correctedTitle: string;
+    correctedRules: FirewallRule[];
+    note: string;
+  };
+  completion: { headline: string; body: string };
+}
+
+/* ------------------------------------------------------------------ */
+/* test-comparison: positive and negative tests, side by side          */
+/* ------------------------------------------------------------------ */
+
+export type TestVerdict =
+  | "ALLOWED"
+  | "DENIED"
+  | "SERVICE_NOT_LISTENING"
+  | "TEST_ERROR";
+
+export interface TestComparisonInteraction {
+  id: string;
+  kind: "test-comparison";
+  prompt: string;
+  instruction: string;
+  /** Fixed parameters of the tester, shown so students do not assume more. */
+  testerNote: string;
+  tests: Array<{
+    id: string;
+    label: string;
+    source: string;
+    destination: string;
+    protocol: string;
+    port: string;
+    predictionPrompt: string;
+    options: Array<{ id: string; label: string; correct: boolean; response: string }>;
+    verdict: TestVerdict;
+    proves: string;
+  }>;
+  /** What the pair of results supports — scoped, never absolute. */
+  meaning: {
+    prompt: string;
+    options: Array<{ id: string; label: string; correct: boolean; response: string }>;
+  };
+  completion: { headline: string; body: string };
+}
+
 /** Extend this union to add new interaction patterns. */
 export type Interaction =
   | ClassifyInteraction
@@ -525,13 +649,37 @@ export type Interaction =
   | InvestigationInteraction
   | ThreeStateInteraction
   | EvidenceSortInteraction
-  | BriefingInteraction;
+  | BriefingInteraction
+  | InvestigationRequestInteraction
+  | RuleEvaluationInteraction
+  | TestComparisonInteraction;
 
 
 
 /* ------------------------------------------------------------------ */
 /* Scenes and experiences                                              */
 /* ------------------------------------------------------------------ */
+
+/**
+ * Facilitation package for one scene. Data, not comments, so the instructor
+ * console can render it and the repository document can mirror it exactly.
+ * Never rendered in student mode.
+ */
+export interface SceneFacilitation {
+  recommendedMinutes: number;
+  /** What the room is looking at while this scene runs. */
+  onScreen: string[];
+  openingStatement: string;
+  questionsToAsk: string[];
+  expectedReasoning: string[];
+  misconceptions: string[];
+  followUpQuestions: string[];
+  /** Explicit, unhurried pause after the major reveal. */
+  processingPause: string;
+  evidenceRevealOrder: string[];
+  correctAnswer: string;
+  transition: string;
+}
 
 export interface Scene {
   id: string;
@@ -561,6 +709,8 @@ export interface Scene {
   /** Explanation revealed on demand (student) or by the instructor. */
   explanation?: string;
   instructorNotes?: string[];
+  /** Structured facilitation package, rendered only in instructor mode. */
+  facilitation?: SceneFacilitation;
   continueLabel?: string;
 }
 
@@ -582,6 +732,8 @@ export interface Experience {
   scenes: Scene[];
   replayAvailable: boolean;
   instructorNotes?: string[];
+  /** Timed run of show, shown in the instructor console. */
+  runOfShow?: Array<{ order: number; title: string; minutes: number; focus: string }>;
   /** Route to launch the experience. */
   route: string;
 }

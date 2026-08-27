@@ -7,6 +7,9 @@ import { Investigation } from "./interactions/Investigation";
 import { SshDiagnostic } from "./interactions/SshDiagnostic";
 import { IncidentBoard } from "./interactions/IncidentBoard";
 import { BriefingBoard } from "./interactions/BriefingBoard";
+import { InvestigationRequestBoard } from "./interactions/InvestigationRequestBoard";
+import { RuleEvaluationBoard } from "./interactions/RuleEvaluationBoard";
+import { TestComparisonPanel } from "./interactions/TestComparisonPanel";
 import type { ExperienceController } from "@/lib/demo-lab/useExperienceState";
 import type {
   ClassifyInteraction,
@@ -254,6 +257,14 @@ export function InteractionLayer({
       return <IncidentBoard interaction={interaction} controller={controller} />;
     case "briefing":
       return <BriefingBoard interaction={interaction} controller={controller} />;
+    case "investigation-request":
+      return (
+        <InvestigationRequestBoard interaction={interaction} controller={controller} />
+      );
+    case "rule-evaluation":
+      return <RuleEvaluationBoard interaction={interaction} controller={controller} />;
+    case "test-comparison":
+      return <TestComparisonPanel interaction={interaction} controller={controller} />;
     default:
       return null;
   }
