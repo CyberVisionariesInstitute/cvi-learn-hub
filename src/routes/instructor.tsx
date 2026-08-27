@@ -9,7 +9,7 @@ import {
   statusLabels,
 } from "@/lib/demo-lab/programs";
 import { useExperienceState } from "@/lib/demo-lab/useExperienceState";
-import type { Experience, Program, ProgramId } from "@/lib/demo-lab/types";
+import type { Experience, Program, ProgramId, Scene } from "@/lib/demo-lab/types";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/instructor")({
