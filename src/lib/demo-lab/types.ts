@@ -660,6 +660,27 @@ export type Interaction =
 /* Scenes and experiences                                              */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Facilitation package for one scene. Data, not comments, so the instructor
+ * console can render it and the repository document can mirror it exactly.
+ * Never rendered in student mode.
+ */
+export interface SceneFacilitation {
+  recommendedMinutes: number;
+  /** What the room is looking at while this scene runs. */
+  onScreen: string[];
+  openingStatement: string;
+  questionsToAsk: string[];
+  expectedReasoning: string[];
+  misconceptions: string[];
+  followUpQuestions: string[];
+  /** Explicit, unhurried pause after the major reveal. */
+  processingPause: string;
+  evidenceRevealOrder: string[];
+  correctAnswer: string;
+  transition: string;
+}
+
 export interface Scene {
   id: string;
   title: string;
@@ -688,6 +709,8 @@ export interface Scene {
   /** Explanation revealed on demand (student) or by the instructor. */
   explanation?: string;
   instructorNotes?: string[];
+  /** Structured facilitation package, rendered only in instructor mode. */
+  facilitation?: SceneFacilitation;
   continueLabel?: string;
 }
 
