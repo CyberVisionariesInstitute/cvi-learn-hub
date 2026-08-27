@@ -732,6 +732,8 @@ export interface Experience {
   scenes: Scene[];
   replayAvailable: boolean;
   instructorNotes?: string[];
+  /** Timed run of show, shown in the instructor console. */
+  runOfShow?: Array<{ order: number; title: string; minutes: number; focus: string }>;
   /** Route to launch the experience. */
   route: string;
 }
