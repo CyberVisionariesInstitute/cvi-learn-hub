@@ -80,6 +80,36 @@ export function isSceneComplete(scene: Scene, state: SceneState): boolean {
           (item) => state.answers[item.id] === item.correctSectionId,
         )
       );
+    case "investigation-request":
+      return interaction.questions
+        .filter((q) => q.essential)
+        .every((q) => state.used.includes(q.id));
+    case "rule-evaluation": {
+      const prediction = interaction.prediction.options.find(
+        (o) => o.id === state.answers[`${interaction.id}:prediction`],
+      );
+      const remediation = interaction.remediation.options.find(
+        (o) => o.id === state.answers[`${interaction.id}:remediation`],
+      );
+      return (
+        prediction?.correct === true &&
+        state.used.includes(`${interaction.id}:evaluate`) &&
+        remediation?.correct === true
+      );
+    }
+    case "test-comparison": {
+      const meaning = interaction.meaning.options.find(
+        (o) => o.id === state.answers[`${interaction.id}:meaning`],
+      );
+      return (
+        interaction.tests.every((t) => {
+          const chosen = t.options.find(
+            (o) => o.id === state.answers[`${t.id}:prediction`],
+          );
+          return state.used.includes(t.id) && chosen?.correct === true;
+        }) && meaning?.correct === true
+      );
+    }
     default:
       return true;
   }

@@ -257,6 +257,14 @@ export function InteractionLayer({
       return <IncidentBoard interaction={interaction} controller={controller} />;
     case "briefing":
       return <BriefingBoard interaction={interaction} controller={controller} />;
+    case "investigation-request":
+      return (
+        <InvestigationRequestBoard interaction={interaction} controller={controller} />
+      );
+    case "rule-evaluation":
+      return <RuleEvaluationBoard interaction={interaction} controller={controller} />;
+    case "test-comparison":
+      return <TestComparisonPanel interaction={interaction} controller={controller} />;
     default:
       return null;
   }
