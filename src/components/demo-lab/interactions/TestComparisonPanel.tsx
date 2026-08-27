@@ -49,7 +49,7 @@ export function TestComparisonPanel({
           return (
             <section
               key={test.id}
-              className="min-w-0 rounded-sm border border-border bg-surface-raised/50 p-4 shadow-[var(--shadow-object)]"
+              className="min-w-0 rounded-sm border border-border bg-surface-raised/85 p-4 shadow-[var(--shadow-object)] backdrop-blur-sm"
               aria-label={test.label}
             >
               <p className="text-[0.62rem] tracking-[0.22em] text-muted-foreground uppercase">
@@ -167,7 +167,7 @@ export function TestComparisonPanel({
 
       {allRun ? (
         <section
-          className="rounded-sm border border-border bg-surface-raised/40 p-4"
+          className="rounded-sm border border-border bg-surface-raised/85 p-4 backdrop-blur-sm"
           aria-label={interaction.meaning.prompt}
         >
           <h3 className="font-display text-sm text-foreground">

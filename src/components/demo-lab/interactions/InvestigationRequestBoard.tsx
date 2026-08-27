@@ -42,7 +42,7 @@ export function InvestigationRequestBoard({
 
       <div className="grid min-w-0 gap-4 @3xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <section
-          className="min-w-0 rounded-sm border border-border bg-surface-raised/50 p-4 shadow-[var(--shadow-object)]"
+          className="min-w-0 rounded-sm border border-border bg-surface-raised/85 p-4 shadow-[var(--shadow-object)] backdrop-blur-sm"
           aria-label={`Incident ticket ${interaction.ticket.ref}`}
         >
           <p className="text-[0.62rem] tracking-[0.22em] text-muted-foreground uppercase">
