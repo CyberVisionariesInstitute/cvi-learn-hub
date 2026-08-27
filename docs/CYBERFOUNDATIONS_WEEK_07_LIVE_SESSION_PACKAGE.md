@@ -427,8 +427,9 @@ Completion rules for all three were added to `isSceneComplete` in
 - No timers, countdowns, buzzers, scores or leaderboards; reduced-motion behaviour
   inherited from the existing layers.
 - "Reset this scene" clears only the current scene's state.
-- Continue is gated on meaningful completion; instructors can still reveal evidence
-  and explanation and jump between scenes.
+- Continue is never hard-locked (matching Week 6): the scene label reads
+  "— objective met" once the interaction is meaningfully complete, so a live room is
+  never stuck. Instructors can also reveal evidence and explanation and jump scenes.
 
 ## Instructor console
 
