@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { REJECTED_SECTION_ID } from "@/lib/demo-lab/types";
 import type { BriefingInteraction } from "@/lib/demo-lab/types";
 import type { ExperienceController } from "@/lib/demo-lab/useExperienceState";
 
@@ -28,6 +29,9 @@ export function BriefingBoard({
   );
   const confirmed = placement["__confirmed"] === "yes";
   const tray = interaction.items.filter((i) => !placement[i.id]);
+  const rejected = interaction.items.filter(
+    (i) => placement[i.id] === REJECTED_SECTION_ID,
+  );
   const placedCount = interaction.items.length - tray.length;
 
   const last = interaction.items.find((i) => i.id === lastId);
@@ -185,6 +189,64 @@ export function BriefingBoard({
         ) : null}
       </section>
 
+      {/* Reject tray — excluded claims never become a briefing section. */}
+      {interaction.reject ? (
+        <section
+          aria-label={interaction.reject.label}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            const id = e.dataTransfer.getData("text/plain");
+            if (id) place(id, REJECTED_SECTION_ID);
+          }}
+          className="rounded-[0.15rem] border-l-2 border-amber/70 bg-background/45 p-3"
+        >
+          <h3 className="font-display text-xs tracking-[0.2em] text-foreground uppercase">
+            {interaction.reject.label}
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {interaction.reject.description}
+          </p>
+          <button
+            type="button"
+            disabled={!selected}
+            onClick={() => selected && place(selected, REJECTED_SECTION_ID)}
+            className="tactile-control mt-3 min-h-11 rounded-[0.12rem] border border-dashed border-amber/60 px-3 text-xs text-muted-foreground hover:text-foreground disabled:opacity-40"
+          >
+            {selected ? interaction.reject.action : "Select a claim first"}
+          </button>
+          <ul className="mt-3 space-y-2">
+            {rejected.map((item) => {
+              const ok = item.correctSectionId === REJECTED_SECTION_ID;
+              return (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      clearAnswers((k) => k === item.id || k === "__confirmed");
+                      setSelected(item.id);
+                    }}
+                    className={cn(
+                      "settle-in w-full rounded-[0.12rem] border-l-2 bg-background/40 px-3 py-2 text-left text-sm",
+                      ok ? "border-amber text-foreground" : "border-destructive text-foreground",
+                    )}
+                  >
+                    <span className="block line-through decoration-amber/70">
+                      {item.label}
+                    </span>
+                    <span className="block text-xs text-muted-foreground no-underline">
+                      {ok
+                        ? "Excluded — the evidence does not support it"
+                        : "Ivy would keep this on the slide"}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
+
       {/* Briefing prep table */}
       <div className="rounded-[0.15rem] border-t-2 border-primary/40 bg-background/45 p-3">
         <h3 className="font-display text-xs tracking-[0.2em] text-foreground uppercase">
@@ -194,7 +256,7 @@ export function BriefingBoard({
         <ul className="mt-3 flex flex-wrap gap-2">
           {tray.length === 0 ? (
             <li className="text-sm text-muted-foreground">
-              All evidence is on the display.
+              Every line has been filed or excluded.
             </li>
           ) : null}
           {tray.map((item, index) => (
@@ -219,7 +281,9 @@ export function BriefingBoard({
                 <span className="block">{item.label}</span>
                 <span className="mt-1 block text-xs text-muted-foreground">
                   {selected === item.id
-                    ? "Selected — choose a section"
+                    ? interaction.reject
+                      ? "Selected — file it in a section or exclude it"
+                      : "Selected — choose a section"
                     : "Select to place"}
                 </span>
               </button>

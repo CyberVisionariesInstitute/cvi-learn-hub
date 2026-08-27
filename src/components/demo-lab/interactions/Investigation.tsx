@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import type {
   InvestigationInteraction,
   InvestigationStep,
+  PortalTestRecord,
   TopologyStatus,
 } from "@/lib/demo-lab/types";
 import type { ExperienceController } from "@/lib/demo-lab/useExperienceState";
@@ -61,16 +62,24 @@ export function Investigation({
     return { ...node, status, reading };
   });
 
-  const terminalLines: string[] = [
-    `analyst@cf-student-07:~$ ${interaction.opening.command}`,
-    ...interaction.opening.output,
-    "",
-  ];
+  const terminalLines: string[] = [];
+  if (interaction.opening.command) {
+    terminalLines.push(
+      `analyst@cf-student-07:~$ ${interaction.opening.command}`,
+      ...interaction.opening.output,
+      "",
+    );
+  }
+  const portalRecords: PortalTestRecord[] = [];
+  if (interaction.opening.portalTest) portalRecords.push(interaction.opening.portalTest);
   for (const step of interaction.steps) {
     if (step.kind !== "diagnostic") continue;
     for (const c of step.commands) {
       if (!sceneState.used.includes(c.id)) continue;
-      terminalLines.push(`analyst@cf-student-07:~$ ${c.command}`, ...c.output, "");
+      if (c.command) {
+        terminalLines.push(`analyst@cf-student-07:~$ ${c.command}`, ...c.output, "");
+      }
+      if (c.portalTest) portalRecords.push(c.portalTest);
     }
   }
 
@@ -110,12 +119,74 @@ export function Investigation({
             <p className="border-l-2 border-destructive bg-destructive/10 p-3 text-sm text-foreground">
               {interaction.opening.caption}
             </p>
-            <TerminalView
-              key={sceneState.used.join(":")}
-              lines={terminalLines}
-              label="Telemetry console — cf-student-07"
-              className="screen-refresh"
-            />
+            {portalRecords.length > 0 ? (
+              <section
+                aria-label="Portal rule test records"
+                aria-live="polite"
+                className="monitor-surface min-w-0 space-y-3 rounded-md p-4"
+              >
+                <h3 className="font-display text-xs tracking-[0.2em] text-foreground uppercase">
+                  Portal · rule test records
+                </h3>
+                <ol className="space-y-3">
+                  {portalRecords.map((record, i) => (
+                    <li
+                      key={`${record.source}-${record.verdict}-${i}`}
+                      className="screen-refresh min-w-0 rounded-sm border border-border bg-terminal/80 p-3"
+                    >
+                      <p className="text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+                        {record.action}
+                      </p>
+                      <dl className="mt-2 grid gap-x-4 gap-y-1 @xl:grid-cols-2">
+                        <div>
+                          <dt className="text-xs text-muted-foreground">Source</dt>
+                          <dd className="font-mono text-sm break-words text-foreground">
+                            {record.source}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-xs text-muted-foreground">Destination</dt>
+                          <dd className="font-mono text-sm break-words text-foreground">
+                            {record.destination}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-xs text-muted-foreground">
+                            Protocol / port
+                          </dt>
+                          <dd className="font-mono text-sm text-foreground">
+                            {record.protocol} {record.port}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-xs text-muted-foreground">Result</dt>
+                          <dd className="mt-0.5">
+                            <StatusPill
+                              tone={record.verdict === "ALLOWED" ? "proven" : "attention"}
+                            >
+                              {record.verdict.replace(/_/g, " ")}
+                            </StatusPill>
+                          </dd>
+                        </div>
+                      </dl>
+                      {record.detail ? (
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          {record.detail}
+                        </p>
+                      ) : null}
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            ) : null}
+            {terminalLines.length > 0 ? (
+              <TerminalView
+                key={sceneState.used.join(":")}
+                lines={terminalLines}
+                label="Telemetry console — cf-student-07"
+                className="screen-refresh"
+              />
+            ) : null}
           </div>
           <div className="min-w-0 space-y-4">
             {visibleSteps.map((step, i) => {
@@ -148,28 +219,45 @@ export function Investigation({
                   ) : (
                     <div className="mt-3 space-y-3">
                       <div className="flex flex-wrap gap-2">
-                        {step.commands.map((command) => (
-                          <button
-                            key={command.id}
-                            type="button"
-                            onClick={() => {
-                              markUsed(command.id);
-                              setCharacterState("ivy-read-screen");
-                            }}
-                            aria-pressed={sceneState.used.includes(command.id)}
-                            className={cn(
-                              "tactile-control min-h-11 rounded-sm border px-3 py-2 font-mono text-sm",
-                              sceneState.used.includes(command.id)
-                                ? "border-evidence/60 bg-evidence/10 text-foreground"
-                                : "border-border text-foreground hover:border-primary/60",
-                            )}
-                          >
-                            {command.command}
-                            <span className="ml-2 font-sans text-[0.65rem] text-muted-foreground">
-                              {sceneState.used.includes(command.id) ? "run" : "not run"}
-                            </span>
-                          </button>
-                        ))}
+                        {step.commands.map((command) => {
+                          const run = sceneState.used.includes(command.id);
+                          const portal = command.portalTest;
+                          return (
+                            <button
+                              key={command.id}
+                              type="button"
+                              onClick={() => {
+                                markUsed(command.id);
+                                setCharacterState("ivy-read-screen");
+                              }}
+                              aria-pressed={run}
+                              className={cn(
+                                "tactile-control min-h-11 rounded-sm border px-3 py-2 text-left",
+                                portal ? "text-sm" : "font-mono text-sm",
+                                run
+                                  ? "border-evidence/60 bg-evidence/10 text-foreground"
+                                  : "border-border text-foreground hover:border-primary/60",
+                              )}
+                            >
+                              {portal ? (
+                                <>
+                                  <span className="block">
+                                    Portal action · {portal.action}
+                                  </span>
+                                  <span className="block font-mono text-xs text-muted-foreground">
+                                    source {portal.source} · {portal.protocol}{" "}
+                                    {portal.port}
+                                  </span>
+                                </>
+                              ) : (
+                                command.command
+                              )}
+                              <span className="ml-2 font-sans text-[0.65rem] text-muted-foreground">
+                                {run ? (portal ? "test run" : "run") : "not run"}
+                              </span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   )}

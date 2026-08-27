@@ -35,9 +35,12 @@ export function LadderBoard({
   const tray = interaction.steps.filter((s) => !placedIds.includes(s.id));
   const checked = answers["__checked"] === "yes";
   const correct = checked && interaction.correctOrder.every((id, i) => slots[i] === id);
+  const revealed = answers["__revealed"] === "yes";
 
   function invalidateCheck() {
-    if (answers["__checked"]) clearAnswers((k) => k === "__checked");
+    if (answers["__checked"] || answers["__revealed"]) {
+      clearAnswers((k) => k === "__checked" || k === "__revealed");
+    }
   }
 
   function place(stepId: string, slotIndex: number) {
@@ -306,7 +309,36 @@ export function LadderBoard({
         </div>
       </div>
 
-      {correct && interaction.transitionMessage ? (
+      {correct && interaction.reveal ? (
+        <section
+          aria-live="polite"
+          className="settle-in mx-auto mt-4 max-w-4xl border-l-2 border-amber/70 bg-background/55 px-4 py-3"
+        >
+          <p className="text-[0.65rem] tracking-[0.2em] text-amber uppercase">
+            Closing question — speculation welcome, not graded
+          </p>
+          <p className="mt-1 font-display text-sm text-foreground">
+            {interaction.reveal.question}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {interaction.reveal.pauseNote}
+          </p>
+          {!revealed ? (
+            <button
+              type="button"
+              onClick={() => {
+                answer("__revealed", "yes");
+                setCharacterState("ivy-briefing");
+              }}
+              className="tactile-control mt-3 min-h-11 rounded-sm border border-border px-4 text-sm text-foreground hover:border-primary/60"
+            >
+              {interaction.reveal.action}
+            </button>
+          ) : null}
+        </section>
+      ) : null}
+
+      {correct && interaction.transitionMessage && (!interaction.reveal || revealed) ? (
         <section
           aria-live="polite"
           className="settle-in mx-auto mt-4 max-w-4xl border-l-2 border-primary/60 bg-background/55 px-4 py-3"
