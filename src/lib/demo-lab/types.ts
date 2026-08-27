@@ -357,6 +357,12 @@ export interface SequenceInteraction {
   completion: { headline: string; body: string };
   /** In-world message that arrives once the ladder is correct. */
   transitionMessage?: { from: string; subject: string; body: string };
+  /**
+   * When present, the transition message is NOT shown as soon as the sequence
+   * is correct. Instead the closing question is posed, a processing pause is
+   * held, and the instructor/room reveals the message with an explicit action.
+   */
+  reveal?: { question: string; pauseNote: string; action: string };
 }
 
 /* ------------------------------------------------------------------ */
@@ -417,6 +423,22 @@ export interface InvestigationChoiceStep {
   }>;
 }
 
+/**
+ * A record of one Portal "Test My Rule" run. The lab exposes this as a UI
+ * action with a source selector and a fixed TCP 8080 test — never as a CLI
+ * command — so it is rendered as a result card, not a terminal line.
+ */
+export interface PortalTestRecord {
+  /** The Portal action the operator clicked, e.g. "Test My Rule". */
+  action: string;
+  source: string;
+  destination: string;
+  protocol: string;
+  port: string;
+  verdict: TestVerdict;
+  detail?: string;
+}
+
 export interface InvestigationDiagnosticStep {
   id: string;
   kind: "diagnostic";
@@ -424,7 +446,10 @@ export interface InvestigationDiagnosticStep {
   instruction?: string;
   commands: Array<{
     id: string;
-    command: string;
+    /** Shell command. Omit when this action is a Portal UI action instead. */
+    command?: string;
+    /** Portal UI action; rendered as a result card rather than a command. */
+    portalTest?: PortalTestRecord;
     output: string[];
     proves: string;
     topologyUpdate?: { nodeId: string; status: TopologyStatus; reading: string };
@@ -438,8 +463,13 @@ export interface InvestigationInteraction {
   kind: "investigation";
   prompt: string;
   instruction: string;
-  /** The event that opens the scene. */
-  opening: { command: string; output: string[]; caption: string };
+  /** The event that opens the scene: a command, or a Portal test result. */
+  opening: {
+    command?: string;
+    portalTest?: PortalTestRecord;
+    output: string[];
+    caption: string;
+  };
   topology: TopologyNode[];
   steps: InvestigationStep[];
   completion: { headline: string; body: string };
@@ -498,6 +528,11 @@ export interface EvidenceSortInteraction {
 /* briefing: assemble a defensible statement from placed evidence      */
 /* ------------------------------------------------------------------ */
 
+/** Section id used for briefing lines the evidence does not support. */
+export const REJECTED_SECTION_ID = "__rejected";
+
+
+
 export interface BriefingInteraction {
   id: string;
   kind: "briefing";
@@ -507,11 +542,20 @@ export interface BriefingInteraction {
   items: Array<{
     id: string;
     label: string;
+    /**
+     * Section this line belongs in. Use REJECTED_SECTION_ID for lines the
+     * evidence does not support — those are excluded with the reject action
+     * rather than filed in a briefing section.
+     */
     correctSectionId: string;
     /** Sentence fragment this item contributes to the assembled statement. */
     statementFragment: string;
     explanation: string;
+    /** Rendered with a reject/exclude action instead of a section placement. */
+    unsupported?: boolean;
   }>;
+  /** Labels for the reject tray. Required when any item is unsupported. */
+  reject?: { label: string; description: string; action: string };
   confirm: { prompt: string; action: string };
   completion: { headline: string; body: string; finalLine: string; banner: string };
 }
@@ -573,6 +617,11 @@ export interface RuleEvaluationInteraction {
   /** Ordering/priority rules restated on the surface, never colour-only. */
   principles: string[];
   rules: FirewallRule[];
+  /**
+   * Context about rules that exist but are not part of this evaluation
+   * (e.g. protected baselines). Stated as a note, never as evaluation steps.
+   */
+  baselineNote?: string;
   packet: {
     label: string;
     source: string;

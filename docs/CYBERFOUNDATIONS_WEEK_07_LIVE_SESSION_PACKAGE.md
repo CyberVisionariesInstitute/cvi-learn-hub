@@ -156,9 +156,10 @@ stop guessing."
 **Objective.** Evaluate the inbound ledger in priority order and choose the smallest
 defensible correction.
 
-**On screen.** Inbound ledger (three protected baseline rules plus two
-student-controlled rules); the traffic card 10.60.6.4 → student VM, TCP 8080;
-stepwise evaluation.
+**On screen.** The active evaluation ledger shows only the two student-controlled
+inbound rules (200 and 250), so the traffic approaches priority 200 first. Protected
+baselines 100/110/120 are stated in a separate note as untouched and non-matching —
+they are not evaluation steps. Plus the traffic card 10.60.6.4 → student VM, TCP 8080.
 
 **Student-controlled rules as found.**
 
@@ -174,8 +175,9 @@ first rule that matches ends the conversation."
 **Prediction question (before any outcome is shown).** "What happens to traffic from
 10.60.6.4, and why?"
 
-**Evaluation walk.** 100 no match → 110 no match → 120 no match → **200 MATCH → DENY
-→ STOP** → 250 remains visible and explicitly **UNEVALUATED**.
+**Evaluation walk.** **200 MATCH → DENY → STOP** → 250 remains visible and explicitly
+**UNEVALUATED**. Baselines 100/110/120 never enter the walk: they do not match TCP
+8080 and are not student-editable.
 Verdict: DENIED at priority 200. LOWER NUMBER FIRST. FIRST MATCH WINS.
 
 **Remediation options.** Change source to Any · Delete all DENY rules · Open TCP 8080
@@ -214,11 +216,13 @@ the only problem."
 **Objective.** Interpret `SERVICE_NOT_LISTENING` without reaching for the rule ledger
 again.
 
-**On screen.** Terminal showing the tester result; a four-node status strip (source,
-path, rule, listener); one decision step, then the service command and retest.
+**On screen.** A Portal **Test My Rule** result record (source selector + fixed TCP
+8080 test); a four-node status strip (source, path, rule, listener); one decision
+step, then the service command and a second Portal test.
 
-**Reveal.** `portal rule-test --source 10.60.6.4 --proto tcp --port 8080` →
-`Result: SERVICE_NOT_LISTENING`.
+**Reveal.** Portal · Test My Rule — source 10.60.6.4 (Grid Beacon) → Student VM ·
+TCP 8080 → **SERVICE_NOT_LISTENING**. There is no rule-test CLI command; the test is
+a Portal UI action.
 
 **Instructor opening statement.** "We corrected the ledger and ran the tester. Read
 the result before anyone touches anything."
@@ -227,7 +231,7 @@ the result before anyone touches anything."
 domain.)
 
 **Then.** Start the temporary service with the only supported command,
-`python3 -m http.server 8080`, and retest:
+`python3 -m http.server 8080`, then re-run the Portal **Test My Rule** action:
 Grid Beacon 10.60.6.4 → TCP 8080 → **ALLOWED**.
 
 **Likely misconceptions.** Treating any failed test as a firewall problem · widening
@@ -293,8 +297,9 @@ defend every word."
 **Objective.** Assemble an incident statement that says only what the evidence
 supports.
 
-**Sections.** WHAT WE FOUND · WHAT WE CHANGED · WHAT THE EVIDENCE PROVES · NOT
-SUPPORTED — LEAVE OUT.
+**Sections.** Exactly three: WHAT WE FOUND · WHAT WE CHANGED · WHAT THE EVIDENCE
+PROVES. Unsupported claims are removed with a separate **Exclude this claim** action
+into a rejected-claims tray — never a fourth briefing section.
 
 **Supported lines.**
 - Found: the network path to the VM was available; an earlier matching
@@ -355,8 +360,10 @@ handoff. Let the closing question sit unanswered.
 destination, build the path, control access, authenticate the user, and prove the
 connection… what protects the information itself?"
 
-**Then reveal only.** `NEXT: MODULE 3 — PRACTICAL CRYPTOGRAPHY`. Do not teach
-cryptography in this session.
+**Then, as a separate step.** The closing question is posed on its own and the
+processing pause is held; only afterwards does the facilitator press **Reveal what
+comes next** to show `NEXT: MODULE 3 — PRACTICAL CRYPTOGRAPHY`. The question and the
+reveal never appear together. Do not teach cryptography in this session.
 
 ---
 

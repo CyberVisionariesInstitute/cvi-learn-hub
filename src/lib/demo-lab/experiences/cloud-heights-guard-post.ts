@@ -1,3 +1,4 @@
+import { REJECTED_SECTION_ID } from "../types";
 import type { Experience } from "../types";
 
 /**
@@ -646,40 +647,9 @@ export const cloudHeightsGuardPost: Experience = {
           "Inbound and outbound are separate ledgers",
           "Student band: 200–999",
         ],
+        baselineNote:
+          "Protected baseline rules 100 (ALLOW SSH from bastion), 110 (ALLOW ICMP intra-VNet) and 120 (DENY SSH from the student subnet) are state-managed and untouched. None of them match TCP 8080, so they are not part of this evaluation and cannot be edited.",
         rules: [
-          {
-            id: "w7-r100",
-            priority: 100,
-            name: "allow-ssh-from-bastion",
-            action: "ALLOW",
-            source: "Bastion subnet",
-            destination: "Student VM",
-            protocol: "TCP",
-            port: "22",
-            locked: true,
-          },
-          {
-            id: "w7-r110",
-            priority: 110,
-            name: "allow-icmp-intra-vnet",
-            action: "ALLOW",
-            source: "VNet",
-            destination: "VNet",
-            protocol: "ICMP",
-            port: "—",
-            locked: true,
-          },
-          {
-            id: "w7-r120",
-            priority: 120,
-            name: "deny-ssh-student-subnet",
-            action: "DENY",
-            source: "Student subnet",
-            destination: "Student VM",
-            protocol: "TCP",
-            port: "22",
-            locked: true,
-          },
           {
             id: "w7-r200",
             priority: 200,
@@ -745,24 +715,9 @@ export const cloudHeightsGuardPost: Experience = {
         evaluation: {
           steps: [
             {
-              ruleId: "w7-r100",
-              result: "NO MATCH — continue",
-              note: "TCP 22 from the bastion subnet. Different port, different source.",
-            },
-            {
-              ruleId: "w7-r110",
-              result: "NO MATCH — continue",
-              note: "ICMP only; this is TCP.",
-            },
-            {
-              ruleId: "w7-r120",
-              result: "NO MATCH — continue",
-              note: "TCP 22 again. Not our traffic.",
-            },
-            {
               ruleId: "w7-r200",
               result: "MATCH → DENY → STOP",
-              note: "10.60.6.4 is inside 10.60.6.0/24, destination and TCP 8080 match. Evaluation ends here.",
+              note: "First student-controlled rule reached: 10.60.6.4 is inside 10.60.6.0/24, destination and TCP 8080 match. Evaluation ends here.",
             },
             {
               ruleId: "w7-r250",
@@ -809,39 +764,6 @@ export const cloudHeightsGuardPost: Experience = {
           ],
           correctedTitle: "Corrected inbound ledger — student band only",
           correctedRules: [
-            {
-              id: "w7-rc100",
-              priority: 100,
-              name: "allow-ssh-from-bastion",
-              action: "ALLOW",
-              source: "Bastion subnet",
-              destination: "Student VM",
-              protocol: "TCP",
-              port: "22",
-              locked: true,
-            },
-            {
-              id: "w7-rc110",
-              priority: 110,
-              name: "allow-icmp-intra-vnet",
-              action: "ALLOW",
-              source: "VNet",
-              destination: "VNet",
-              protocol: "ICMP",
-              port: "—",
-              locked: true,
-            },
-            {
-              id: "w7-rc120",
-              priority: 120,
-              name: "deny-ssh-student-subnet",
-              action: "DENY",
-              source: "Student subnet",
-              destination: "Student VM",
-              protocol: "TCP",
-              port: "22",
-              locked: true,
-            },
             {
               id: "w7-rc250",
               priority: 250,
@@ -977,8 +899,17 @@ export const cloudHeightsGuardPost: Experience = {
         instruction:
           "Read the verdict, decide which failure domain it belongs to, then act — one step at a time.",
         opening: {
-          command: "portal rule-test --source 10.60.6.4 --proto tcp --port 8080",
-          output: ["Result: SERVICE_NOT_LISTENING"],
+          portalTest: {
+            action: "Test My Rule",
+            source: "10.60.6.4 (Grid Beacon)",
+            destination: "Student VM",
+            protocol: "TCP",
+            port: "8080",
+            verdict: "SERVICE_NOT_LISTENING",
+            detail:
+              "Portal test action — source selected from the list, port fixed at TCP 8080.",
+          },
+          output: [],
           caption:
             "SERVICE_NOT_LISTENING is one of four supported verdicts. It can coexist with a completely correct rule.",
         },
@@ -1054,7 +985,7 @@ export const cloudHeightsGuardPost: Experience = {
             kind: "diagnostic",
             prompt: "Start the temporary service and retest.",
             instruction:
-              "Only the supported lab command is available. Run it, then run the tester again.",
+              "Run the one supported lab command, then use the Portal's Test My Rule action again.",
             commands: [
               {
                 id: "w7-s4-c-start",
@@ -1071,8 +1002,16 @@ export const cloudHeightsGuardPost: Experience = {
               },
               {
                 id: "w7-s4-c-retest",
-                command: "portal rule-test --source 10.60.6.4 --proto tcp --port 8080",
-                output: ["Result: ALLOWED"],
+                portalTest: {
+                  action: "Test My Rule",
+                  source: "10.60.6.4 (Grid Beacon)",
+                  destination: "Student VM",
+                  protocol: "TCP",
+                  port: "8080",
+                  verdict: "ALLOWED",
+                  detail: "Same Portal action, re-run after the listener started.",
+                },
+                output: [],
                 proves:
                   "The required source now reaches the service on TCP 8080 — permission and availability together.",
                 topologyUpdate: {
@@ -1383,7 +1322,7 @@ export const cloudHeightsGuardPost: Experience = {
         kind: "briefing",
         prompt: "Assemble the CH-8080 operations statement.",
         instruction:
-          "Select a line, then choose a section. Unsupported lines belong in the rejected section, with a reason.",
+          "Select a line, then file it under one of the three briefing sections — or exclude it if the evidence does not support it.",
         sections: [
           {
             id: "found",
@@ -1400,12 +1339,13 @@ export const cloudHeightsGuardPost: Experience = {
             label: "What the evidence proves",
             description: "Claims scoped to what was actually tested.",
           },
-          {
-            id: "rejected",
-            label: "Not supported — leave out",
-            description: "Statements the evidence does not back.",
-          },
         ],
+        reject: {
+          label: "Rejected claims — excluded from the briefing",
+          description:
+            "Statements the evidence does not back. They never appear on the slide; they are excluded on the record.",
+          action: "Exclude this claim",
+        },
         items: [
           {
             id: "w7-b-path",
@@ -1477,7 +1417,8 @@ export const cloudHeightsGuardPost: Experience = {
           {
             id: "w7-b-broken",
             label: "The firewall was broken.",
-            correctSectionId: "rejected",
+            correctSectionId: REJECTED_SECTION_ID,
+            unsupported: true,
             statementFragment: "",
             explanation:
               "The firewall enforced the ledger exactly as written. A rule conflict is not a fault.",
@@ -1485,7 +1426,8 @@ export const cloudHeightsGuardPost: Experience = {
           {
             id: "w7-b-network",
             label: "The network caused the outage.",
-            correctSectionId: "rejected",
+            correctSectionId: REJECTED_SECTION_ID,
+            unsupported: true,
             statementFragment: "",
             explanation:
               "The path was confirmed available before any change was made.",
@@ -1493,7 +1435,8 @@ export const cloudHeightsGuardPost: Experience = {
           {
             id: "w7-b-secure",
             label: "Everything is secure now.",
-            correctSectionId: "rejected",
+            correctSectionId: REJECTED_SECTION_ID,
+            unsupported: true,
             statementFragment: "",
             explanation:
               "Two tests on one protocol and one port cannot support a claim that broad.",
@@ -1670,10 +1613,17 @@ export const cloudHeightsGuardPost: Experience = {
           headline: "ADDRESS → NETWORK → PATH → SECURITY BOUNDARY → PERMISSION → SECURE ACCESS → EVIDENCE",
           body: "Three weeks of separate-looking systems, and one continuous infrastructure-security journey from The Grid to Cloud Heights.",
         },
+        reveal: {
+          question:
+            "If we can find the destination, build the path, control access, authenticate the user, and prove the connection… what protects the information itself?",
+          pauseNote:
+            "Take the speculation now. Nothing here is graded, and nothing is answered tonight. Reveal what comes next only once the room has had its say.",
+          action: "Reveal what comes next",
+        },
         transitionMessage: {
           from: "Cloud Heights Guard Post",
           subject: "NEXT: MODULE 3 — PRACTICAL CRYPTOGRAPHY",
-          body: "If we can find the destination, build the path, control access, authenticate the user, and prove the connection… what protects the information itself? Bring your speculation to Week 8.",
+          body: "That question opens Module 3. Bring your speculation to Week 8.",
         },
       },
       successSummary:

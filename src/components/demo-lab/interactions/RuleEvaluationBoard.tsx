@@ -66,6 +66,12 @@ export function RuleEvaluationBoard({
             dimAfterIndex={evaluated ? matchedIndex : -1}
           />
 
+          {interaction.baselineNote ? (
+            <p className="border-l-2 border-border bg-surface-raised/50 p-3 text-sm text-muted-foreground">
+              {interaction.baselineNote}
+            </p>
+          ) : null}
+
           {fixed ? (
             <Ledger
               title={interaction.remediation.correctedTitle}
