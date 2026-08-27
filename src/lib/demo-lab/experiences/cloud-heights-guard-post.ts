@@ -104,7 +104,7 @@ export const cloudHeightsGuardPost: Experience = {
       objective:
         "Decide what you need to know about incident CH-8080 before anyone touches a rule.",
       environmentId: "incident-response-room",
-      characterState: "ivy-brief" as never as "ivy-briefing",
+      characterState: "ivy-briefing",
       intro: [
         {
           id: "w7s1-l1",
