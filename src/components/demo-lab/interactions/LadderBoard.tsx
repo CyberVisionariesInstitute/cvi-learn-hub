@@ -251,7 +251,7 @@ export function LadderBoard({
           <ul className="mt-2 flex flex-wrap gap-2">
             {tray.length === 0 ? (
               <li className="text-sm text-muted-foreground">
-                All five cards are on the board.
+                All {interaction.steps.length} cards are on the board.
               </li>
             ) : null}
             {tray.map((step) => (
@@ -340,8 +340,11 @@ export function LadderBoard({
 
       {correct && interaction.transitionMessage && (!interaction.reveal || revealed) ? (
         <section
+          ref={(node) => {
+            node?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          }}
           aria-live="polite"
-          className="settle-in mx-auto mt-4 max-w-4xl border-l-2 border-primary/60 bg-background/55 px-4 py-3"
+          className="settle-in mx-auto mt-4 mb-2 max-w-4xl rounded-sm border border-primary/30 border-l-2 border-l-primary/70 bg-surface-raised/90 px-4 py-3 shadow-[var(--shadow-object)] backdrop-blur-sm"
         >
           <p className="text-[0.65rem] tracking-[0.2em] text-primary uppercase">
             Incoming message · {interaction.transitionMessage.from}

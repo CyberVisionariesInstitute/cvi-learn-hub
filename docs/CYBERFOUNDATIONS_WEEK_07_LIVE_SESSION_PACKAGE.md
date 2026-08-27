@@ -125,8 +125,8 @@ is to be honest about which category each statement belongs in."
 Which assumption is the most tempting one here, and why?
 
 **Expected student reasoning.**
-- PROVEN: VM is running; required source is 10.60.6.4; destination is the assigned
-  student VM (simulation address 10.60.7.25); a network path to the VM subnet is
+- PROVEN: VM is running; required source is 10.60.6.4; destination is the
+  Assigned Student VM; a network path to the VM subnet is
   available; requested protocol/port is TCP 8080.
 - ASSUMED: "The firewall is broken", "The network is down", "The application is
   broken", "Someone changed a rule".
