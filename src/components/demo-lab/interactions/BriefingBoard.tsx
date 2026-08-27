@@ -275,7 +275,7 @@ export function BriefingBoard({
                   index % 2 ? "[--card-tilt:0.7deg]" : "[--card-tilt:-0.8deg]",
                   selected === item.id
                     ? "border-primary bg-primary/15 text-foreground"
-                    : "border-border bg-surface-raised/70 text-foreground hover:border-primary/60",
+                    : "border-border bg-surface-raised/95 text-foreground backdrop-blur-sm hover:border-primary/60",
                 )}
               >
                 <span className="block">{item.label}</span>

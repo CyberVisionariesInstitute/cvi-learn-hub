@@ -138,9 +138,9 @@ export const cloudHeightsGuardPost: Experience = {
         {
           id: "w7-ev-dest",
           label: "Destination",
-          value: "Assigned student VM (simulation address 10.60.7.25)",
+          value: "Assigned Student VM",
           status: "unknown",
-          note: "Simulation placeholder for the learner's assigned VM.",
+          note: "The learner's own assigned Cloud Heights VM.",
           hiddenUntilRevealed: true,
         },
         {
@@ -197,7 +197,7 @@ export const cloudHeightsGuardPost: Experience = {
           title: "Student application unreachable",
           rows: [
             { label: "Affected service", value: "Student application" },
-            { label: "Destination", value: "Student VM" },
+            { label: "Destination", value: "Assigned Student VM" },
             { label: "Protocol", value: "TCP" },
             { label: "Port", value: "8080" },
             { label: "Reported symptom", value: "Application unreachable" },
@@ -217,9 +217,9 @@ export const cloudHeightsGuardPost: Experience = {
           },
           {
             id: "w7-q-dest",
-            label: "What is the destination IP?",
+            label: "What is the destination?",
             essential: true,
-            answer: "Assigned student VM — simulation address 10.60.7.25.",
+            answer: "Assigned Student VM.",
             response:
               "A rule that names the wrong destination protects the wrong thing. Pin the destination early.",
             revealsEvidenceIds: ["w7-ev-dest"],
@@ -366,7 +366,7 @@ export const cloudHeightsGuardPost: Experience = {
         {
           id: "w7-ev2-proven",
           label: "Proven so far",
-          value: "VM running · source 10.60.6.4 · destination student VM · path available · TCP 8080",
+          value: "VM running · source 10.60.6.4 · destination Assigned Student VM · path available · TCP 8080",
           status: "healthy",
         },
         {
@@ -428,14 +428,14 @@ export const cloudHeightsGuardPost: Experience = {
           {
             id: "w7-s2-dest",
             label:
-              "The destination is the assigned student VM (simulation address 10.60.7.25).",
+              "The destination is the Assigned Student VM.",
             correctBucketId: "proven",
             challenge: {
               assumed: "We asked for the destination and got an answer.",
               unverified: "This was answered during the briefing.",
             },
             explanation:
-              "Destination was confirmed during evidence gathering. The address is a simulation placeholder.",
+              "Destination was confirmed during evidence gathering.",
           },
           {
             id: "w7-s2-path",
@@ -656,7 +656,7 @@ export const cloudHeightsGuardPost: Experience = {
             name: "deny-8080-subnet",
             action: "DENY",
             source: "10.60.6.0/24",
-            destination: "Student VM",
+            destination: "Assigned Student VM",
             protocol: "TCP",
             port: "8080",
           },
@@ -666,7 +666,7 @@ export const cloudHeightsGuardPost: Experience = {
             name: "allow-8080-grid-beacon",
             action: "ALLOW",
             source: "10.60.6.4",
-            destination: "Student VM",
+            destination: "Assigned Student VM",
             protocol: "TCP",
             port: "8080",
           },
@@ -674,7 +674,7 @@ export const cloudHeightsGuardPost: Experience = {
         packet: {
           label: "Portal rule tester run from Grid Beacon",
           source: "10.60.6.4",
-          destination: "Student VM",
+          destination: "Assigned Student VM",
           protocol: "TCP",
           port: "8080",
         },
@@ -770,7 +770,7 @@ export const cloudHeightsGuardPost: Experience = {
               name: "allow-8080-grid-beacon",
               action: "ALLOW",
               source: "10.60.6.4",
-              destination: "Student VM",
+              destination: "Assigned Student VM",
               protocol: "TCP",
               port: "8080",
             },
@@ -780,7 +780,7 @@ export const cloudHeightsGuardPost: Experience = {
               name: "deny-8080-subnet",
               action: "DENY",
               source: "10.60.6.0/24",
-              destination: "Student VM",
+              destination: "Assigned Student VM",
               protocol: "TCP",
               port: "8080",
             },
@@ -902,7 +902,7 @@ export const cloudHeightsGuardPost: Experience = {
           portalTest: {
             action: "Test My Rule",
             source: "10.60.6.4 (Grid Beacon)",
-            destination: "Student VM",
+            destination: "Assigned Student VM",
             protocol: "TCP",
             port: "8080",
             verdict: "SERVICE_NOT_LISTENING",
@@ -1005,7 +1005,7 @@ export const cloudHeightsGuardPost: Experience = {
                 portalTest: {
                   action: "Test My Rule",
                   source: "10.60.6.4 (Grid Beacon)",
-                  destination: "Student VM",
+                  destination: "Assigned Student VM",
                   protocol: "TCP",
                   port: "8080",
                   verdict: "ALLOWED",
@@ -1134,7 +1134,7 @@ export const cloudHeightsGuardPost: Experience = {
             id: "w7-t-positive",
             label: "Positive test — required source",
             source: "Grid Beacon 10.60.6.4",
-            destination: "Student VM",
+            destination: "Assigned Student VM",
             protocol: "TCP",
             port: "8080",
             predictionPrompt: "What should the required source return?",
@@ -1169,7 +1169,7 @@ export const cloudHeightsGuardPost: Experience = {
             id: "w7-t-negative",
             label: "Negative test — Other Test Source",
             source: "Other Test Source 10.60.6.10",
-            destination: "Student VM",
+            destination: "Assigned Student VM",
             protocol: "TCP",
             port: "8080",
             predictionPrompt: "What should the unintended source return?",

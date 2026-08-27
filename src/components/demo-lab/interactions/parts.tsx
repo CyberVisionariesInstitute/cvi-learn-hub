@@ -82,7 +82,7 @@ export function SurfaceHeading({
         <p className="mt-2 text-sm text-muted-foreground">{instruction}</p>
       ) : null}
       {note ? (
-        <p className="mt-3 border-l-2 border-amber bg-amber/10 p-3 text-sm text-foreground">
+        <p className="mt-3 rounded-sm border border-amber/30 border-l-2 border-l-amber bg-surface-raised/90 p-3 text-sm text-foreground shadow-[var(--shadow-object)] backdrop-blur-sm">
           {note}
         </p>
       ) : null}

@@ -67,7 +67,7 @@ export function RuleEvaluationBoard({
           />
 
           {interaction.baselineNote ? (
-            <p className="border-l-2 border-border bg-surface-raised/50 p-3 text-sm text-muted-foreground">
+            <p className="rounded-sm border border-border border-l-2 border-l-primary/60 bg-surface-raised/90 p-3 text-sm text-muted-foreground shadow-[var(--shadow-object)] backdrop-blur-sm">
               {interaction.baselineNote}
             </p>
           ) : null}
