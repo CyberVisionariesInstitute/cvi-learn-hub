@@ -109,7 +109,7 @@ export function RuleEvaluationBoard({
           />
 
           <section
-            className="rounded-sm border border-border bg-surface-raised/40 p-4"
+            className="rounded-sm border border-border bg-surface-raised/85 p-4 backdrop-blur-sm"
             aria-label="Run the evaluation"
           >
             <p className="text-[0.62rem] tracking-[0.22em] text-muted-foreground uppercase">
@@ -301,7 +301,7 @@ function Question({
   const chosen = options.find((o) => o.id === chosenId);
   return (
     <section
-      className="rounded-sm border border-border bg-surface-raised/40 p-4"
+      className="rounded-sm border border-border bg-surface-raised/85 p-4 backdrop-blur-sm"
       aria-label={prompt}
     >
       <p className="text-[0.62rem] tracking-[0.22em] text-muted-foreground uppercase">
