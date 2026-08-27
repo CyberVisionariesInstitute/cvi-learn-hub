@@ -164,7 +164,10 @@ export type InteractionKind =
   | "investigation"
   | "three-state"
   | "evidence-sort"
-  | "briefing";
+  | "briefing"
+  | "investigation-request"
+  | "rule-evaluation"
+  | "test-comparison";
 
 
 export interface ClassifyOption {
