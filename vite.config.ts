@@ -26,6 +26,7 @@ export default defineConfig({
             { path: "/pki" },
             { path: "/instructor" },
             { path: "/cyberfoundations/week-06/from-the-grid-to-cloud-heights" },
+            { path: "/cyberfoundations/week-07/cloud-heights-guard-post" },
           ],
         }
       : {}),
