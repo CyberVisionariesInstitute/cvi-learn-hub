@@ -51,6 +51,37 @@ function PkiPage() {
       </section>
 
       <div className="mx-auto max-w-6xl px-5 pt-4 pb-16 sm:px-8">
+        <section
+          aria-label="Phase 3 Capstone entry"
+          className="mb-8 rounded-xl border border-primary/30 bg-gradient-to-br from-surface-raised/90 to-surface/80 p-6 backdrop-blur-sm sm:p-8"
+        >
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/15">
+                <GraduationCap className="size-6 text-primary" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs tracking-[0.2em] text-primary uppercase">
+                  Phase 3
+                </p>
+                <h2 className="mt-1 font-display text-xl font-semibold text-foreground sm:text-2xl">
+                  PKI Architect Capstone
+                </h2>
+                <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                  Weeks 17–24. Each student becomes the PKI Architect for an assigned fictional organization: analyze, design, operate, test, adapt, and defend.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/pki/capstone"
+              className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-[var(--shadow-object)] transition-colors hover:bg-primary/90 focus-visible:outline-offset-4 sm:shrink-0"
+            >
+              Enter Capstone Portal
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </Link>
+          </div>
+        </section>
+
         <div className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2">
           {pki.modules.map((module) => (
             <section key={module.id} className="bg-surface p-7">
