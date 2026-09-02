@@ -45,7 +45,7 @@ function record(
   ok: boolean,
   expected: string,
   observed: string,
-  fail?: { category: FailureCategory; code: string; consequence: string; objectRef?: string },
+  fail?: { category: FailureCategory; code: string; consequence: string; objectRef?: string | undefined },
 ) {
   ctx.order += 1;
   if (ctx.failed) {
