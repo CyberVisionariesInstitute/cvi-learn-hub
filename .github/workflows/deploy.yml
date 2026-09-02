@@ -1,9 +1,12 @@
-name: Deploy to GitHub Pages
+name: Deploy to GitHub Pages (legacy static demo only)
 
+# Phase 3 (the PKI Architect Capstone workspace) requires authentication and
+# server-side access control, which a static GitHub Pages build cannot enforce.
+# The portal is therefore published from Lovable hosting. This workflow is kept
+# for the public demo-only static build and runs on manual dispatch only.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+
 
 permissions:
   contents: read
