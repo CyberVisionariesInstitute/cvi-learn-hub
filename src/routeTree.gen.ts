@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as InstructorRouteImport } from './routes/instructor'
 import { Route as PkiRouteImport } from './routes/pki'
 import { Route as CyberfoundationsIndexRouteImport } from './routes/cyberfoundations.index'
+import { Route as PkiCapstoneRouteImport } from './routes/pki.capstone'
 import { Route as CyberfoundationsWeek06FromTheGridToCloudHeightsRouteImport } from './routes/cyberfoundations.week-06.from-the-grid-to-cloud-heights'
 import { Route as CyberfoundationsWeek07CloudHeightsGuardPostRouteImport } from './routes/cyberfoundations.week-07.cloud-heights-guard-post'
 
@@ -36,6 +37,11 @@ const CyberfoundationsIndexRoute = CyberfoundationsIndexRouteImport.update({
   path: '/cyberfoundations/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PkiCapstoneRoute = PkiCapstoneRouteImport.update({
+  id: '/capstone',
+  path: '/capstone',
+  getParentRoute: () => PkiRoute,
+} as any)
 const CyberfoundationsWeek06FromTheGridToCloudHeightsRoute =
   CyberfoundationsWeek06FromTheGridToCloudHeightsRouteImport.update({
     id: '/cyberfoundations/week-06/from-the-grid-to-cloud-heights',
@@ -52,7 +58,8 @@ const CyberfoundationsWeek07CloudHeightsGuardPostRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/instructor': typeof InstructorRoute
-  '/pki': typeof PkiRoute
+  '/pki': typeof PkiRouteWithChildren
+  '/pki/capstone': typeof PkiCapstoneRoute
   '/cyberfoundations/': typeof CyberfoundationsIndexRoute
   '/cyberfoundations/week-06/from-the-grid-to-cloud-heights': typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
   '/cyberfoundations/week-07/cloud-heights-guard-post': typeof CyberfoundationsWeek07CloudHeightsGuardPostRoute
@@ -60,7 +67,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/instructor': typeof InstructorRoute
-  '/pki': typeof PkiRoute
+  '/pki': typeof PkiRouteWithChildren
+  '/pki/capstone': typeof PkiCapstoneRoute
   '/cyberfoundations': typeof CyberfoundationsIndexRoute
   '/cyberfoundations/week-06/from-the-grid-to-cloud-heights': typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
   '/cyberfoundations/week-07/cloud-heights-guard-post': typeof CyberfoundationsWeek07CloudHeightsGuardPostRoute
@@ -69,7 +77,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/instructor': typeof InstructorRoute
-  '/pki': typeof PkiRoute
+  '/pki': typeof PkiRouteWithChildren
+  '/pki/capstone': typeof PkiCapstoneRoute
   '/cyberfoundations/': typeof CyberfoundationsIndexRoute
   '/cyberfoundations/week-06/from-the-grid-to-cloud-heights': typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
   '/cyberfoundations/week-07/cloud-heights-guard-post': typeof CyberfoundationsWeek07CloudHeightsGuardPostRoute
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/'
     | '/instructor'
     | '/pki'
+    | '/pki/capstone'
     | '/cyberfoundations/'
     | '/cyberfoundations/week-06/from-the-grid-to-cloud-heights'
     | '/cyberfoundations/week-07/cloud-heights-guard-post'
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/'
     | '/instructor'
     | '/pki'
+    | '/pki/capstone'
     | '/cyberfoundations'
     | '/cyberfoundations/week-06/from-the-grid-to-cloud-heights'
     | '/cyberfoundations/week-07/cloud-heights-guard-post'
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/'
     | '/instructor'
     | '/pki'
+    | '/pki/capstone'
     | '/cyberfoundations/'
     | '/cyberfoundations/week-06/from-the-grid-to-cloud-heights'
     | '/cyberfoundations/week-07/cloud-heights-guard-post'
@@ -104,7 +116,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   InstructorRoute: typeof InstructorRoute
-  PkiRoute: typeof PkiRoute
+  PkiRoute: typeof PkiRouteWithChildren
   CyberfoundationsIndexRoute: typeof CyberfoundationsIndexRoute
   CyberfoundationsWeek06FromTheGridToCloudHeightsRoute: typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
   CyberfoundationsWeek07CloudHeightsGuardPostRoute: typeof CyberfoundationsWeek07CloudHeightsGuardPostRoute
@@ -140,6 +152,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CyberfoundationsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pki/capstone': {
+      id: '/pki/capstone'
+      path: '/capstone'
+      fullPath: '/pki/capstone'
+      preLoaderRoute: typeof PkiCapstoneRouteImport
+      parentRoute: typeof PkiRoute
+    }
     '/cyberfoundations/week-06/from-the-grid-to-cloud-heights': {
       id: '/cyberfoundations/week-06/from-the-grid-to-cloud-heights'
       path: '/cyberfoundations/week-06/from-the-grid-to-cloud-heights'
@@ -157,10 +176,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface PkiRouteChildren {
+  PkiCapstoneRoute: typeof PkiCapstoneRoute
+}
+
+const PkiRouteChildren: PkiRouteChildren = {
+  PkiCapstoneRoute: PkiCapstoneRoute,
+}
+
+const PkiRouteWithChildren = PkiRoute._addFileChildren(PkiRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   InstructorRoute: InstructorRoute,
-  PkiRoute: PkiRoute,
+  PkiRoute: PkiRouteWithChildren,
   CyberfoundationsIndexRoute: CyberfoundationsIndexRoute,
   CyberfoundationsWeek06FromTheGridToCloudHeightsRoute:
     CyberfoundationsWeek06FromTheGridToCloudHeightsRoute,
