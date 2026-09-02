@@ -275,6 +275,6 @@ function PkiCapstonePage() {
           </a>
         </div>
       </div>
-    </DemoLabShell>
+    </>
   );
 }
