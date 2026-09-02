@@ -195,3 +195,157 @@ export const readAuditLog = createServerFn({ method: "GET" })
       .limit(200);
     return data ?? [];
   });
+
+/**
+ * Staff-only: the authored event catalogue for one assignment's pinned
+ * scenario version, plus which of them already exist / are activated.
+ * Instructor notes and solution families are visible here and nowhere else.
+ */
+export const listScenarioEvents = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ assignmentId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await requireStaff(supabase, userId);
+
+    const { data: assignment } = await supabase
+      .from("assignments")
+      .select("id, scenario_code, scenario_version")
+      .eq("id", data.assignmentId)
+      .single();
+    if (!assignment) throw new Error("Assignment not found");
+
+    const { getScenarioPrivate } = await import("./scenarios/registry.server");
+    const priv = getScenarioPrivate(assignment.scenario_code, assignment.scenario_version);
+    if (!priv) throw new Error("Scenario version is not in the released registry");
+
+    const { data: rows } = await supabase
+      .from("hidden_events")
+      .select("id, event_key, activated_at, acknowledged_at")
+      .eq("assignment_id", assignment.id);
+
+    return priv.events.map((e) => {
+      const row = (rows ?? []).find((r) => r.event_key === e.key);
+      return {
+        key: e.key,
+        kind: e.kind,
+        title: e.title,
+        studentBrief: e.studentBrief,
+        instructorNotes: e.instructorNotes,
+        validSolutionFamilies: e.validSolutionFamilies,
+        invalidMoves: e.invalidMoves,
+        rowId: row?.id ?? null,
+        activatedAt: row?.activated_at ?? null,
+        acknowledgedAt: row?.acknowledged_at ?? null,
+      };
+    });
+  });
+
+/**
+ * Staff-only: release one authored event to one assignment. Idempotent —
+ * releasing an already-activated event is a no-op, and only registry keys
+ * for the assignment's pinned version are accepted.
+ */
+export const releaseScenarioEvent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ assignmentId: z.string().uuid(), eventKey: z.string().min(1).max(80) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await requireStaff(supabase, userId);
+
+    const { data: assignment } = await supabase
+      .from("assignments")
+      .select("id, scenario_code, scenario_version")
+      .eq("id", data.assignmentId)
+      .single();
+    if (!assignment) throw new Error("Assignment not found");
+
+    const { getScenarioPrivate } = await import("./scenarios/registry.server");
+    const priv = getScenarioPrivate(assignment.scenario_code, assignment.scenario_version);
+    const def = priv?.events.find((e) => e.key === data.eventKey);
+    if (!def) throw new Error("Unknown event for this scenario version");
+
+    const { data: existing } = await supabase
+      .from("hidden_events")
+      .select("id, activated_at")
+      .eq("assignment_id", assignment.id)
+      .eq("event_key", def.key)
+      .maybeSingle();
+
+    const now = new Date().toISOString();
+    if (existing?.activated_at) return { ok: true, alreadyActive: true };
+
+    if (existing) {
+      const { error } = await supabase
+        .from("hidden_events")
+        .update({ activated_at: now, activated_by: userId })
+        .eq("id", existing.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await supabase.from("hidden_events").insert({
+        assignment_id: assignment.id,
+        event_key: def.key,
+        title: def.title,
+        student_brief: def.studentBrief,
+        instructor_notes: def.instructorNotes,
+        activated_at: now,
+        activated_by: userId,
+      });
+      if (error) throw new Error(error.message);
+    }
+
+    await supabase.from("audit_log").insert({
+      actor_id: userId,
+      assignment_id: assignment.id,
+      action: "event.released",
+      detail: { key: def.key, scenario: assignment.scenario_code, version: assignment.scenario_version },
+    });
+    return { ok: true, alreadyActive: false };
+  });
+
+/** Staff-only: review one student checkpoint. */
+export const reviewCheckpoint = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        reviewState: z.enum(["not_reviewed", "in_review", "needs_revision", "accepted"]),
+        reviewerNotes: z.string().max(8000).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await requireStaff(supabase, userId);
+    const { error } = await supabase
+      .from("checkpoints")
+      .update({
+        review_state: data.reviewState,
+        reviewer_id: userId,
+        reviewer_notes: data.reviewerNotes ?? null,
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    await supabase.from("audit_log").insert({
+      actor_id: userId,
+      action: "checkpoint.reviewed",
+      detail: { id: data.id, state: data.reviewState },
+    });
+    return { ok: true };
+  });
+
+/** Staff-only: all checkpoints, for the cohort review queue. */
+export const listCheckpoints = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    await requireStaff(supabase, userId);
+    const { data } = await supabase
+      .from("checkpoints")
+      .select("id, project_id, owner_id, stage, week, student_state, review_state, reviewer_notes, updated_at")
+      .order("updated_at", { ascending: false });
+    return data ?? [];
+  });

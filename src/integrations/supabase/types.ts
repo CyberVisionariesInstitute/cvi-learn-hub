@@ -19,6 +19,7 @@ export type Database = {
           assigned_by: string | null
           created_at: string
           id: string
+          is_test: boolean
           scenario_code: string
           scenario_package_id: string
           scenario_version: string
@@ -30,6 +31,7 @@ export type Database = {
           assigned_by?: string | null
           created_at?: string
           id?: string
+          is_test?: boolean
           scenario_code: string
           scenario_package_id: string
           scenario_version: string
@@ -41,6 +43,7 @@ export type Database = {
           assigned_by?: string | null
           created_at?: string
           id?: string
+          is_test?: boolean
           scenario_code?: string
           scenario_package_id?: string
           scenario_version?: string

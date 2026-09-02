@@ -3,12 +3,10 @@ import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, Download, Upload, FileCheck2 } from "lucide-react";
 import { useWorkspace, useRefreshWorkspace } from "@/lib/capstone/useWorkspace";
-import {
-  acknowledgeEvent,
-  exportProject,
-  importProject,
-} from "@/lib/capstone/capstone.functions";
-import { STAGES, stageProgress, type ProjectState } from "@/lib/capstone/model";
+import { exportProject, importProject } from "@/lib/capstone/capstone.functions";
+import { STAGES } from "@/lib/capstone/model";
+import { Panel, Btn, Badge, Empty } from "@/components/capstone/ui";
+import { useDraft } from "@/lib/capstone/draft";
 
 export const Route = createFileRoute("/pki/capstone/")({
   component: CapstoneOverview,
@@ -19,14 +17,13 @@ function CapstoneOverview() {
   const refresh = useRefreshWorkspace();
   const runExport = useServerFn(exportProject);
   const runImport = useServerFn(importProject);
-  const runAck = useServerFn(acknowledgeEvent);
   const fileRef = useRef<HTMLInputElement>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   if (!data) return null;
 
-  if (!data.assignment) {
+  if (!data.assignment || !data.scenario || !data.project) {
     return (
       <section className="rounded-xl border border-border bg-surface/80 p-8">
         <h2 className="font-display text-xl text-foreground">No active assignment yet</h2>
@@ -46,9 +43,7 @@ function CapstoneOverview() {
   }
 
   const scenario = data.scenario;
-  const project = data.project!;
-  const state = (project.state ?? {}) as ProjectState;
-  const checkpoints = data.checkpoints;
+  const project = data.project;
 
   async function handleExport() {
     setError(null);
@@ -58,7 +53,7 @@ function CapstoneOverview() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `cvi-phase3-${project.scenario_code ?? "project"}-r${payload.body.revision}.json`;
+      a.download = `cvi-phase3-${project.scenario_code}-r${payload.body.revision}.json`;
       a.click();
       URL.revokeObjectURL(url);
       setNotice("Project exported.");
@@ -88,61 +83,61 @@ function CapstoneOverview() {
             <AlertTriangle className="size-4 text-primary" aria-hidden="true" />
             Released change &amp; incident briefs
           </h2>
-          {data.events.map((event) => (
-            <article
-              key={event.id}
-              className="rounded-xl border border-primary/30 bg-primary/5 p-5"
-            >
-              <h3 className="font-display text-base text-foreground">{event.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-foreground/90">
-                {event.student_brief}
-              </p>
-              {event.acknowledged_at ? (
-                <p className="mt-3 text-xs text-muted-foreground">Acknowledged.</p>
-              ) : (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    await runAck({ data: { id: event.id } });
-                    await refresh();
-                  }}
-                  className="mt-3 min-h-11 rounded-md border border-border px-4 text-sm text-foreground hover:border-primary/60"
+          {data.events.map((event) => {
+            const row = data.eventRows.find((r) => r.key === event.key);
+            return (
+              <article key={event.key} className="rounded-xl border border-primary/30 bg-primary/5 p-5">
+                <h3 className="font-display text-base text-foreground">{event.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-foreground/90">{event.studentBrief}</p>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  {row?.acknowledged_at
+                    ? "Acknowledged — respond in Adapt."
+                    : "Not yet acknowledged. Open Adapt to capture your baseline and respond."}
+                </p>
+                <Link
+                  to="/pki/capstone/$stage"
+                  params={{ stage: "adapt" }}
+                  className="mt-3 inline-flex min-h-11 items-center rounded-md border border-border px-4 text-sm text-foreground hover:border-primary/60"
                 >
-                  Acknowledge and respond in Adapt
-                </button>
-              )}
-            </article>
-          ))}
+                  Open Adapt
+                </Link>
+              </article>
+            );
+          })}
         </section>
       ) : null}
 
-      <section aria-labelledby="brief" className="rounded-xl border border-border bg-surface/80 p-6 sm:p-8">
-        <h2 id="brief" className="font-display text-xl text-foreground">
-          {scenario?.organization ?? data.assignment.scenario_code}
-        </h2>
+      <Panel
+        id="brief"
+        title={`${scenario.organization} — ${scenario.title}`}
+        description={`${scenario.industry} · your role: ${scenario.role} · ${scenario.durationWeeks}`}
+      >
+        <p className="max-w-3xl text-sm leading-relaxed text-foreground/90">{scenario.situation}</p>
         <p className="mt-3 max-w-3xl text-sm leading-relaxed text-foreground/90">
-          {scenario?.brief ?? "Your scenario brief will appear once your instructor releases it."}
+          <strong className="text-foreground">Mission:</strong> {scenario.mission}
         </p>
-
-        <div className="mt-6 grid gap-6 sm:grid-cols-3">
-          <BriefList title="Constraints" items={asStrings(scenario?.constraints)} />
-          <BriefList title="Requirements" items={asStrings(scenario?.requirements)} />
-          <BriefList title="Workloads" items={asStrings(scenario?.workloads)} />
+        <div className="mt-5 grid gap-6 sm:grid-cols-3">
+          <BriefList title="Design constraints" items={scenario.constraints} />
+          <BriefList title="Required outcomes" items={scenario.requiredOutcomes} />
+          <BriefList title="Open questions" items={scenario.openQuestions} />
         </div>
-      </section>
+        <p className="mt-5 text-xs text-muted-foreground">
+          Scenario {scenario.code} · version {scenario.version} — locked to your assignment.
+        </p>
+      </Panel>
 
-      <section aria-labelledby="progress">
-        <h2 id="progress" className="font-display text-lg text-foreground">
-          Workflow progress
+      <ProgressSection />
+
+      <section aria-labelledby="stages">
+        <h2 id="stages" className="font-display text-lg text-foreground">
+          Workflow
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Revision {project.revision} · last saved{" "}
-          {new Date(project.updated_at).toLocaleString()}
+          Revision {project.revision} · last saved {new Date(project.updated_at).toLocaleString()}
         </p>
         <ol className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {STAGES.map((stage) => {
-            const checkpoint = checkpoints.find((c) => c.stage === stage.key);
-            const started = stageProgress(state, stage.key) === "started";
+            const checkpoint = data.checkpoints.find((c) => c.stage === stage.key);
             return (
               <li key={stage.key}>
                 <Link
@@ -152,21 +147,7 @@ function CapstoneOverview() {
                 >
                   <span className="flex items-center justify-between text-xs tracking-wider text-muted-foreground uppercase">
                     Week {stage.week}
-                    <span
-                      className={
-                        checkpoint?.student_state === "complete"
-                          ? "rounded-full bg-primary/15 px-2 py-0.5 text-primary"
-                          : started
-                            ? "rounded-full bg-surface-raised px-2 py-0.5 text-foreground/80"
-                            : "rounded-full px-2 py-0.5 text-muted-foreground"
-                      }
-                    >
-                      {checkpoint?.student_state === "complete"
-                        ? "Complete"
-                        : started
-                          ? "In progress"
-                          : "Not started"}
-                    </span>
+                    {checkpoint ? <Badge tone="warn">{checkpoint.review_state}</Badge> : null}
                   </span>
                   <span className="font-display text-base text-foreground">{stage.label}</span>
                   <span className="text-sm text-muted-foreground">{stage.headline}</span>
@@ -177,35 +158,20 @@ function CapstoneOverview() {
         </ol>
       </section>
 
-      <section
-        aria-labelledby="portability"
-        className="rounded-xl border border-border bg-surface/80 p-6"
+      <Panel
+        id="portability"
+        title="Backup & restore"
+        description="Exports are signed and locked to your account, assignment, and scenario version. A file from another student, scenario, or version is rejected on import."
       >
-        <h2 id="portability" className="flex items-center gap-2 font-display text-lg text-foreground">
-          <FileCheck2 className="size-4 text-primary" aria-hidden="true" />
-          Backup &amp; restore
-        </h2>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Exports are signed and locked to your account, assignment, and scenario version. A file
-          from another student, scenario, or version is rejected on import.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={handleExport}
-            className="inline-flex min-h-11 items-center gap-2 rounded-md border border-border px-4 text-sm text-foreground hover:border-primary/60"
-          >
+        <div className="flex flex-wrap gap-3">
+          <Btn onClick={handleExport}>
             <Download className="size-4" aria-hidden="true" />
             Export my project
-          </button>
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="inline-flex min-h-11 items-center gap-2 rounded-md border border-border px-4 text-sm text-foreground hover:border-primary/60"
-          >
+          </Btn>
+          <Btn onClick={() => fileRef.current?.click()}>
             <Upload className="size-4" aria-hidden="true" />
             Import a project file
-          </button>
+          </Btn>
           <input
             ref={fileRef}
             type="file"
@@ -220,11 +186,14 @@ function CapstoneOverview() {
         </div>
         {notice ? <p className="mt-3 text-sm text-foreground">{notice}</p> : null}
         {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
-      </section>
+      </Panel>
 
       {data.submission ? (
         <section className="rounded-xl border border-primary/30 bg-primary/5 p-6">
-          <h2 className="font-display text-lg text-foreground">Submission recorded</h2>
+          <h2 className="flex items-center gap-2 font-display text-lg text-foreground">
+            <FileCheck2 className="size-4 text-primary" aria-hidden="true" />
+            Submission recorded
+          </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Submitted {new Date(data.submission.submitted_at).toLocaleString()} · status{" "}
             {data.submission.review_state}
@@ -238,9 +207,31 @@ function CapstoneOverview() {
   );
 }
 
-function asStrings(value: unknown): string[] {
-  if (Array.isArray(value)) return value.map((v) => (typeof v === "string" ? v : JSON.stringify(v)));
-  return [];
+function ProgressSection() {
+  const { draft } = useDraft();
+  const stats = [
+    { label: "Requirements", value: draft.analysis.filter((a) => a.kind === "requirement").length },
+    { label: "Components", value: draft.architecture.nodes.length },
+    { label: "Certificates", value: draft.operations.assets.length },
+    { label: "Workload runs", value: draft.workloads.runs.length },
+    { label: "Timeline entries", value: draft.change.timeline.length },
+  ];
+  return (
+    <Panel title="Project at a glance" description="Live counts from your saved project state.">
+      {stats.every((s) => s.value === 0) ? (
+        <Empty>Nothing recorded yet. Start in Analyze.</Empty>
+      ) : (
+        <dl className="grid gap-3 sm:grid-cols-5">
+          {stats.map((s) => (
+            <div key={s.label} className="rounded-md border border-border p-3">
+              <dt className="text-xs text-muted-foreground">{s.label}</dt>
+              <dd className="font-display text-xl text-foreground">{s.value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+    </Panel>
+  );
 }
 
 function BriefList({ title, items }: { title: string; items: string[] }) {

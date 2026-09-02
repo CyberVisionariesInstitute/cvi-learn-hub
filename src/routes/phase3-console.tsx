@@ -6,11 +6,13 @@ import { DemoLabShell } from "@/components/demo-lab/DemoLabShell";
 import { pki } from "@/lib/demo-lab/programs";
 import { useSession } from "@/hooks/useSession";
 import {
-  activateHiddenEvent,
   assignScenario,
-  createHiddenEvent,
   instructorOverview,
+  listCheckpoints,
+  listScenarioEvents,
   readAuditLog,
+  releaseScenarioEvent,
+  reviewCheckpoint,
   reviewSubmission,
 } from "@/lib/capstone/instructor.functions";
 
@@ -43,8 +45,6 @@ function Phase3Console() {
   const fetchOverview = useServerFn(instructorOverview);
   const fetchAudit = useServerFn(readAuditLog);
   const runAssign = useServerFn(assignScenario);
-  const runCreateEvent = useServerFn(createHiddenEvent);
-  const runActivate = useServerFn(activateHiddenEvent);
   const runReview = useServerFn(reviewSubmission);
 
   const overview = useQuery({
@@ -62,9 +62,6 @@ function Phase3Console() {
 
   const [studentId, setStudentId] = useState("");
   const [scenarioId, setScenarioId] = useState("");
-  const [eventAssignment, setEventAssignment] = useState("");
-  const [eventTitle, setEventTitle] = useState("");
-  const [eventBrief, setEventBrief] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -177,96 +174,14 @@ function Phase3Console() {
               </ul>
             </section>
 
-            <section className="rounded-xl border border-border bg-surface/80 p-6">
-              <h2 className="font-display text-lg text-foreground">Change &amp; incident events</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Events stay invisible to the student until you activate them.
-              </p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <label className="block text-sm">
-                  <span className="text-muted-foreground">Assignment</span>
-                  <select
-                    value={eventAssignment}
-                    onChange={(e) => setEventAssignment(e.target.value)}
-                    className="mt-1 min-h-11 w-full rounded-md border border-border bg-background px-2 text-foreground"
-                  >
-                    <option value="">Select…</option>
-                    {overview.data.assignments.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {nameOf(a.user_id)} · {a.scenario_code}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block text-sm">
-                  <span className="text-muted-foreground">Title</span>
-                  <input
-                    value={eventTitle}
-                    onChange={(e) => setEventTitle(e.target.value)}
-                    className="mt-1 min-h-11 w-full rounded-md border border-border bg-background px-3 text-foreground"
-                  />
-                </label>
-                <label className="block text-sm sm:col-span-2">
-                  <span className="text-muted-foreground">Student brief</span>
-                  <textarea
-                    rows={3}
-                    value={eventBrief}
-                    onChange={(e) => setEventBrief(e.target.value)}
-                    className="mt-1 w-full rounded-md border border-border bg-background p-3 text-foreground"
-                  />
-                </label>
-                <div className="sm:col-span-2">
-                  <button
-                    type="button"
-                    disabled={!eventAssignment || !eventTitle || !eventBrief}
-                    onClick={async () => {
-                      await runCreateEvent({
-                        data: {
-                          assignmentId: eventAssignment,
-                          eventKey: eventTitle.toLowerCase().replace(/\s+/g, "-").slice(0, 60),
-                          title: eventTitle,
-                          studentBrief: eventBrief,
-                        },
-                      });
-                      setEventTitle("");
-                      setEventBrief("");
-                      await overview.refetch();
-                    }}
-                    className="min-h-11 rounded-md border border-border px-4 text-sm text-foreground hover:border-primary/60 disabled:opacity-50"
-                  >
-                    Stage event (inactive)
-                  </button>
-                </div>
-              </div>
+            <EventsSection
+              assignments={overview.data.assignments}
+              nameOf={nameOf}
+              onChanged={() => void overview.refetch()}
+            />
 
-              <ul className="mt-6 space-y-2">
-                {overview.data.events.map((e) => (
-                  <li
-                    key={e.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-3 text-sm"
-                  >
-                    <span className="text-foreground">{e.title}</span>
-                    {e.activated_at ? (
-                      <span className="text-muted-foreground">
-                        Released {new Date(e.activated_at).toLocaleString()}
-                        {e.acknowledged_at ? " · acknowledged" : ""}
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          await runActivate({ data: { id: e.id } });
-                          await overview.refetch();
-                        }}
-                        className="min-h-9 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground"
-                      >
-                        Release to student
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </section>
+            <CheckpointsSection nameOf={nameOf} />
+
 
             <section className="rounded-xl border border-border bg-surface/80 p-6">
               <h2 className="font-display text-lg text-foreground">Submissions</h2>
@@ -324,5 +239,168 @@ function Phase3Console() {
         ) : null}
       </div>
     </DemoLabShell>
+  );
+}
+
+function EventsSection({
+  assignments,
+  nameOf,
+  onChanged,
+}: {
+  assignments: { id: string; user_id: string; scenario_code: string; state: string }[];
+  nameOf: (id: string) => string;
+  onChanged: () => void;
+}) {
+  const [assignmentId, setAssignmentId] = useState("");
+  const fetchEvents = useServerFn(listScenarioEvents);
+  const runRelease = useServerFn(releaseScenarioEvent);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  const events = useQuery({
+    queryKey: ["phase3", "events", assignmentId],
+    queryFn: () => fetchEvents({ data: { assignmentId } }),
+    enabled: Boolean(assignmentId),
+    retry: false,
+  });
+
+  return (
+    <section className="rounded-xl border border-border bg-surface/80 p-6">
+      <h2 className="font-display text-lg text-foreground">Change &amp; incident events</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Events come from the authored scenario package at the student&apos;s pinned version. They
+        stay invisible to the student until you release them.
+      </p>
+
+      <label className="mt-4 block max-w-md text-sm">
+        <span className="text-muted-foreground">Assignment</span>
+        <select
+          value={assignmentId}
+          onChange={(e) => setAssignmentId(e.target.value)}
+          className="mt-1 min-h-11 w-full rounded-md border border-border bg-background px-2 text-foreground"
+        >
+          <option value="">Select…</option>
+          {assignments.map((a) => (
+            <option key={a.id} value={a.id}>
+              {nameOf(a.user_id)} · {a.scenario_code} · {a.state}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      {err ? <p className="mt-3 text-sm text-destructive">{err}</p> : null}
+
+      <ul className="mt-5 space-y-3">
+        {(events.data ?? []).map((e) => (
+          <li key={e.key} className="rounded-lg border border-border p-4 text-sm">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-foreground">
+                  {e.title}{" "}
+                  <span className="text-xs tracking-wider text-muted-foreground uppercase">
+                    {e.kind}
+                  </span>
+                </p>
+                <p className="mt-1 max-w-2xl text-muted-foreground">{e.studentBrief}</p>
+              </div>
+              {e.activatedAt ? (
+                <span className="text-xs text-muted-foreground">
+                  Released {new Date(e.activatedAt).toLocaleString()}
+                  {e.acknowledgedAt ? " · acknowledged" : ""}
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  disabled={busy === e.key}
+                  onClick={async () => {
+                    setBusy(e.key);
+                    setErr(null);
+                    try {
+                      await runRelease({ data: { assignmentId, eventKey: e.key } });
+                      await events.refetch();
+                      onChanged();
+                    } catch (error) {
+                      setErr(error instanceof Error ? error.message : "Release failed.");
+                    } finally {
+                      setBusy(null);
+                    }
+                  }}
+                  className="min-h-9 shrink-0 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground disabled:opacity-50"
+                >
+                  Release to student
+                </button>
+              )}
+            </div>
+            <details className="mt-3">
+              <summary className="cursor-pointer text-xs tracking-wider text-primary uppercase">
+                Instructor notes (never student-visible)
+              </summary>
+              <p className="mt-2 text-muted-foreground">{e.instructorNotes}</p>
+              <p className="mt-2 text-muted-foreground">
+                <span className="text-foreground">Valid solution families:</span>{" "}
+                {e.validSolutionFamilies.join("; ")}
+              </p>
+              <p className="mt-1 text-muted-foreground">
+                <span className="text-foreground">Invalid moves:</span> {e.invalidMoves.join("; ")}
+              </p>
+            </details>
+          </li>
+        ))}
+        {assignmentId && events.data && events.data.length === 0 ? (
+          <li className="text-sm text-muted-foreground">
+            This scenario version has no authored events.
+          </li>
+        ) : null}
+      </ul>
+    </section>
+  );
+}
+
+function CheckpointsSection({ nameOf }: { nameOf: (id: string) => string }) {
+  const fetchCheckpoints = useServerFn(listCheckpoints);
+  const runReview = useServerFn(reviewCheckpoint);
+  const checkpoints = useQuery({
+    queryKey: ["phase3", "checkpoints"],
+    queryFn: () => fetchCheckpoints({}),
+    retry: false,
+  });
+
+  const submitted = (checkpoints.data ?? []).filter((c) => c.student_state === "complete");
+
+  return (
+    <section className="rounded-xl border border-border bg-surface/80 p-6">
+      <h2 className="font-display text-lg text-foreground">Checkpoint review</h2>
+      <ul className="mt-4 space-y-2">
+        {submitted.length === 0 ? (
+          <li className="text-sm text-muted-foreground">No checkpoints submitted yet.</li>
+        ) : (
+          submitted.map((c) => (
+            <li key={c.id} className="rounded-lg border border-border p-4 text-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span className="text-foreground">
+                  {nameOf(c.owner_id)} · Week {c.week} · {c.stage}
+                </span>
+                <span className="text-muted-foreground">{c.review_state}</span>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {(["in_review", "needs_revision", "accepted"] as const).map((next) => (
+                  <button
+                    key={next}
+                    type="button"
+                    onClick={async () => {
+                      await runReview({ data: { id: c.id, reviewState: next } });
+                      await checkpoints.refetch();
+                    }}
+                    className="min-h-9 rounded-md border border-border px-3 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Mark {next.replace("_", " ")}
+                  </button>
+                ))}
+              </div>
+            </li>
+          ))
+        )}
+      </ul>
+    </section>
   );
 }

@@ -20,3 +20,6 @@ export function useRefreshWorkspace() {
 }
 
 export type Workspace = Awaited<ReturnType<typeof getWorkspace>>;
+
+/** The workspace shape once an active assignment exists. */
+export type AssignedWorkspace = Extract<Workspace, { events: unknown }>;
