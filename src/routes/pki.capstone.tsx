@@ -73,7 +73,6 @@ const beforeYouBegin = [
 
 function PkiCapstonePage() {
   return (
-    <DemoLabShell themeClass="program-pki">
       {/* Hero */}
       <section className="relative isolate overflow-hidden">
         <img
