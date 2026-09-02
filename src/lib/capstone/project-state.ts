@@ -195,11 +195,11 @@ export interface DependencyCheck {
   result: "pass" | "fail" | "skipped";
   expected: string;
   observed: string;
-  category?: FailureCategory;
-  code?: string;
-  consequence?: string;
-  objectRef?: string;
-  relatedRequirementId?: string;
+  category?: FailureCategory | undefined;
+  code?: string | undefined;
+  consequence?: string | undefined;
+  objectRef?: string | undefined;
+  relatedRequirementId?: string | undefined;
 }
 
 export interface ExecutionRun {
