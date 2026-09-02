@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as InstructorRouteImport } from './routes/instructor'
 import { Route as PkiRouteImport } from './routes/pki'
 import { Route as CyberfoundationsIndexRouteImport } from './routes/cyberfoundations.index'
+import { Route as PkiIndexRouteImport } from './routes/pki.index'
 import { Route as PkiCapstoneRouteImport } from './routes/pki.capstone'
 import { Route as CyberfoundationsWeek06FromTheGridToCloudHeightsRouteImport } from './routes/cyberfoundations.week-06.from-the-grid-to-cloud-heights'
 import { Route as CyberfoundationsWeek07CloudHeightsGuardPostRouteImport } from './routes/cyberfoundations.week-07.cloud-heights-guard-post'
@@ -36,6 +37,11 @@ const CyberfoundationsIndexRoute = CyberfoundationsIndexRouteImport.update({
   id: '/cyberfoundations/',
   path: '/cyberfoundations/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PkiIndexRoute = PkiIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PkiRoute,
 } as any)
 const PkiCapstoneRoute = PkiCapstoneRouteImport.update({
   id: '/capstone',
@@ -61,15 +67,16 @@ export interface FileRoutesByFullPath {
   '/pki': typeof PkiRouteWithChildren
   '/pki/capstone': typeof PkiCapstoneRoute
   '/cyberfoundations/': typeof CyberfoundationsIndexRoute
+  '/pki/': typeof PkiIndexRoute
   '/cyberfoundations/week-06/from-the-grid-to-cloud-heights': typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
   '/cyberfoundations/week-07/cloud-heights-guard-post': typeof CyberfoundationsWeek07CloudHeightsGuardPostRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/instructor': typeof InstructorRoute
-  '/pki': typeof PkiRouteWithChildren
   '/pki/capstone': typeof PkiCapstoneRoute
   '/cyberfoundations': typeof CyberfoundationsIndexRoute
+  '/pki': typeof PkiIndexRoute
   '/cyberfoundations/week-06/from-the-grid-to-cloud-heights': typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
   '/cyberfoundations/week-07/cloud-heights-guard-post': typeof CyberfoundationsWeek07CloudHeightsGuardPostRoute
 }
@@ -80,6 +87,7 @@ export interface FileRoutesById {
   '/pki': typeof PkiRouteWithChildren
   '/pki/capstone': typeof PkiCapstoneRoute
   '/cyberfoundations/': typeof CyberfoundationsIndexRoute
+  '/pki/': typeof PkiIndexRoute
   '/cyberfoundations/week-06/from-the-grid-to-cloud-heights': typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
   '/cyberfoundations/week-07/cloud-heights-guard-post': typeof CyberfoundationsWeek07CloudHeightsGuardPostRoute
 }
@@ -91,15 +99,16 @@ export interface FileRouteTypes {
     | '/pki'
     | '/pki/capstone'
     | '/cyberfoundations/'
+    | '/pki/'
     | '/cyberfoundations/week-06/from-the-grid-to-cloud-heights'
     | '/cyberfoundations/week-07/cloud-heights-guard-post'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/instructor'
-    | '/pki'
     | '/pki/capstone'
     | '/cyberfoundations'
+    | '/pki'
     | '/cyberfoundations/week-06/from-the-grid-to-cloud-heights'
     | '/cyberfoundations/week-07/cloud-heights-guard-post'
   id:
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
     | '/pki'
     | '/pki/capstone'
     | '/cyberfoundations/'
+    | '/pki/'
     | '/cyberfoundations/week-06/from-the-grid-to-cloud-heights'
     | '/cyberfoundations/week-07/cloud-heights-guard-post'
   fileRoutesById: FileRoutesById
@@ -152,6 +162,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CyberfoundationsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pki/': {
+      id: '/pki/'
+      path: '/'
+      fullPath: '/pki/'
+      preLoaderRoute: typeof PkiIndexRouteImport
+      parentRoute: typeof PkiRoute
+    }
     '/pki/capstone': {
       id: '/pki/capstone'
       path: '/capstone'
@@ -178,10 +195,12 @@ declare module '@tanstack/react-router' {
 
 interface PkiRouteChildren {
   PkiCapstoneRoute: typeof PkiCapstoneRoute
+  PkiIndexRoute: typeof PkiIndexRoute
 }
 
 const PkiRouteChildren: PkiRouteChildren = {
   PkiCapstoneRoute: PkiCapstoneRoute,
+  PkiIndexRoute: PkiIndexRoute,
 }
 
 const PkiRouteWithChildren = PkiRoute._addFileChildren(PkiRouteChildren)

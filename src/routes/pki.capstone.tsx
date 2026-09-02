@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { DemoLabShell } from "@/components/demo-lab/DemoLabShell";
 import trustCampus from "@/assets/environments/pki/trust-campus.jpg";
 import { ArrowLeft, ArrowUpRight, BookOpen, ShieldCheck, Lock, ScrollText, LifeBuoy, ExternalLink } from "lucide-react";
 
