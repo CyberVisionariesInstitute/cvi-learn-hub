@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/useSession";
 import { useWorkspace } from "@/lib/capstone/useWorkspace";
 import { STAGES } from "@/lib/capstone/model";
+import { DraftProvider, useDraft } from "@/lib/capstone/draft";
+import { Btn } from "@/components/capstone/ui";
 
 export const Route = createFileRoute("/pki/capstone")({
   ssr: false,
@@ -148,10 +150,35 @@ function CapstoneWorkspaceLayout() {
           <p className="text-sm text-destructive">
             We could not load your workspace. Refresh, or contact your instructor if this persists.
           </p>
+        ) : data?.project ? (
+          <DraftProvider project={data.project}>
+            <Outlet />
+            <SaveBar />
+          </DraftProvider>
         ) : (
           <Outlet />
         )}
       </div>
+    </div>
+  );
+}
+
+function SaveBar() {
+  const { dirty, saving, save, status, error, revision } = useDraft();
+  return (
+    <div className="sticky bottom-4 z-10 mt-8 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface/95 px-4 py-3 backdrop-blur">
+      <p className="text-sm text-muted-foreground" aria-live="polite">
+        {error ? (
+          <span className="text-destructive">{error}</span>
+        ) : dirty ? (
+          "Unsaved changes in this session."
+        ) : (
+          (status ?? `Saved · revision ${revision}`)
+        )}
+      </p>
+      <Btn variant="primary" disabled={!dirty || saving} onClick={() => void save()}>
+        {saving ? "Saving…" : "Save project"}
+      </Btn>
     </div>
   );
 }
