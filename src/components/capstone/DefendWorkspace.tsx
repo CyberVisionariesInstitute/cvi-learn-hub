@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Panel, Btn, Field, inputClass, Badge, Empty } from "./ui";
 import { useDraft } from "@/lib/capstone/draft";
 import { addEvidence, submitCapstone } from "@/lib/capstone/capstone.functions";
-import { useRefreshWorkspace, type Workspace } from "@/lib/capstone/useWorkspace";
+import { useRefreshWorkspace, type AssignedWorkspace } from "@/lib/capstone/useWorkspace";
 import { COMPETENCIES, RUBRIC, type ScenarioPublic } from "@/lib/capstone/scenario-types";
 import { validateArchitecture } from "@/lib/capstone/validation";
 
@@ -12,7 +12,7 @@ export function DefendWorkspace({
   workspace,
 }: {
   scenario: ScenarioPublic;
-  workspace: Workspace;
+  workspace: AssignedWorkspace;
 }) {
   const { draft, update, save, projectId } = useDraft();
   const runSubmit = useServerFn(submitCapstone);

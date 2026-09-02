@@ -11,7 +11,7 @@ import {
   type PublicEvent,
 } from "@/lib/capstone/scenario-types";
 import { acknowledgeEvent, completeCheckpoint } from "@/lib/capstone/capstone.functions";
-import { useRefreshWorkspace, type Workspace } from "@/lib/capstone/useWorkspace";
+import { useRefreshWorkspace } from "@/lib/capstone/useWorkspace";
 
 const CHECKPOINT_WEEK: Record<CheckpointType, number> = {
   "change-assessment": 21,
@@ -307,5 +307,3 @@ function AddTimelineEntry() {
     </div>
   );
 }
-
-export type AdaptProps = Workspace;
