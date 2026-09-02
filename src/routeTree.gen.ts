@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as InstructorRouteImport } from './routes/instructor'
+import { Route as Phase3ConsoleRouteImport } from './routes/phase3-console'
 import { Route as PkiRouteImport } from './routes/pki'
 import { Route as CyberfoundationsIndexRouteImport } from './routes/cyberfoundations.index'
 import { Route as PkiIndexRouteImport } from './routes/pki.index'
@@ -35,6 +36,11 @@ const AuthRoute = AuthRouteImport.update({
 const InstructorRoute = InstructorRouteImport.update({
   id: '/instructor',
   path: '/instructor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Phase3ConsoleRoute = Phase3ConsoleRouteImport.update({
+  id: '/phase3-console',
+  path: '/phase3-console',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PkiRoute = PkiRouteImport.update({
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/instructor': typeof InstructorRoute
+  '/phase3-console': typeof Phase3ConsoleRoute
   '/pki': typeof PkiRouteWithChildren
   '/pki/capstone': typeof PkiCapstoneRouteWithChildren
   '/cyberfoundations/': typeof CyberfoundationsIndexRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/instructor': typeof InstructorRoute
+  '/phase3-console': typeof Phase3ConsoleRoute
   '/cyberfoundations': typeof CyberfoundationsIndexRoute
   '/pki': typeof PkiIndexRoute
   '/cyberfoundations/week-06/from-the-grid-to-cloud-heights': typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/instructor': typeof InstructorRoute
+  '/phase3-console': typeof Phase3ConsoleRoute
   '/pki': typeof PkiRouteWithChildren
   '/pki/capstone': typeof PkiCapstoneRouteWithChildren
   '/cyberfoundations/': typeof CyberfoundationsIndexRoute
@@ -132,6 +141,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/instructor'
+    | '/phase3-console'
     | '/pki'
     | '/pki/capstone'
     | '/cyberfoundations/'
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/instructor'
+    | '/phase3-console'
     | '/cyberfoundations'
     | '/pki'
     | '/cyberfoundations/week-06/from-the-grid-to-cloud-heights'
@@ -158,6 +169,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/instructor'
+    | '/phase3-console'
     | '/pki'
     | '/pki/capstone'
     | '/cyberfoundations/'
@@ -173,6 +185,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   InstructorRoute: typeof InstructorRoute
+  Phase3ConsoleRoute: typeof Phase3ConsoleRoute
   PkiRoute: typeof PkiRouteWithChildren
   CyberfoundationsIndexRoute: typeof CyberfoundationsIndexRoute
   CyberfoundationsWeek06FromTheGridToCloudHeightsRoute: typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
@@ -200,6 +213,13 @@ declare module '@tanstack/react-router' {
       path: '/instructor'
       fullPath: '/instructor'
       preLoaderRoute: typeof InstructorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/phase3-console': {
+      id: '/phase3-console'
+      path: '/phase3-console'
+      fullPath: '/phase3-console'
+      preLoaderRoute: typeof Phase3ConsoleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pki': {
@@ -300,6 +320,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   InstructorRoute: InstructorRoute,
+  Phase3ConsoleRoute: Phase3ConsoleRoute,
   PkiRoute: PkiRouteWithChildren,
   CyberfoundationsIndexRoute: CyberfoundationsIndexRoute,
   CyberfoundationsWeek06FromTheGridToCloudHeightsRoute:

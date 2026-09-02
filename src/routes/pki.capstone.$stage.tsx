@@ -71,7 +71,7 @@ function StagePage() {
   }, [stageKey, project?.revision]);
 
   const checkpoint = useMemo(
-    () => data?.checkpoints.find((c) => c.stage === stageKey),
+    () => (data?.checkpoints ?? []).find((c) => c.stage === stageKey),
     [data, stageKey],
   );
 
