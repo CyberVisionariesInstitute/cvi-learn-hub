@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { DemoLabShell } from "@/components/demo-lab/DemoLabShell";
 import trustCampus from "@/assets/environments/pki/trust-campus.jpg";
 import { pki } from "@/lib/demo-lab/programs";
 import { statusLabels } from "@/lib/demo-lab/programs";
+import { ArrowRight, GraduationCap } from "lucide-react";
 
 export const Route = createFileRoute("/pki")({
   head: () => ({
