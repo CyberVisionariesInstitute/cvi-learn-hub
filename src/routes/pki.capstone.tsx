@@ -73,6 +73,7 @@ const beforeYouBegin = [
 
 function PkiCapstonePage() {
   return (
+    <>
       {/* Hero */}
       <section className="relative isolate overflow-hidden">
         <img
