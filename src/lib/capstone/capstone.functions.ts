@@ -76,7 +76,7 @@ export const getWorkspace = createServerFn({ method: "GET" })
 
     let { data: project } = await supabase
       .from("projects")
-      .select("id, state, revision, updated_at")
+      .select("id, state, revision, updated_at, scenario_code, scenario_version")
       .eq("assignment_id", assignment.id)
       .maybeSingle();
 
@@ -90,7 +90,7 @@ export const getWorkspace = createServerFn({ method: "GET" })
           scenario_version: assignment.scenario_version,
           state: {},
         })
-        .select("id, state, revision, updated_at")
+        .select("id, state, revision, updated_at, scenario_code, scenario_version")
         .single();
       if (created.error) throw new Error(created.error.message);
       project = created.data;
@@ -158,7 +158,7 @@ export const saveProject = createServerFn({ method: "POST" })
       .from("projects")
       .update({ state: data.state as never, revision: nextRevision })
       .eq("id", current.id)
-      .select("id, state, revision, updated_at")
+      .select("id, state, revision, updated_at, scenario_code, scenario_version")
       .single();
     if (updated.error) throw new Error(updated.error.message);
 
