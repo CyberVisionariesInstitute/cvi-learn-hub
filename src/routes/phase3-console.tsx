@@ -177,96 +177,14 @@ function Phase3Console() {
               </ul>
             </section>
 
-            <section className="rounded-xl border border-border bg-surface/80 p-6">
-              <h2 className="font-display text-lg text-foreground">Change &amp; incident events</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Events stay invisible to the student until you activate them.
-              </p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <label className="block text-sm">
-                  <span className="text-muted-foreground">Assignment</span>
-                  <select
-                    value={eventAssignment}
-                    onChange={(e) => setEventAssignment(e.target.value)}
-                    className="mt-1 min-h-11 w-full rounded-md border border-border bg-background px-2 text-foreground"
-                  >
-                    <option value="">Select…</option>
-                    {overview.data.assignments.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {nameOf(a.user_id)} · {a.scenario_code}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block text-sm">
-                  <span className="text-muted-foreground">Title</span>
-                  <input
-                    value={eventTitle}
-                    onChange={(e) => setEventTitle(e.target.value)}
-                    className="mt-1 min-h-11 w-full rounded-md border border-border bg-background px-3 text-foreground"
-                  />
-                </label>
-                <label className="block text-sm sm:col-span-2">
-                  <span className="text-muted-foreground">Student brief</span>
-                  <textarea
-                    rows={3}
-                    value={eventBrief}
-                    onChange={(e) => setEventBrief(e.target.value)}
-                    className="mt-1 w-full rounded-md border border-border bg-background p-3 text-foreground"
-                  />
-                </label>
-                <div className="sm:col-span-2">
-                  <button
-                    type="button"
-                    disabled={!eventAssignment || !eventTitle || !eventBrief}
-                    onClick={async () => {
-                      await runCreateEvent({
-                        data: {
-                          assignmentId: eventAssignment,
-                          eventKey: eventTitle.toLowerCase().replace(/\s+/g, "-").slice(0, 60),
-                          title: eventTitle,
-                          studentBrief: eventBrief,
-                        },
-                      });
-                      setEventTitle("");
-                      setEventBrief("");
-                      await overview.refetch();
-                    }}
-                    className="min-h-11 rounded-md border border-border px-4 text-sm text-foreground hover:border-primary/60 disabled:opacity-50"
-                  >
-                    Stage event (inactive)
-                  </button>
-                </div>
-              </div>
+            <EventsSection
+              assignments={overview.data.assignments}
+              nameOf={nameOf}
+              onChanged={() => void overview.refetch()}
+            />
 
-              <ul className="mt-6 space-y-2">
-                {overview.data.events.map((e) => (
-                  <li
-                    key={e.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-3 text-sm"
-                  >
-                    <span className="text-foreground">{e.title}</span>
-                    {e.activated_at ? (
-                      <span className="text-muted-foreground">
-                        Released {new Date(e.activated_at).toLocaleString()}
-                        {e.acknowledged_at ? " · acknowledged" : ""}
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          await runActivate({ data: { id: e.id } });
-                          await overview.refetch();
-                        }}
-                        className="min-h-9 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground"
-                      >
-                        Release to student
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </section>
+            <CheckpointsSection nameOf={nameOf} />
+
 
             <section className="rounded-xl border border-border bg-surface/80 p-6">
               <h2 className="font-display text-lg text-foreground">Submissions</h2>
