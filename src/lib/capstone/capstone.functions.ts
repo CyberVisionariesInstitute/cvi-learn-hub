@@ -91,11 +91,8 @@ async function audit(
 
 async function signPayload(payload: string) {
   const { createHmac } = await import("crypto");
-  const key =
-    process.env["PHASE3_EXPORT_SECRET"] ??
-    process.env["SUPABASE_SERVICE_ROLE_KEY"] ??
-    process.env["SUPABASE_URL"] ??
-    "cvi";
+  const key = process.env["PHASE3_EXPORT_SECRET"];
+  if (!key) throw new Error("Export signing is not configured.");
   return createHmac("sha256", key).update(payload).digest("hex");
 }
 
