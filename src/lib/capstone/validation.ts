@@ -24,7 +24,7 @@ export interface Finding {
 }
 
 function zoneName(scenario: ScenarioPublic, id: string) {
-  return scenario.zones.find((z) => z.id === id)?.name ?? id || "unzoned";
+  return scenario.zones.find((z) => z.id === id)?.name ?? (id || "unzoned");
 }
 
 export function validateArchitecture(
