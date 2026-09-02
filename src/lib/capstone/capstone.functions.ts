@@ -1,21 +1,74 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { STAGE_KEYS, type ProjectState } from "./model";
+import { STAGE_KEYS } from "./model";
+import { normalizeState, type Phase3State } from "./project-state";
+import { executeWorkload, SIM_RULE_VERSION } from "./simulation";
+import type { EventEffects, PublicEvent, ScenarioPublic } from "./scenario-types";
 
 /**
  * Student-facing Phase 3 server functions.
+ *
  * Every handler runs as the caller under RLS: a student can only ever reach
- * their own assignment, their own project, and the redacted scenario view for
- * the exact version they were assigned.
+ * their own assignment, their own project, and the PUBLIC projection of the
+ * exact scenario version their active assignment pins. Scenario content is
+ * resolved server-side; instructor-private definitions never cross this line.
  */
 
-const stageItemSchema = z.record(z.string(), z.string());
-const stageStateSchema = z.object({
-  notes: z.string().max(20000),
-  items: z.array(stageItemSchema).max(200),
-});
-const projectStateSchema = z.record(z.enum(STAGE_KEYS as [string, ...string[]]), stageStateSchema);
+/* Top-level key allowlist — anything else in an imported file is rejected. */
+const STATE_KEYS = [
+  "version",
+  "clockDay",
+  "analysis",
+  "architecture",
+  "operations",
+  "workloads",
+  "change",
+  "notes",
+  "seeded",
+] as const;
+
+const stateSchema = z
+  .object({
+    version: z.number(),
+    clockDay: z.number().min(0).max(3650),
+    analysis: z.array(z.record(z.string(), z.unknown())).max(500),
+    architecture: z.object({
+      nodes: z.array(z.record(z.string(), z.unknown())).max(300),
+      edges: z.array(z.record(z.string(), z.unknown())).max(600),
+      dispositions: z.array(z.record(z.string(), z.unknown())).max(500),
+    }),
+    operations: z.object({
+      profiles: z.array(z.record(z.string(), z.unknown())).max(100),
+      assets: z.array(z.record(z.string(), z.unknown())).max(500),
+      lifecycle: z.array(z.record(z.string(), z.unknown())).max(3000),
+      approvals: z.array(z.record(z.string(), z.unknown())).max(1000),
+      discovery: z.array(z.record(z.string(), z.unknown())).max(200),
+      publications: z.array(z.record(z.string(), z.unknown())).max(100),
+    }),
+    workloads: z.object({
+      instances: z.array(z.record(z.string(), z.unknown())).max(100),
+      runs: z.array(z.record(z.string(), z.unknown())).max(1000),
+    }),
+    change: z.object({
+      timeline: z.array(z.record(z.string(), z.unknown())).max(1000),
+      baselines: z.array(z.record(z.string(), z.unknown())).max(100),
+      checkpoints: z.array(z.record(z.string(), z.unknown())).max(20),
+      acknowledged: z.array(z.string()).max(50),
+    }),
+    notes: z.record(z.string(), z.string().max(20000)),
+    seeded: z.array(z.string()).max(500),
+  })
+  .strict();
+
+function assertNoUnknownKeys(raw: unknown) {
+  if (!raw || typeof raw !== "object") throw new Error("state must be an object");
+  for (const key of Object.keys(raw)) {
+    if (!(STATE_KEYS as readonly string[]).includes(key)) {
+      throw new Error(`unexpected field "${key}" in project state`);
+    }
+  }
+}
 
 async function audit(
   supabase: any,
@@ -38,8 +91,43 @@ async function audit(
 
 async function signPayload(payload: string) {
   const { createHmac } = await import("crypto");
-  const key = process.env["SUPABASE_SERVICE_ROLE_KEY"] ?? process.env["SUPABASE_URL"] ?? "cvi";
+  const key =
+    process.env["PHASE3_EXPORT_SECRET"] ??
+    process.env["SUPABASE_SERVICE_ROLE_KEY"] ??
+    process.env["SUPABASE_URL"] ??
+    "cvi";
   return createHmac("sha256", key).update(payload).digest("hex");
+}
+
+/** Resolve released scenario content for an exact code@version. */
+async function loadScenario(code: string, version: string): Promise<ScenarioPublic> {
+  const { getScenarioPublic } = await import("./scenarios/registry.server");
+  const scenario = getScenarioPublic(code, version);
+  if (!scenario) throw new Error("Scenario content is unavailable for this assignment version.");
+  return scenario;
+}
+
+/** Public projection of ACTIVATED events only, including deterministic effects. */
+async function publicEvents(
+  rows: { event_key: string; title: string; student_brief: string; activated_at: string | null }[],
+  code: string,
+  version: string,
+): Promise<PublicEvent[]> {
+  const { getScenarioPrivate } = await import("./scenarios/registry.server");
+  const defs = getScenarioPrivate(code, version)?.events ?? [];
+  return rows
+    .filter((r) => !!r.activated_at)
+    .map((r) => {
+      const def = defs.find((d) => d.key === r.event_key);
+      return {
+        key: r.event_key,
+        title: r.title,
+        kind: def?.kind ?? "change",
+        studentBrief: r.student_brief,
+        symptoms: def?.symptoms ?? [],
+        effects: (def?.effects ?? {}) as EventEffects,
+      } satisfies PublicEvent;
+    });
 }
 
 export const getWorkspace = createServerFn({ method: "GET" })
@@ -67,12 +155,7 @@ export const getWorkspace = createServerFn({ method: "GET" })
       return { profile, isStaff, assignment: null } as const;
     }
 
-    const { data: scenario } = await supabase
-      .from("scenario_student_views")
-      .select("organization, brief, constraints, requirements, workloads, scenario_version")
-      .eq("scenario_package_id", assignment.scenario_package_id)
-      .eq("scenario_version", assignment.scenario_version)
-      .maybeSingle();
+    const scenario = await loadScenario(assignment.scenario_code, assignment.scenario_version);
 
     let { data: project } = await supabase
       .from("projects")
@@ -102,7 +185,7 @@ export const getWorkspace = createServerFn({ method: "GET" })
       });
     }
 
-    const [{ data: checkpoints }, { data: evidence }, { data: events }, { data: submission }] =
+    const [{ data: checkpoints }, { data: evidence }, { data: eventRows }, { data: submission }] =
       await Promise.all([
         supabase.from("checkpoints").select("*").eq("project_id", project.id),
         supabase
@@ -118,15 +201,27 @@ export const getWorkspace = createServerFn({ method: "GET" })
         supabase.from("submissions").select("*").eq("project_id", project.id).maybeSingle(),
       ]);
 
+    const events = await publicEvents(
+      (eventRows ?? []) as never[],
+      assignment.scenario_code,
+      assignment.scenario_version,
+    );
+
     return {
       profile,
       isStaff,
       assignment,
       scenario,
-      project,
+      project: { ...project, state: normalizeState(project.state) },
+      eventRows: (eventRows ?? []).map((e) => ({
+        id: e.id,
+        key: e.event_key,
+        acknowledged_at: e.acknowledged_at,
+        activated_at: e.activated_at,
+      })),
+      events,
       checkpoints: checkpoints ?? [],
       evidence: evidence ?? [],
-      events: events ?? [],
       submission: submission ?? null,
     } as const;
   });
@@ -137,13 +232,15 @@ export const saveProject = createServerFn({ method: "POST" })
     z
       .object({
         projectId: z.string().uuid(),
-        state: projectStateSchema,
+        state: z.unknown(),
         note: z.string().max(300).optional(),
       })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    assertNoUnknownKeys(data.state);
+    const state = stateSchema.parse(data.state);
 
     const { data: current, error } = await supabase
       .from("projects")
@@ -156,7 +253,7 @@ export const saveProject = createServerFn({ method: "POST" })
 
     const updated = await supabase
       .from("projects")
-      .update({ state: data.state as never, revision: nextRevision })
+      .update({ state: state as never, revision: nextRevision })
       .eq("id", current.id)
       .select("id, state, revision, updated_at, scenario_code, scenario_version")
       .single();
@@ -166,7 +263,7 @@ export const saveProject = createServerFn({ method: "POST" })
       project_id: current.id,
       owner_id: userId,
       revision: nextRevision,
-      state: data.state as never,
+      state: state as never,
       note: data.note ?? null,
     });
 
@@ -178,7 +275,95 @@ export const saveProject = createServerFn({ method: "POST" })
       detail: { revision: nextRevision },
     });
 
-    return updated.data;
+    return { ...updated.data, state: normalizeState(updated.data.state) };
+  });
+
+/**
+ * Stage 3 — deterministic execution. The run is computed server-side from the
+ * saved project state and the pinned scenario version, then appended as an
+ * immutable record. Earlier runs are never overwritten.
+ */
+export const runWorkload = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        projectId: z.string().uuid(),
+        state: z.unknown(),
+        instanceId: z.string().min(1).max(80),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    assertNoUnknownKeys(data.state);
+    const parsed = stateSchema.parse(data.state);
+    const state = normalizeState(parsed) as Phase3State;
+
+    const { data: project } = await supabase
+      .from("projects")
+      .select("id, owner_id, assignment_id, revision, scenario_code, scenario_version")
+      .eq("id", data.projectId)
+      .single();
+    if (!project || project.owner_id !== userId) throw new Error("Forbidden");
+
+    const scenario = await loadScenario(project.scenario_code, project.scenario_version);
+
+    const { data: eventRows } = await supabase
+      .from("hidden_events")
+      .select("event_key, title, student_brief, activated_at")
+      .eq("assignment_id", project.assignment_id)
+      .not("activated_at", "is", null);
+    const events = await publicEvents(
+      (eventRows ?? []) as never[],
+      project.scenario_code,
+      project.scenario_version,
+    );
+
+    const instance = state.workloads.instances.find((i) => i.id === data.instanceId);
+    if (!instance) throw new Error("Workload instance not found in the submitted project state");
+    const definition = scenario.workloads.find((w) => w.id === instance.definitionId);
+    if (!definition) throw new Error("Workload definition is not part of the assigned scenario");
+
+    const at = new Date().toISOString();
+    const run = executeWorkload({
+      state,
+      scenario,
+      instance,
+      definition,
+      effects: events.map((e) => e.effects),
+      activeEventKeys: events.map((e) => e.key),
+      clockDay: state.clockDay,
+      at,
+      runId: `run-${Date.now().toString(36)}-${state.workloads.runs.length + 1}`,
+    });
+
+    const nextState: Phase3State = {
+      ...state,
+      workloads: { ...state.workloads, runs: [...state.workloads.runs, run] },
+    };
+    const nextRevision = project.revision + 1;
+
+    await supabase
+      .from("projects")
+      .update({ state: nextState as never, revision: nextRevision })
+      .eq("id", project.id);
+    await supabase.from("project_revisions").insert({
+      project_id: project.id,
+      owner_id: userId,
+      revision: nextRevision,
+      state: nextState as never,
+      note: `Workload run ${run.id} (${run.result})`,
+    });
+    await audit(supabase, {
+      actor_id: userId,
+      assignment_id: project.assignment_id,
+      project_id: project.id,
+      action: "workload.executed",
+      detail: { instance: instance.id, result: run.result, ruleVersion: SIM_RULE_VERSION },
+    });
+
+    return { run, revision: nextRevision, state: nextState };
   });
 
 export const listRevisions = createServerFn({ method: "GET" })
@@ -235,7 +420,7 @@ export const restoreRevision = createServerFn({ method: "POST" })
       action: "project.restored",
       detail: { from: rev.revision, to: nextRevision },
     });
-    return { revision: nextRevision, state: rev.state as ProjectState };
+    return { revision: nextRevision, state: normalizeState(rev.state) };
   });
 
 export const addEvidence = createServerFn({ method: "POST" })
@@ -294,7 +479,7 @@ export const completeCheckpoint = createServerFn({ method: "POST" })
     z
       .object({
         projectId: z.string().uuid(),
-        stage: z.enum(STAGE_KEYS as [string, ...string[]]),
+        stage: z.string().min(1).max(60),
         week: z.number().int().min(17).max(24),
         done: z.boolean(),
       })
@@ -310,7 +495,7 @@ export const completeCheckpoint = createServerFn({ method: "POST" })
           owner_id: userId,
           stage: data.stage,
           week: data.week,
-          student_state: data.done ? "complete" : "in_progress",
+          student_state: data.done ? "submitted" : "in_progress",
           completed_at: data.done ? new Date().toISOString() : null,
         },
         { onConflict: "project_id,stage" },
@@ -321,7 +506,7 @@ export const completeCheckpoint = createServerFn({ method: "POST" })
     await audit(supabase, {
       actor_id: userId,
       project_id: data.projectId,
-      action: data.done ? "checkpoint.completed" : "checkpoint.reopened",
+      action: data.done ? "checkpoint.submitted" : "checkpoint.reopened",
       detail: { stage: data.stage },
     });
     return row.data;
@@ -334,7 +519,8 @@ export const acknowledgeEvent = createServerFn({ method: "POST" })
     const { error } = await context.supabase
       .from("hidden_events")
       .update({ acknowledged_at: new Date().toISOString() })
-      .eq("id", data.id);
+      .eq("id", data.id)
+      .not("activated_at", "is", null);
     if (error) throw new Error(error.message);
     await audit(context.supabase, {
       actor_id: context.userId,
@@ -347,9 +533,7 @@ export const acknowledgeEvent = createServerFn({ method: "POST" })
 export const submitCapstone = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z
-      .object({ projectId: z.string().uuid(), defenseNotes: z.string().max(20000) })
-      .parse(input),
+    z.object({ projectId: z.string().uuid(), defenseNotes: z.string().max(20000) }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
@@ -390,7 +574,10 @@ export const submitCapstone = createServerFn({ method: "POST" })
       .single();
     if (inserted.error) throw new Error(inserted.error.message);
 
-    await supabase.from("assignments").update({ state: "submitted" }).eq("id", project.assignment_id);
+    await supabase
+      .from("assignments")
+      .update({ state: "submitted" })
+      .eq("id", project.assignment_id);
     await audit(supabase, {
       actor_id: userId,
       assignment_id: project.assignment_id,
@@ -415,13 +602,13 @@ export const exportProject = createServerFn({ method: "POST" })
 
     const body = {
       format: "cvi-phase3-project",
-      formatVersion: 1,
+      formatVersion: 2,
       ownerId: userId,
       assignmentId: project.assignment_id,
       scenarioCode: project.scenario_code,
       scenarioVersion: project.scenario_version,
       revision: project.revision,
-      state: project.state,
+      state: normalizeState(project.state),
       exportedAt: new Date().toISOString(),
     };
     const signature = await signPayload(JSON.stringify(body));
@@ -437,7 +624,7 @@ export const exportProject = createServerFn({ method: "POST" })
 export const importProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z.object({ projectId: z.string().uuid(), file: z.string().max(2_000_000) }).parse(input),
+    z.object({ projectId: z.string().uuid(), file: z.string().max(4_000_000) }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
@@ -449,7 +636,7 @@ export const importProject = createServerFn({ method: "POST" })
       .single();
     if (!project || project.owner_id !== userId) throw new Error("Forbidden");
 
-    const reject = async (reason: string) => {
+    const reject = async (reason: string): Promise<never> => {
       await audit(supabase, {
         actor_id: userId,
         assignment_id: project.assignment_id,
@@ -481,7 +668,18 @@ export const importProject = createServerFn({ method: "POST" })
     if (b["scenarioVersion"] !== project.scenario_version)
       return await reject("file is from another scenario version");
 
-    const state = projectStateSchema.parse(b["state"] ?? {});
+    let state;
+    try {
+      assertNoUnknownKeys(b["state"]);
+      state = stateSchema.parse(b["state"]);
+    } catch (err) {
+      return await reject(err instanceof Error ? err.message : "project state failed validation");
+    }
+
+    const exportedAt = typeof b["exportedAt"] === "string" ? Date.parse(b["exportedAt"] as string) : NaN;
+    if (!Number.isFinite(exportedAt) || exportedAt > Date.now() + 60_000)
+      return await reject("invalid export chronology");
+
     const nextRevision = project.revision + 1;
     await supabase
       .from("projects")
@@ -501,5 +699,5 @@ export const importProject = createServerFn({ method: "POST" })
       action: "project.imported",
       detail: { revision: nextRevision },
     });
-    return { revision: nextRevision, state: state as ProjectState };
+    return { revision: nextRevision, state: normalizeState(state) };
   });
