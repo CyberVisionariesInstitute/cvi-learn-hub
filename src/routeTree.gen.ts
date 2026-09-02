@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as InstructorRouteImport } from './routes/instructor'
 import { Route as PkiRouteImport } from './routes/pki'
 import { Route as CyberfoundationsIndexRouteImport } from './routes/cyberfoundations.index'
@@ -21,6 +22,11 @@ import { Route as CyberfoundationsWeek07CloudHeightsGuardPostRouteImport } from 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InstructorRoute = InstructorRouteImport.update({
@@ -63,6 +69,7 @@ const CyberfoundationsWeek07CloudHeightsGuardPostRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/instructor': typeof InstructorRoute
   '/pki': typeof PkiRouteWithChildren
   '/pki/capstone': typeof PkiCapstoneRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/instructor': typeof InstructorRoute
   '/pki/capstone': typeof PkiCapstoneRoute
   '/cyberfoundations': typeof CyberfoundationsIndexRoute
@@ -83,6 +91,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/instructor': typeof InstructorRoute
   '/pki': typeof PkiRouteWithChildren
   '/pki/capstone': typeof PkiCapstoneRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/instructor'
     | '/pki'
     | '/pki/capstone'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/instructor'
     | '/pki/capstone'
     | '/cyberfoundations'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/auth'
     | '/instructor'
     | '/pki'
     | '/pki/capstone'
@@ -125,6 +137,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   InstructorRoute: typeof InstructorRoute
   PkiRoute: typeof PkiRouteWithChildren
   CyberfoundationsIndexRoute: typeof CyberfoundationsIndexRoute
@@ -139,6 +152,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/instructor': {
@@ -207,6 +227,7 @@ const PkiRouteWithChildren = PkiRoute._addFileChildren(PkiRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   InstructorRoute: InstructorRoute,
   PkiRoute: PkiRouteWithChildren,
   CyberfoundationsIndexRoute: CyberfoundationsIndexRoute,
