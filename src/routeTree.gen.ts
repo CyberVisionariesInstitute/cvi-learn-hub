@@ -20,6 +20,7 @@ import { Route as CyberfoundationsWeek06FromTheGridToCloudHeightsRouteImport } f
 import { Route as CyberfoundationsWeek07CloudHeightsGuardPostRouteImport } from './routes/cyberfoundations.week-07.cloud-heights-guard-post'
 import { Route as PkiCapstoneIndexRouteImport } from './routes/pki.capstone.index'
 import { Route as PkiCapstoneStageRouteImport } from './routes/pki.capstone.$stage'
+import { Route as PkiCapstoneEvidenceRouteImport } from './routes/pki.capstone.evidence'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -78,6 +79,11 @@ const PkiCapstoneStageRoute = PkiCapstoneStageRouteImport.update({
   path: '/$stage',
   getParentRoute: () => PkiCapstoneRoute,
 } as any)
+const PkiCapstoneEvidenceRoute = PkiCapstoneEvidenceRouteImport.update({
+  id: '/evidence',
+  path: '/evidence',
+  getParentRoute: () => PkiCapstoneRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/cyberfoundations/week-06/from-the-grid-to-cloud-heights': typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
   '/cyberfoundations/week-07/cloud-heights-guard-post': typeof CyberfoundationsWeek07CloudHeightsGuardPostRoute
   '/pki/capstone/$stage': typeof PkiCapstoneStageRoute
+  '/pki/capstone/evidence': typeof PkiCapstoneEvidenceRoute
   '/pki/capstone/': typeof PkiCapstoneIndexRoute
 }
 export interface FileRoutesByTo {
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/cyberfoundations/week-06/from-the-grid-to-cloud-heights': typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
   '/cyberfoundations/week-07/cloud-heights-guard-post': typeof CyberfoundationsWeek07CloudHeightsGuardPostRoute
   '/pki/capstone/$stage': typeof PkiCapstoneStageRoute
+  '/pki/capstone/evidence': typeof PkiCapstoneEvidenceRoute
   '/pki/capstone': typeof PkiCapstoneIndexRoute
 }
 export interface FileRoutesById {
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/cyberfoundations/week-06/from-the-grid-to-cloud-heights': typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
   '/cyberfoundations/week-07/cloud-heights-guard-post': typeof CyberfoundationsWeek07CloudHeightsGuardPostRoute
   '/pki/capstone/$stage': typeof PkiCapstoneStageRoute
+  '/pki/capstone/evidence': typeof PkiCapstoneEvidenceRoute
   '/pki/capstone/': typeof PkiCapstoneIndexRoute
 }
 export interface FileRouteTypes {
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/cyberfoundations/week-06/from-the-grid-to-cloud-heights'
     | '/cyberfoundations/week-07/cloud-heights-guard-post'
     | '/pki/capstone/$stage'
+    | '/pki/capstone/evidence'
     | '/pki/capstone/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -141,6 +151,7 @@ export interface FileRouteTypes {
     | '/cyberfoundations/week-06/from-the-grid-to-cloud-heights'
     | '/cyberfoundations/week-07/cloud-heights-guard-post'
     | '/pki/capstone/$stage'
+    | '/pki/capstone/evidence'
     | '/pki/capstone'
   id:
     | '__root__'
@@ -154,6 +165,7 @@ export interface FileRouteTypes {
     | '/cyberfoundations/week-06/from-the-grid-to-cloud-heights'
     | '/cyberfoundations/week-07/cloud-heights-guard-post'
     | '/pki/capstone/$stage'
+    | '/pki/capstone/evidence'
     | '/pki/capstone/'
   fileRoutesById: FileRoutesById
 }
@@ -246,16 +258,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PkiCapstoneStageRouteImport
       parentRoute: typeof PkiCapstoneRoute
     }
+    '/pki/capstone/evidence': {
+      id: '/pki/capstone/evidence'
+      path: '/evidence'
+      fullPath: '/pki/capstone/evidence'
+      preLoaderRoute: typeof PkiCapstoneEvidenceRouteImport
+      parentRoute: typeof PkiCapstoneRoute
+    }
   }
 }
 
 interface PkiCapstoneRouteChildren {
   PkiCapstoneStageRoute: typeof PkiCapstoneStageRoute
+  PkiCapstoneEvidenceRoute: typeof PkiCapstoneEvidenceRoute
   PkiCapstoneIndexRoute: typeof PkiCapstoneIndexRoute
 }
 
 const PkiCapstoneRouteChildren: PkiCapstoneRouteChildren = {
   PkiCapstoneStageRoute: PkiCapstoneStageRoute,
+  PkiCapstoneEvidenceRoute: PkiCapstoneEvidenceRoute,
   PkiCapstoneIndexRoute: PkiCapstoneIndexRoute,
 }
 
