@@ -33,8 +33,8 @@ export interface AnalysisItem {
   detail: string;
   /** Traced source: scenario constraint / concern / open question id or text. */
   source: string;
-  status?: RequirementStatus;
-  priority?: "Must" | "Should" | "Could";
+  status?: RequirementStatus | undefined;
+  priority?: "Must" | "Should" | "Could" | undefined;
 }
 
 export type NodeKind =
@@ -56,13 +56,13 @@ export interface ArchNode {
   x: number;
   y: number;
   /** For CA nodes: id of the signing parent CA node. */
-  parentId?: string;
+  parentId?: string | undefined;
   /** For CA / signing nodes: id of the HSM node protecting the key. */
-  hsmId?: string;
-  hsmRationale?: string;
-  offline?: boolean;
-  validityDays?: number;
-  notes?: string;
+  hsmId?: string | undefined;
+  hsmRationale?: string | undefined;
+  offline?: boolean | undefined;
+  validityDays?: number | undefined;
+  notes?: string | undefined;
 }
 
 export interface ArchEdge {
@@ -77,7 +77,7 @@ export interface FindingDisposition {
   findingId: string;
   disposition: "accepted-risk" | "remediated" | "rejected" | "open";
   rationale: string;
-  evidenceRef?: string;
+  evidenceRef?: string | undefined;
 }
 
 /* ---------------------------------------------------------------- Stage 2 */
@@ -99,7 +99,7 @@ export interface StudentProfile {
   ownershipRequired: boolean;
   exportable: boolean;
   environment: "internal" | "external" | "development" | "production" | "any";
-  exception?: string;
+  exception?: string | undefined;
   rationale: string;
 }
 
@@ -107,9 +107,9 @@ export interface CertAsset {
   id: string;
   label: string;
   poolId: string;
-  profileId?: string;
-  caNodeId?: string;
-  targetNodeId?: string;
+  profileId?: string | undefined;
+  caNodeId?: string | undefined;
+  targetNodeId?: string | undefined;
   zoneId: string;
   owner: string;
   ownerState: OwnerState;
@@ -118,12 +118,12 @@ export interface CertAsset {
   daysRemaining: number | null;
   origin: "known" | "discovered" | "historical" | "exception" | "student";
   /** Set when this asset replaced another (renewal / re-issue). */
-  replacesId?: string;
-  revocationReason?: string;
-  publishedTo?: string[];
+  replacesId?: string | undefined;
+  revocationReason?: string | undefined;
+  publishedTo?: string[] | undefined;
   note: string;
   /** Present only for assets introduced by an activated instructor event. */
-  fromEventKey?: string;
+  fromEventKey?: string | undefined;
 }
 
 export interface LifecycleEvent {
@@ -131,8 +131,8 @@ export interface LifecycleEvent {
   assetId: string;
   at: string;
   action: string;
-  from?: string;
-  to?: string;
+  from?: string | undefined;
+  to?: string | undefined;
   actor: "student" | "automation" | "instructor-event";
   detail: string;
 }
@@ -172,8 +172,8 @@ export interface WorkloadInstance {
   name: string;
   /** Certificate bindings by role: server, client, signing, tsa. */
   bindings: Record<string, string | undefined>;
-  sourceNodeId?: string;
-  targetNodeId?: string;
+  sourceNodeId?: string | undefined;
+  targetNodeId?: string | undefined;
   config: Record<string, string>;
 }
 
@@ -218,7 +218,7 @@ export interface ExecutionRun {
   priorRunIds: string[];
   /** Event keys active when the run executed. */
   activeEventKeys: string[];
-  staleForCurrentState?: boolean;
+  staleForCurrentState?: boolean | undefined;
 }
 
 /* ---------------------------------------------------------------- Stage 4 */
@@ -229,14 +229,14 @@ export interface TimelineEntry {
   kind: "baseline" | "event" | "student-action" | "revalidation";
   title: string;
   detail: string;
-  eventKey?: string;
+  eventKey?: string | undefined;
 }
 
 export interface CheckpointRecord {
   type: CheckpointType;
   status: CheckpointStatus;
   studentNote: string;
-  submittedAt?: string;
+  submittedAt?: string | undefined;
 }
 
 export interface ProjectBaselineSnapshot {
@@ -312,7 +312,7 @@ export function normalizeState(raw: unknown): Phase3State {
     const notes: Record<string, string> = {};
     for (const [key, value] of Object.entries(r)) {
       if (value && typeof value === "object" && "notes" in (value as object)) {
-        const n = (value as { notes?: unknown }).notes;
+        const n = (value as { notes?: unknown }).notes | undefined;
         if (typeof n === "string" && n.trim()) notes[key] = n;
       }
     }
