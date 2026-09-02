@@ -312,7 +312,7 @@ export function normalizeState(raw: unknown): Phase3State {
     const notes: Record<string, string> = {};
     for (const [key, value] of Object.entries(r)) {
       if (value && typeof value === "object" && "notes" in (value as object)) {
-        const n = (value as { notes?: unknown }).notes | undefined;
+        const n = (value as { notes?: unknown }).notes;
         if (typeof n === "string" && n.trim()) notes[key] = n;
       }
     }
