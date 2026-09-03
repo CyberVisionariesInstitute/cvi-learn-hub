@@ -111,7 +111,7 @@ function GradingConsole() {
               <CohortRow
                 key={row.assignmentId}
                 row={row}
-                expanded={row.projectId === selected}
+                expanded={Boolean(row.projectId) && row.projectId === selected}
                 onToggle={() =>
                   setSelected(row.projectId === selected ? null : (row.projectId ?? null))
                 }
@@ -166,7 +166,7 @@ function CohortRow({
         </button>
       </div>
 
-      <div className="mt-4 grid gap-3 @md:grid-cols-2 @2xl:grid-cols-4">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {STAGE_GROUPS.map((group) => {
           const p = row.progress.find((x) => x.key === group.key);
           const fb = row.feedback.find((f) => f.stage_group === group.key);
@@ -183,8 +183,7 @@ function CohortRow({
                 <div className="h-full bg-primary" style={{ width: `${percent}%` }} />
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                {percent}% ·{" "}
-                {p?.metrics.map((m) => `${m.label} ${m.value}`).join(" · ") ?? "no data"}
+                {p ? `${percent}% · ${p.metrics.map((m) => `${m.label} ${m.value}`).join(" · ")}` : "Not started"}
               </p>
               {fb ? (
                 <p className="mt-2 text-xs text-foreground">
@@ -239,7 +238,7 @@ function DossierPanel({ row, onSaved }: { row: Row; onSaved: () => void }) {
       ) : null}
 
       {dossier.data ? (
-        <div className="mt-5 grid gap-6 @3xl:grid-cols-2">
+        <div className="mt-5 grid gap-6 lg:grid-cols-2">
           <div className="space-y-5">
             <Block title={`Evidence (${dossier.data.evidence.length})`}>
               {dossier.data.evidence.length === 0 ? (
@@ -317,7 +316,7 @@ function DossierPanel({ row, onSaved }: { row: Row; onSaved: () => void }) {
 
           <div>
             <Block title="Leave feedback">
-              <div className="grid gap-3 @md:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block text-sm">
                   <span className="text-muted-foreground">Stage</span>
                   <select
