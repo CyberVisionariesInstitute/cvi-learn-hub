@@ -5,8 +5,8 @@ import { GUIDE_META, GUIDE_SECTIONS, type GuideBlock } from "@/lib/capstone/stud
 import { Btn } from "@/components/capstone/ui";
 
 export const Route = createFileRoute("/pki/capstone/guide")({
-  validateSearch: (search: Record<string, unknown>): { print?: boolean } => ({
-    print: search['print'] ? true : undefined,
+  validateSearch: (search: Record<string, unknown>): { print: boolean } => ({
+    print: Boolean(search['print']),
   }),
   component: StudentGuidePage,
 });

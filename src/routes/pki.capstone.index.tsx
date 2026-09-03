@@ -34,7 +34,7 @@ function StudentGuideCard() {
       <div className="mt-4 flex flex-wrap gap-3">
         <Link
           to="/pki/capstone/guide"
-          search={{}}
+          search={{ print: false }}
           className="inline-flex min-h-11 items-center gap-2 rounded-md bg-primary px-4 text-sm text-primary-foreground hover:bg-primary/90"
         >
           <BookOpen className="size-4" aria-hidden="true" />
