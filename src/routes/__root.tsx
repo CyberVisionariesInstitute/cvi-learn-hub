@@ -130,6 +130,30 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+
+  // Password-recovery links always carry the user to /auth to set a password,
+  // regardless of which page the auth redirect originally landed on.
+  useEffect(() => {
+    let active = true;
+    void import("../integrations/supabase/client").then(({ supabase }) => {
+      if (!active) return;
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((event) => {
+        if (event === "PASSWORD_RECOVERY" && window.location.pathname !== "/auth") {
+          void router.navigate({ to: "/auth" });
+        }
+      });
+      if (!active) subscription.unsubscribe();
+      else cleanup = () => subscription.unsubscribe();
+    });
+    let cleanup: (() => void) | undefined;
+    return () => {
+      active = false;
+      cleanup?.();
+    };
+  }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>
