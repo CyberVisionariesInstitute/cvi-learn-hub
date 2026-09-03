@@ -454,6 +454,60 @@ export type Database = {
           },
         ]
       }
+      stage_feedback: {
+        Row: {
+          assignment_id: string | null
+          body: string
+          created_at: string
+          id: string
+          mark: string
+          owner_id: string
+          project_id: string
+          reviewer_id: string
+          stage_group: string
+          updated_at: string
+        }
+        Insert: {
+          assignment_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          mark?: string
+          owner_id: string
+          project_id: string
+          reviewer_id: string
+          stage_group: string
+          updated_at?: string
+        }
+        Update: {
+          assignment_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          mark?: string
+          owner_id?: string
+          project_id?: string
+          reviewer_id?: string
+          stage_group?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_feedback_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stage_feedback_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       submissions: {
         Row: {
           defense_notes: string | null
