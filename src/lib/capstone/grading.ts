@@ -96,7 +96,7 @@ export function stageGroupProgress(state: Phase3State): StageGroupProgress[] {
 
   const timeline = state.change.timeline.length;
   const acknowledged = state.change.acknowledged.length;
-  const checkpoints = state.change.checkpoints.filter((c) => c.status !== "not_started").length;
+  const checkpoints = state.change.checkpoints.filter((c) => c.status !== "Not Ready").length;
 
   const raw: Array<{ key: StageGroup; signals: number[]; metrics: StageMetric[] }> = [
     {
