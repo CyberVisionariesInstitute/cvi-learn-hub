@@ -369,64 +369,59 @@ function Panel({
 
           <Block title={`Final grading panel — ${total} / ${rubric?.maxPoints ?? 0}`}>
             <p className="text-sm text-muted-foreground">
-              Each criterion is pre-filled from the evidence in the student's project. Override any
-              score with the panel's judgement; defense criteria have no automatic value.
+              The approved 100-point rubric. Each category is pre-filled from the evidence in the
+              student's project; override any category with the panel's judgement, capped at its
+              approved maximum. Defense presentation quality is scored inside Evidence &amp;
+              presentation and Professional practice &amp; milestones — no points are added beyond
+              100.
             </p>
-            <div className="mt-4 space-y-4">
-              {["stage1", "stage2", "stage3", "stage4", "defense"].map((stage) => {
-                const criteria = (rubric?.criteria ?? []).filter((c) => c.stage === stage);
-                if (criteria.length === 0) return null;
+            <ul className="mt-4 space-y-3">
+              {(rubric?.criteria ?? []).map((c) => {
+                const auto = score?.criteria.find((x) => x.id === c.id)?.autoPoints ?? null;
                 return (
-                  <div key={stage} className="rounded-lg border border-border/70 p-4">
-                    <h4 className="font-display text-sm tracking-[0.18em] text-primary uppercase">
-                      {stage === "defense" ? "Defense" : stage.replace("stage", "Stage ")}
-                    </h4>
-                    <ul className="mt-3 space-y-3">
-                      {criteria.map((c) => {
-                        const auto = score?.criteria.find((x) => x.id === c.id)?.autoPoints ?? null;
-                        return (
-                          <li key={c.id} className="border-t border-border/60 pt-3">
-                            <div className="flex flex-wrap items-start justify-between gap-3">
-                              <div className="min-w-[16rem] flex-1">
-                                <p className="text-sm text-foreground">{c.label}</p>
-                                <p className="mt-1 text-xs text-muted-foreground">
-                                  {c.checkpoint} · {c.descriptor}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <label className="text-xs text-muted-foreground">
-                                  <span className="sr-only">{c.label} points</span>
-                                  <input
-                                    type="number"
-                                    min={0}
-                                    max={c.points}
-                                    value={effective(c.id, c.points)}
-                                    onChange={(e) =>
-                                      setScores((prev) => ({
-                                        ...prev,
-                                        [c.id]: Math.max(
-                                          0,
-                                          Math.min(c.points, Number(e.target.value) || 0),
-                                        ),
-                                      }))
-                                    }
-                                    className="min-h-11 w-20 rounded-md border border-border bg-background px-2 text-sm text-foreground"
-                                  />
-                                </label>
-                                <span className="text-xs text-muted-foreground">
-                                  / {c.points}
-                                  {auto !== null ? ` · auto ${auto}` : ""}
-                                </span>
-                              </div>
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
+                  <li key={c.id} className="rounded-lg border border-border/70 p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-[16rem] flex-1">
+                        <p className="text-sm text-foreground">
+                          {c.label}
+                          {c.defenseWeighted ? (
+                            <span className="ml-2 rounded border border-primary/40 px-2 py-0.5 text-xs text-primary">
+                              defense
+                            </span>
+                          ) : null}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {c.checkpoint} · {c.descriptor}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs text-muted-foreground">
+                          <span className="sr-only">{c.label} points</span>
+                          <input
+                            type="number"
+                            min={0}
+                            max={c.points}
+                            value={effective(c.id, c.points)}
+                            onChange={(e) =>
+                              setScores((prev) => ({
+                                ...prev,
+                                [c.id]: Math.max(0, Math.min(c.points, Number(e.target.value) || 0)),
+                              }))
+                            }
+                            className="min-h-11 w-20 rounded-md border border-border bg-background px-2 text-sm text-foreground"
+                          />
+                        </label>
+                        <span className="text-xs text-muted-foreground">
+                          / {c.points}
+                          {auto !== null ? ` · auto ${auto}` : ""}
+                        </span>
+                      </div>
+                    </div>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
+
 
             <div className="mt-5 flex flex-wrap items-end gap-3">
               <label className="block text-sm">

@@ -10,6 +10,9 @@ import {
   getScenarioPublic,
   releasedScenarioKeys,
 } from "./scenarios/registry.server";
+import { RUBRIC_CATEGORIES, RUBRIC_TOTAL_POINTS } from "./rubric-categories";
+import { scoreRubric, rubricDefinition } from "./rubric.server";
+import { RUBRIC as GUIDE_RUBRIC, RUBRIC_TOTAL as GUIDE_RUBRIC_TOTAL } from "./student-guide";
 
 const KEY = "test-export-secret-0123456789";
 
@@ -323,5 +326,54 @@ describe("cross-scenario portability", () => {
       expect(s.version).toBe("1.0.0");
       expect(s.code).toBe(code);
     }
+  });
+});
+
+describe("100-point rubric alignment", () => {
+  it("the canonical rubric is exactly the nine approved categories totalling 100", () => {
+    expect(RUBRIC_CATEGORIES.map((c) => [c.area, c.points])).toEqual([
+      ["Scenario analysis & requirements", 10],
+      ["Architecture & trust", 20],
+      ["Certificate strategy & ownership", 10],
+      ["Lifecycle & automation", 15],
+      ["Status & resilience", 10],
+      ["Workload integration & diagnosis", 10],
+      ["Change adaptation", 10],
+      ["Evidence & presentation", 10],
+      ["Professional practice & milestones", 5],
+    ]);
+    expect(RUBRIC_TOTAL_POINTS).toBe(100);
+  });
+
+  it("the Student Guide renders the same labels and weights as the shared source", () => {
+    expect(GUIDE_RUBRIC).toEqual(
+      RUBRIC_CATEGORIES.map((c) => ({ area: c.area, points: c.points })),
+    );
+    expect(GUIDE_RUBRIC_TOTAL).toBe(100);
+  });
+
+  it("the staff scoring model maxes at 100 and caps every category override", () => {
+    const state = emptyPhase3State();
+    const score = scoreRubric(state, Object.fromEntries(RUBRIC_CATEGORIES.map((c) => [c.key, 999])));
+    expect(score.maxPoints).toBe(100);
+    expect(score.total).toBe(100);
+    expect(score.percent).toBe(100);
+    for (const c of score.criteria) {
+      const approved = RUBRIC_CATEGORIES.find((x) => x.key === c.id)!;
+      expect(c.points).toBe(approved.points);
+    }
+    const zero = scoreRubric(state, Object.fromEntries(RUBRIC_CATEGORIES.map((c) => [c.key, -5])));
+    expect(zero.total).toBe(0);
+  });
+
+  it("there are no defense point-bearing categories beyond the approved nine", () => {
+    const def = rubricDefinition();
+    expect(def.maxPoints).toBe(100);
+    expect(def.criteria.map((c) => c.id)).toEqual(RUBRIC_CATEGORIES.map((c) => c.key));
+    expect(def.criteria.reduce((s, c) => s + c.points, 0)).toBe(100);
+    expect(def.criteria.filter((c) => c.defenseWeighted).map((c) => c.id)).toEqual([
+      "evidence",
+      "professional",
+    ]);
   });
 });
