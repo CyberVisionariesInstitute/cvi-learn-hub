@@ -313,7 +313,7 @@ function CurrentWeekBanner({ week }: { week: number }) {
 interface PortalCardProps {
   to: string;
   params?: Record<string, string>;
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   description: string;
   action: string;
