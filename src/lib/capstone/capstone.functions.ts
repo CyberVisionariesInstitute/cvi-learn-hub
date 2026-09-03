@@ -621,7 +621,7 @@ export const exportProject = createServerFn({ method: "POST" })
       state: normalizeState(project.state),
       exportedAt: new Date().toISOString(),
     };
-    const signature = await signPayload(JSON.stringify(body));
+    const signature = await signPayload(body);
     await audit(supabase, {
       actor_id: userId,
       assignment_id: project.assignment_id,
@@ -666,7 +666,7 @@ export const importProject = createServerFn({ method: "POST" })
     if (!parsed.body || typeof parsed.signature !== "string")
       return await reject("missing signature");
 
-    const expected = await signPayload(JSON.stringify(parsed.body));
+    const expected = await signPayload(parsed.body);
     if (expected !== parsed.signature) return await reject("signature does not match");
 
     const b = parsed.body as Record<string, unknown>;
