@@ -82,6 +82,9 @@ function GradingConsole() {
             <Link to="/phase3-console" className="text-primary underline">
               Phase 3 Console
             </Link>
+            <Link to="/phase3-cohort" className="text-primary underline">
+              Cohort console
+            </Link>
             <Link to="/phase3-rubric" className="text-primary underline">
               Rubric
             </Link>
