@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as InstructorRouteImport } from './routes/instructor'
+import { Route as Phase3CohortRouteImport } from './routes/phase3-cohort'
 import { Route as Phase3ConsoleRouteImport } from './routes/phase3-console'
 import { Route as Phase3DefenseRouteImport } from './routes/phase3-defense'
 import { Route as Phase3GradingRouteImport } from './routes/phase3-grading'
@@ -41,6 +42,11 @@ const AuthRoute = AuthRouteImport.update({
 const InstructorRoute = InstructorRouteImport.update({
   id: '/instructor',
   path: '/instructor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Phase3CohortRoute = Phase3CohortRouteImport.update({
+  id: '/phase3-cohort',
+  path: '/phase3-cohort',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Phase3ConsoleRoute = Phase3ConsoleRouteImport.update({
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/instructor': typeof InstructorRoute
+  '/phase3-cohort': typeof Phase3CohortRoute
   '/phase3-console': typeof Phase3ConsoleRoute
   '/phase3-defense': typeof Phase3DefenseRoute
   '/phase3-grading': typeof Phase3GradingRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/instructor': typeof InstructorRoute
+  '/phase3-cohort': typeof Phase3CohortRoute
   '/phase3-console': typeof Phase3ConsoleRoute
   '/phase3-defense': typeof Phase3DefenseRoute
   '/phase3-grading': typeof Phase3GradingRoute
@@ -164,6 +172,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/instructor': typeof InstructorRoute
+  '/phase3-cohort': typeof Phase3CohortRoute
   '/phase3-console': typeof Phase3ConsoleRoute
   '/phase3-defense': typeof Phase3DefenseRoute
   '/phase3-grading': typeof Phase3GradingRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/instructor'
+    | '/phase3-cohort'
     | '/phase3-console'
     | '/phase3-defense'
     | '/phase3-grading'
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/instructor'
+    | '/phase3-cohort'
     | '/phase3-console'
     | '/phase3-defense'
     | '/phase3-grading'
@@ -224,6 +235,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/instructor'
+    | '/phase3-cohort'
     | '/phase3-console'
     | '/phase3-defense'
     | '/phase3-grading'
@@ -245,6 +257,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   InstructorRoute: typeof InstructorRoute
+  Phase3CohortRoute: typeof Phase3CohortRoute
   Phase3ConsoleRoute: typeof Phase3ConsoleRoute
   Phase3DefenseRoute: typeof Phase3DefenseRoute
   Phase3GradingRoute: typeof Phase3GradingRoute
@@ -276,6 +289,13 @@ declare module '@tanstack/react-router' {
       path: '/instructor'
       fullPath: '/instructor'
       preLoaderRoute: typeof InstructorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/phase3-cohort': {
+      id: '/phase3-cohort'
+      path: '/phase3-cohort'
+      fullPath: '/phase3-cohort'
+      preLoaderRoute: typeof Phase3CohortRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/phase3-console': {
@@ -422,6 +442,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   InstructorRoute: InstructorRoute,
+  Phase3CohortRoute: Phase3CohortRoute,
   Phase3ConsoleRoute: Phase3ConsoleRoute,
   Phase3DefenseRoute: Phase3DefenseRoute,
   Phase3GradingRoute: Phase3GradingRoute,
