@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, Download, Upload, FileCheck2 } from "lucide-react";
+import { AlertTriangle, Download, Upload, FileCheck2, BookOpen, Printer } from "lucide-react";
 import { useWorkspace, useRefreshWorkspace } from "@/lib/capstone/useWorkspace";
 import { exportProject, importProject } from "@/lib/capstone/capstone.functions";
 import { STAGES } from "@/lib/capstone/model";
@@ -12,6 +12,45 @@ import { MARK_LABEL, STAGE_GROUPS, type Mark } from "@/lib/capstone/grading";
 export const Route = createFileRoute("/pki/capstone/")({
   component: CapstoneOverview,
 });
+
+
+function StudentGuideCard() {
+  return (
+    <section
+      aria-labelledby="student-guide"
+      className="rounded-xl border border-primary/30 bg-primary/5 p-5 sm:p-6"
+    >
+      <h2
+        id="student-guide"
+        className="flex items-center gap-2 font-display text-lg text-foreground"
+      >
+        <BookOpen className="size-4 text-primary" aria-hidden="true" />
+        Student Guide
+      </h2>
+      <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+        How the Phase 3 PKI Architect Capstone works: your role, each stage, the weekly roadmap,
+        checkpoints and evidence, the 100-point rubric, defense expectations, and a glossary.
+      </p>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <Link
+          to="/pki/capstone/guide"
+          className="inline-flex min-h-11 items-center gap-2 rounded-md bg-primary px-4 text-sm text-primary-foreground hover:bg-primary/90"
+        >
+          <BookOpen className="size-4" aria-hidden="true" />
+          Read Online
+        </Link>
+        <Link
+          to="/pki/capstone/guide"
+          search={{ print: 1 }}
+          className="inline-flex min-h-11 items-center gap-2 rounded-md border border-border px-4 text-sm text-foreground hover:border-primary/60"
+        >
+          <Printer className="size-4" aria-hidden="true" />
+          Print / Save as PDF
+        </Link>
+      </div>
+    </section>
+  );
+}
 
 function CapstoneOverview() {
   const { data } = useWorkspace(true);
@@ -33,6 +72,9 @@ function CapstoneOverview() {
           scenario brief and workspace appear here automatically. There is no scenario catalog to
           browse.
         </p>
+        <div className="mt-6">
+          <StudentGuideCard />
+        </div>
         <Link
           to="/pki"
           className="mt-6 inline-flex min-h-11 items-center rounded-md border border-border px-4 text-sm text-foreground hover:border-primary/60"
@@ -78,6 +120,7 @@ function CapstoneOverview() {
 
   return (
     <div className="space-y-8">
+      <StudentGuideCard />
       {data.events.length > 0 ? (
         <section aria-labelledby="events" className="space-y-3">
           <h2 id="events" className="flex items-center gap-2 font-display text-lg text-foreground">
