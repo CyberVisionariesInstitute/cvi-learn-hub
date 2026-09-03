@@ -84,6 +84,20 @@ function Phase3Console() {
           <p className="mt-2 text-sm text-muted-foreground">
             Assignments, change events, submission review, and the audit trail.
           </p>
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
+            <Link to="/phase3-cohort" className="text-primary underline">
+              Cohort console
+            </Link>
+            <Link to="/phase3-grading" className="text-primary underline">
+              Grading console
+            </Link>
+            <Link to="/phase3-rubric" className="text-primary underline">
+              Rubric
+            </Link>
+            <Link to="/phase3-defense" className="text-primary underline">
+              Defense stage
+            </Link>
+          </div>
         </header>
 
         {overview.isError ? (
