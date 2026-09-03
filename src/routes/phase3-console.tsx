@@ -196,6 +196,9 @@ function Phase3Console() {
 
             <CheckpointsSection nameOf={nameOf} />
 
+            <StudentPreviewSection />
+
+
 
             <section className="rounded-xl border border-border bg-surface/80 p-6">
               <h2 className="font-display text-lg text-foreground">Submissions</h2>
