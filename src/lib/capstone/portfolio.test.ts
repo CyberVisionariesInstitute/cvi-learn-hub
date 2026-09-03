@@ -126,7 +126,7 @@ describe("portfolio package structure", () => {
 
   it("keeps failed workload runs visible as troubleshooting evidence", () => {
     const wl = build(matureState())["docs/workload-testing.md"]!;
-    expect(wl).toContain("FAIL");
+    expect(wl).toContain("Failures encountered and diagnosed: **1**");
     expect(wl).toContain("EKU matches");
     expect(wl).toContain("Final result: **PASS**");
   });
