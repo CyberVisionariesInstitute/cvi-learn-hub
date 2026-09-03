@@ -134,6 +134,7 @@ function CapstoneWorkspaceLayout() {
           ))}
           <Link
             to="/pki/capstone/guide"
+            search={{}}
             activeProps={{ className: "bg-primary/15 text-foreground border-primary/50" }}
             inactiveProps={{ className: "text-muted-foreground border-transparent" }}
             className="min-h-10 rounded-md border px-3 py-2 text-xs tracking-[0.1em] uppercase hover:text-foreground"
