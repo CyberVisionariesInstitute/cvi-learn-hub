@@ -7,6 +7,7 @@ import { exportProject, importProject } from "@/lib/capstone/capstone.functions"
 import { STAGES } from "@/lib/capstone/model";
 import { Panel, Btn, Badge, Empty } from "@/components/capstone/ui";
 import { useDraft } from "@/lib/capstone/draft";
+import { MARK_LABEL, STAGE_GROUPS, type Mark } from "@/lib/capstone/grading";
 
 export const Route = createFileRoute("/pki/capstone/")({
   component: CapstoneOverview,
