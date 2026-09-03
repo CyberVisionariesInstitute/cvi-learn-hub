@@ -184,7 +184,13 @@ export const getWorkspace = createServerFn({ method: "GET" })
       });
     }
 
-    const [{ data: checkpoints }, { data: evidence }, { data: eventRows }, { data: submission }] =
+    const [
+      { data: checkpoints },
+      { data: evidence },
+      { data: eventRows },
+      { data: submission },
+      { data: feedback },
+    ] =
       await Promise.all([
         supabase.from("checkpoints").select("*").eq("project_id", project.id),
         supabase
@@ -198,6 +204,10 @@ export const getWorkspace = createServerFn({ method: "GET" })
           .eq("assignment_id", assignment.id)
           .not("activated_at", "is", null),
         supabase.from("submissions").select("*").eq("project_id", project.id).maybeSingle(),
+        supabase
+          .from("stage_feedback")
+          .select("id, stage_group, mark, body, updated_at")
+          .eq("project_id", project.id),
       ]);
 
     const events = await publicEvents(
@@ -221,6 +231,7 @@ export const getWorkspace = createServerFn({ method: "GET" })
       events,
       checkpoints: checkpoints ?? [],
       evidence: evidence ?? [],
+      feedback: feedback ?? [],
       submission: submission ?? null,
     } as const;
   });
