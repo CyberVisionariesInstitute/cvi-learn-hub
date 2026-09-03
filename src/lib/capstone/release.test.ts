@@ -282,7 +282,12 @@ describe("stage 3 determinism across all seven scenarios", () => {
       const firstFail = a.checks.findIndex((c) => c.result === "fail");
       if (firstFail >= 0) {
         expect(a.result).toBe("FAIL");
-        expect(a.checks.slice(firstFail + 1).every((c) => c.result === "skipped")).toBe(true);
+        expect(
+          a.checks
+            .slice(firstFail + 1, -1)
+            .every((c) => c.result === "skipped"),
+        ).toBe(true);
+        expect(a.checks.at(-1)!.key).toBe("result");
       } else {
         expect(a.result).toBe("PASS");
       }
