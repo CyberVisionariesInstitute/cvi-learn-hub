@@ -126,6 +126,38 @@ function CapstoneOverview() {
         </p>
       </Panel>
 
+      {data.feedback && data.feedback.length > 0 ? (
+        <Panel
+          id="feedback"
+          title="Instructor feedback"
+          description="Written by your instructor about your work. Only you can see this."
+        >
+          <ul className="space-y-3">
+            {data.feedback.map((f) => {
+              const group = STAGE_GROUPS.find((g) => g.key === f.stage_group);
+              return (
+                <li key={f.id} className="rounded-lg border border-border p-4">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <p className="font-display text-sm text-foreground">
+                      {group ? `${group.label} — ${group.headline}` : "Overall"}
+                    </p>
+                    <span className="text-xs text-muted-foreground">
+                      {MARK_LABEL[f.mark as Mark]} ·{" "}
+                      {new Date(f.updated_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  {f.body ? (
+                    <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
+                      {f.body}
+                    </p>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        </Panel>
+      ) : null}
+
       <ProgressSection />
 
       <section aria-labelledby="stages">
