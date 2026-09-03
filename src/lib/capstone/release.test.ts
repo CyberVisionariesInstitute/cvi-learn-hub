@@ -10,6 +10,9 @@ import {
   getScenarioPublic,
   releasedScenarioKeys,
 } from "./scenarios/registry.server";
+import { RUBRIC_CATEGORIES, RUBRIC_TOTAL_POINTS } from "./rubric-categories";
+import { scoreRubric, rubricDefinition } from "./rubric.server";
+import { RUBRIC as GUIDE_RUBRIC, RUBRIC_TOTAL as GUIDE_RUBRIC_TOTAL } from "./student-guide";
 
 const KEY = "test-export-secret-0123456789";
 
@@ -350,7 +353,7 @@ describe("100-point rubric alignment", () => {
   });
 
   it("the staff scoring model maxes at 100 and caps every category override", () => {
-    const state = emptyState();
+    const state = emptyPhase3State();
     const score = scoreRubric(state, Object.fromEntries(RUBRIC_CATEGORIES.map((c) => [c.key, 999])));
     expect(score.maxPoints).toBe(100);
     expect(score.total).toBe(100);
