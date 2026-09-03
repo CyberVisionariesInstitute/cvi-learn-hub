@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { DemoLabShell } from "@/components/demo-lab/DemoLabShell";
+import { useIsStaff } from "@/hooks/useIsStaff";
 import { SceneRenderer } from "@/components/demo-lab/SceneRenderer";
 import {
   experienceTypeLabels,
