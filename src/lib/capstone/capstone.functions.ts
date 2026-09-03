@@ -89,24 +89,13 @@ async function audit(
   });
 }
 
-/** Deterministic JSON: key order in the file cannot change the signature. */
-function canonicalJson(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
-  if (value && typeof value === "object") {
-    const entries = Object.entries(value as Record<string, unknown>)
-      .filter(([, v]) => v !== undefined)
-      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
-    return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${canonicalJson(v)}`).join(",")}}`;
-  }
-  return JSON.stringify(value ?? null);
-}
-
 async function signPayload(payload: unknown) {
-  const { createHmac } = await import("crypto");
+  const { signWithKey } = await import("./export-signing");
   const key = process.env["PHASE3_EXPORT_SECRET"];
   if (!key) throw new Error("Export signing is not configured.");
-  return createHmac("sha256", key).update(canonicalJson(payload)).digest("hex");
+  return signWithKey(payload, key);
 }
+
 
 
 /** Resolve released scenario content for an exact code@version. */
@@ -667,7 +656,10 @@ export const importProject = createServerFn({ method: "POST" })
       return await reject("missing signature");
 
     const expected = await signPayload(parsed.body);
-    if (expected !== parsed.signature) return await reject("signature does not match");
+    if (expected !== parsed.signature) {
+      const { OBSOLETE_EXPORT_MESSAGE } = await import("./export-signing");
+      return await reject(OBSOLETE_EXPORT_MESSAGE);
+    }
 
     const b = parsed.body as Record<string, unknown>;
     if (b["ownerId"] !== userId) return await reject("file belongs to another student");
