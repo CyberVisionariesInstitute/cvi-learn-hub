@@ -144,12 +144,40 @@ function AuthPage() {
           <p className="text-xs tracking-[0.3em] text-primary uppercase">
             CyberVisionaries Institute
           </p>
-          <h1 className="mt-2 font-display text-3xl text-foreground">Student sign in</h1>
+          <h1 className="mt-2 font-display text-3xl text-foreground">
+            {mode === "recovery" ? "Set your password" : "Student sign in"}
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Your capstone workspace, assigned scenario, and saved project live behind this sign in.
+            {mode === "recovery"
+              ? "Choose a password for your account, then you will be taken to your capstone workspace."
+              : "Your capstone workspace, assigned scenario, and saved project live behind this sign in."}
           </p>
         </div>
 
+        {mode === "recovery" ? (
+          <form onSubmit={handleSetPassword} className="space-y-4 rounded-xl border border-border bg-surface/80 p-6">
+            <label className="block text-sm">
+              <span className="text-muted-foreground">New password</span>
+              <input
+                type="password"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                className="mt-1 min-h-11 w-full rounded-md border border-border bg-background px-3 text-foreground"
+              />
+            </label>
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            <button
+              type="submit"
+              disabled={busy}
+              className="min-h-11 w-full rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-60"
+            >
+              Set password and continue
+            </button>
+          </form>
+        ) : (
         <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-border bg-surface/80 p-6">
           {mode === "signup" ? (
             <label className="block text-sm">
