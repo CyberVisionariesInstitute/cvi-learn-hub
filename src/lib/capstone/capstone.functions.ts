@@ -656,7 +656,10 @@ export const importProject = createServerFn({ method: "POST" })
       return await reject("missing signature");
 
     const expected = await signPayload(parsed.body);
-    if (expected !== parsed.signature) return await reject("signature does not match");
+    if (expected !== parsed.signature) {
+      const { OBSOLETE_EXPORT_MESSAGE } = await import("./export-signing");
+      return await reject(OBSOLETE_EXPORT_MESSAGE);
+    }
 
     const b = parsed.body as Record<string, unknown>;
     if (b["ownerId"] !== userId) return await reject("file belongs to another student");
