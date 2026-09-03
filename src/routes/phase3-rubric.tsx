@@ -6,7 +6,6 @@ import { DemoLabShell } from "@/components/demo-lab/DemoLabShell";
 import { pki } from "@/lib/demo-lab/programs";
 import { useSession } from "@/hooks/useSession";
 import { rubricCohort } from "@/lib/capstone/defense.functions";
-import { STAGE_GROUPS } from "@/lib/capstone/grading";
 
 export const Route = createFileRoute("/phase3-rubric")({
   ssr: false,
@@ -16,12 +15,12 @@ export const Route = createFileRoute("/phase3-rubric")({
       {
         name: "description",
         content:
-          "Instructor rubric for the Phase 3 PKI Architect Capstone: Stage 1–4 checkpoints mapped to competencies and points, with a scored row for every student.",
+          "Instructor view of the approved 100-point Phase 3 PKI Architect Capstone rubric: nine categories mapped to Stage 1–4 checkpoints, with a scored row for every student.",
       },
       { property: "og:title", content: "Phase 3 Capstone Rubric — CyberVisionaries Institute" },
       {
         property: "og:description",
-        content: "Stage 1–4 checkpoints mapped to competencies and points, scored per student.",
+        content: "The approved 100-point rubric, scored per student from project evidence.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -30,11 +29,6 @@ export const Route = createFileRoute("/phase3-rubric")({
   }),
   component: RubricConsole,
 });
-
-const STAGE_LABEL: Record<string, string> = {
-  ...Object.fromEntries(STAGE_GROUPS.map((g) => [g.key, `${g.label} — ${g.headline}`])),
-  defense: "Defense — Panel scored",
-};
 
 function RubricConsole() {
   const navigate = useNavigate();
@@ -61,14 +55,6 @@ function RubricConsole() {
   );
 
   const rubric = cohort.data?.rubric;
-  const byStage = useMemo(() => {
-    if (!rubric) return [];
-    const stages = ["stage1", "stage2", "stage3", "stage4", "defense"];
-    return stages.map((stage) => ({
-      stage,
-      criteria: rubric.criteria.filter((c) => c.stage === stage),
-    }));
-  }, [rubric]);
 
   return (
     <DemoLabShell themeClass={pki.themeClass}>
@@ -77,9 +63,10 @@ function RubricConsole() {
           <p className="text-xs tracking-[0.3em] text-primary uppercase">Instructor only</p>
           <h1 className="mt-1 font-display text-3xl text-foreground">Capstone Rubric</h1>
           <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-            Every Stage 1–4 checkpoint mapped to a competency and a point value, plus the defense
-            criteria the panel scores live. Student scores below are derived from the evidence in
-            their own project state; the defense panel can override any criterion.
+            The approved 100-point capstone rubric — the same nine categories and weights students
+            see in the Student Guide. Stage 1–4 evidence pre-fills each category; the defense panel
+            can override any category up to its maximum. Defense quality is scored inside Evidence
+            &amp; presentation and Professional practice &amp; milestones, never on top of 100.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
             <Link to="/phase3-grading" className="text-primary underline">
@@ -116,7 +103,10 @@ function RubricConsole() {
               <p className="text-sm text-muted-foreground">No assignments to score yet.</p>
             ) : null}
             {rows.map((row) => (
-              <article key={row.assignmentId} className="rounded-xl border border-border bg-surface/80 p-5">
+              <article
+                key={row.assignmentId}
+                className="rounded-xl border border-border bg-surface/80 p-5"
+              >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h3 className="font-display text-lg text-foreground">
@@ -142,38 +132,26 @@ function RubricConsole() {
                 </div>
 
                 {row.score ? (
-                  <>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                      {row.score.byStage.map((s) => (
-                        <div key={s.stage} className="rounded-lg border border-border/70 p-3">
-                          <p className="text-xs tracking-[0.18em] text-primary uppercase">
-                            {s.stage === "defense" ? "Defense" : s.stage.replace("stage", "Stage ")}
-                          </p>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {row.score.byCategory.map((c) => {
+                      const label =
+                        rubric?.categories.find((x) => x.key === c.category)?.area ?? c.category;
+                      return (
+                        <div key={c.category} className="rounded-lg border border-border/70 p-3">
+                          <p className="text-xs text-primary">{label}</p>
                           <p className="mt-1 text-sm text-foreground">
-                            {s.points} / {s.maxPoints} pts
+                            {c.points} / {c.maxPoints} pts
                           </p>
                           <div className="mt-2 h-1.5 w-full overflow-hidden rounded bg-border">
                             <div
                               className="h-full bg-primary"
-                              style={{ width: `${Math.round((s.points / s.maxPoints) * 100)}%` }}
+                              style={{ width: `${Math.round((c.points / c.maxPoints) * 100)}%` }}
                             />
                           </div>
                         </div>
-                      ))}
-                    </div>
-                    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                      {row.score.byCompetency.map((c) => {
-                        const label =
-                          rubric?.competencies.find((x) => x.key === c.competency)?.label ??
-                          c.competency;
-                        return (
-                          <span key={c.competency}>
-                            {label} {c.points}/{c.maxPoints}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  </>
+                      );
+                    })}
+                  </div>
                 ) : (
                   <p className="mt-3 text-sm text-muted-foreground">
                     No project yet — scoring begins at the student's first save.
@@ -185,33 +163,25 @@ function RubricConsole() {
         ) : null}
 
         {rubric ? (
-          <section className="space-y-5" aria-label="Rubric definition">
-            <h2 className="font-display text-xl text-foreground">Rubric definition</h2>
-            {byStage.map((group) => (
-              <div key={group.stage} className="rounded-xl border border-border bg-surface/70 p-5">
-                <h3 className="font-display text-base text-foreground">
-                  {STAGE_LABEL[group.stage] ?? group.stage}
-                  <span className="ml-2 text-sm text-muted-foreground">
-                    {group.criteria.reduce((s, c) => s + c.points, 0)} pts
-                  </span>
-                </h3>
-                <ul className="mt-3 space-y-3">
-                  {group.criteria.map((c) => (
-                    <li key={c.id} className="border-t border-border/70 pt-3">
-                      <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <p className="text-sm text-foreground">{c.label}</p>
-                        <p className="text-xs text-muted-foreground">{c.points} pts</p>
-                      </div>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {c.checkpoint} ·{" "}
-                        {rubric.competencies.find((x) => x.key === c.competency)?.label}
-                      </p>
-                      <p className="mt-1 text-sm text-foreground/80">{c.descriptor}</p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+          <section className="space-y-3" aria-label="Rubric definition">
+            <h2 className="font-display text-xl text-foreground">
+              Rubric definition ({rubric.maxPoints} points)
+            </h2>
+            <ul className="space-y-3">
+              {rubric.criteria.map((c) => (
+                <li key={c.id} className="rounded-xl border border-border bg-surface/70 p-5">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <h3 className="font-display text-base text-foreground">{c.label}</h3>
+                    <p className="text-sm text-muted-foreground">{c.points} pts</p>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">{c.checkpoint}</p>
+                  <p className="mt-2 text-sm text-foreground/80">{c.descriptor}</p>
+                  {c.defenseWeighted ? (
+                    <p className="mt-2 text-xs text-primary">Scored live at the defense</p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
           </section>
         ) : null}
       </div>
