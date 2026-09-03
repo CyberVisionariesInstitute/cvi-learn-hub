@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { LogOut, ShieldCheck } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,7 @@ import { useWorkspace } from "@/lib/capstone/useWorkspace";
 import { STAGES } from "@/lib/capstone/model";
 import { DraftProvider, useDraft } from "@/lib/capstone/draft";
 import { Btn } from "@/components/capstone/ui";
+import { readGuideProgress, type GuideProgress } from "@/lib/capstone/guide-progress";
 
 export const Route = createFileRoute("/pki/capstone")({
   ssr: false,
@@ -189,5 +190,26 @@ function SaveBar() {
         {saving ? "Saving…" : "Save project"}
       </Btn>
     </div>
+  );
+}
+
+function ResumeGuideLink() {
+  const [progress, setProgress] = useState<GuideProgress | null>(null);
+
+  useEffect(() => {
+    setProgress(readGuideProgress());
+  }, []);
+
+  if (!progress) return null;
+
+  return (
+    <Link
+      to="/pki/capstone/guide"
+      search={{ section: progress.id }}
+      title={`Section ${progress.number}. ${progress.title}`}
+      className="min-h-10 rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-xs tracking-[0.1em] text-foreground uppercase hover:border-primary/60"
+    >
+      Continue where I left off
+    </Link>
   );
 }
