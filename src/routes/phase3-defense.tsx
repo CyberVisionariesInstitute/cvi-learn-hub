@@ -134,10 +134,12 @@ function DefenseConsole() {
                   onClick={() =>
                     setSelected(row.projectId === selected ? null : (row.projectId ?? null))
                   }
-                  aria-expanded={row.projectId === selected}
+                  aria-expanded={Boolean(row.projectId) && row.projectId === selected}
                   className="min-h-11 rounded-md border border-border px-4 text-sm text-foreground hover:border-primary/60 disabled:opacity-50"
                 >
-                  {row.projectId === selected ? "Close panel" : "Open defense panel"}
+                  {Boolean(row.projectId) && row.projectId === selected
+                    ? "Close panel"
+                    : "Open defense panel"}
                 </button>
               </article>
             ))}
