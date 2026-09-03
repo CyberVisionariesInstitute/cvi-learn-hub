@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as InstructorRouteImport } from './routes/instructor'
 import { Route as Phase3ConsoleRouteImport } from './routes/phase3-console'
 import { Route as Phase3GradingRouteImport } from './routes/phase3-grading'
+import { Route as Phase3RubricRouteImport } from './routes/phase3-rubric'
 import { Route as PkiRouteImport } from './routes/pki'
 import { Route as CyberfoundationsIndexRouteImport } from './routes/cyberfoundations.index'
 import { Route as PkiIndexRouteImport } from './routes/pki.index'
@@ -48,6 +49,11 @@ const Phase3ConsoleRoute = Phase3ConsoleRouteImport.update({
 const Phase3GradingRoute = Phase3GradingRouteImport.update({
   id: '/phase3-grading',
   path: '/phase3-grading',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Phase3RubricRoute = Phase3RubricRouteImport.update({
+  id: '/phase3-rubric',
+  path: '/phase3-rubric',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PkiRoute = PkiRouteImport.update({
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/instructor': typeof InstructorRoute
   '/phase3-console': typeof Phase3ConsoleRoute
   '/phase3-grading': typeof Phase3GradingRoute
+  '/phase3-rubric': typeof Phase3RubricRoute
   '/pki': typeof PkiRouteWithChildren
   '/pki/capstone': typeof PkiCapstoneRouteWithChildren
   '/pki/phase3': typeof PkiPhase3Route
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/instructor': typeof InstructorRoute
   '/phase3-console': typeof Phase3ConsoleRoute
   '/phase3-grading': typeof Phase3GradingRoute
+  '/phase3-rubric': typeof Phase3RubricRoute
   '/pki/phase3': typeof PkiPhase3Route
   '/cyberfoundations': typeof CyberfoundationsIndexRoute
   '/pki': typeof PkiIndexRoute
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/instructor': typeof InstructorRoute
   '/phase3-console': typeof Phase3ConsoleRoute
   '/phase3-grading': typeof Phase3GradingRoute
+  '/phase3-rubric': typeof Phase3RubricRoute
   '/pki': typeof PkiRouteWithChildren
   '/pki/capstone': typeof PkiCapstoneRouteWithChildren
   '/pki/phase3': typeof PkiPhase3Route
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/instructor'
     | '/phase3-console'
     | '/phase3-grading'
+    | '/phase3-rubric'
     | '/pki'
     | '/pki/capstone'
     | '/pki/phase3'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/instructor'
     | '/phase3-console'
     | '/phase3-grading'
+    | '/phase3-rubric'
     | '/pki/phase3'
     | '/cyberfoundations'
     | '/pki'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/instructor'
     | '/phase3-console'
     | '/phase3-grading'
+    | '/phase3-rubric'
     | '/pki'
     | '/pki/capstone'
     | '/pki/phase3'
@@ -211,6 +223,7 @@ export interface RootRouteChildren {
   InstructorRoute: typeof InstructorRoute
   Phase3ConsoleRoute: typeof Phase3ConsoleRoute
   Phase3GradingRoute: typeof Phase3GradingRoute
+  Phase3RubricRoute: typeof Phase3RubricRoute
   PkiRoute: typeof PkiRouteWithChildren
   CyberfoundationsIndexRoute: typeof CyberfoundationsIndexRoute
   CyberfoundationsWeek06FromTheGridToCloudHeightsRoute: typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
@@ -252,6 +265,13 @@ declare module '@tanstack/react-router' {
       path: '/phase3-grading'
       fullPath: '/phase3-grading'
       preLoaderRoute: typeof Phase3GradingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/phase3-rubric': {
+      id: '/phase3-rubric'
+      path: '/phase3-rubric'
+      fullPath: '/phase3-rubric'
+      preLoaderRoute: typeof Phase3RubricRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pki': {
@@ -363,6 +383,7 @@ const rootRouteChildren: RootRouteChildren = {
   InstructorRoute: InstructorRoute,
   Phase3ConsoleRoute: Phase3ConsoleRoute,
   Phase3GradingRoute: Phase3GradingRoute,
+  Phase3RubricRoute: Phase3RubricRoute,
   PkiRoute: PkiRouteWithChildren,
   CyberfoundationsIndexRoute: CyberfoundationsIndexRoute,
   CyberfoundationsWeek06FromTheGridToCloudHeightsRoute:
