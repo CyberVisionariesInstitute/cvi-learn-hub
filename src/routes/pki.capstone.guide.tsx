@@ -5,9 +5,10 @@ import { GUIDE_META, GUIDE_SECTIONS, type GuideBlock } from "@/lib/capstone/stud
 import { Btn } from "@/components/capstone/ui";
 
 export const Route = createFileRoute("/pki/capstone/guide")({
-  validateSearch: (search: Record<string, unknown>): { print: boolean } => ({
-    print: Boolean(search['print']),
-  }),
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { print?: boolean | undefined } =>
+    search['print'] ? { print: true } : {},
   component: StudentGuidePage,
 });
 
@@ -110,7 +111,7 @@ function Block({ block }: { block: GuideBlock }) {
   if (block.kind === "table") {
     return (
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[24rem] border-collapse text-left text-sm">
+        <table className="w-full border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-border">
               {block.head?.map((h) => (
