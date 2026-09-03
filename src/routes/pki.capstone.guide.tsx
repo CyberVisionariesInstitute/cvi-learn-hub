@@ -1,13 +1,25 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { ArrowLeft, Printer } from "lucide-react";
 import { GUIDE_META, GUIDE_SECTIONS, type GuideBlock } from "@/lib/capstone/student-guide";
 import { Btn } from "@/components/capstone/ui";
 
 export const Route = createFileRoute("/pki/capstone/guide")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    print: search.print ? 1 : undefined,
+  }),
   component: StudentGuidePage,
 });
 
 function StudentGuidePage() {
+  const { print } = Route.useSearch();
+
+  useEffect(() => {
+    if (!print) return;
+    const timer = window.setTimeout(() => window.print(), 400);
+    return () => window.clearTimeout(timer);
+  }, [print]);
+
   return (
     <div className="space-y-6 print:space-y-4">
       <header className="rounded-xl border border-border bg-surface/80 p-6 print:border-0 print:p-0">
