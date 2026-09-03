@@ -192,8 +192,11 @@ function architectureDoc(input: PortfolioInput): string {
           .map((n) => `**${n.name}** — ${n.notes!.trim()}`),
       ),
     ),
-    ...(state.notes["design"]
-      ? section("Architect's notes", [state.notes["design"]])
+    ...(state.notes["design"] || state.notes["connect"]
+      ? section(
+          "Architect's notes",
+          [state.notes["design"], state.notes["connect"]].filter(Boolean) as string[],
+        )
       : []),
     ...section(
       "Findings dispositions",
@@ -339,7 +342,12 @@ function lifecycleDoc(input: PortfolioInput): string {
           ),
         )
       : []),
-    ...(state.notes["automate"] ? section("Automation notes", [state.notes["automate"]]) : []),
+    ...(state.notes["automate"] || state.notes["validate"]
+      ? section(
+          "Automation & status notes",
+          [state.notes["automate"], state.notes["validate"]].filter(Boolean) as string[],
+        )
+      : []),
   ]);
 }
 
@@ -413,7 +421,7 @@ function workloadDoc(input: PortfolioInput): string {
       ),
     ),
     ...(history.length ? ["## Run history & diagnosis", "", ...history] : []),
-    ...(state.notes["workloads"] ? section("Diagnosis notes", [state.notes["workloads"]]) : []),
+    ...(state.notes["test"] ? section("Diagnosis notes", [state.notes["test"]]) : []),
   ]);
 }
 
