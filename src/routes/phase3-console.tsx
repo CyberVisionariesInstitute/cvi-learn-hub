@@ -421,3 +421,97 @@ function CheckpointsSection({ nameOf }: { nameOf: (id: string) => string }) {
     </section>
   );
 }
+
+const STUDENT_VIEWS = [
+  { label: "Phase 3 portal", path: "/pki/phase3" },
+  { label: "Capstone workspace", path: "/pki/capstone" },
+  { label: "Student guide", path: "/pki/capstone/guide" },
+  { label: "Evidence locker", path: "/pki/capstone/evidence" },
+  { label: "Stage 1 · Analyze", path: "/pki/capstone/analyze" },
+  { label: "Stage 2 · Architect", path: "/pki/capstone/architect" },
+  { label: "Stage 3 · Operate", path: "/pki/capstone/operate" },
+  { label: "Stage 4 · Adapt", path: "/pki/capstone/adapt" },
+  { label: "Final · Defend", path: "/pki/capstone/defend" },
+] as const;
+
+/** Read-only preview of the student-facing pages, rendered in an iframe. */
+function StudentPreviewSection() {
+  const [path, setPath] = useState<string>(STUDENT_VIEWS[0].path);
+  const [width, setWidth] = useState<"mobile" | "desktop">("desktop");
+  const [nonce, setNonce] = useState(0);
+
+  return (
+    <section className="rounded-xl border border-border bg-surface/80 p-6">
+      <h2 className="font-display text-lg text-foreground">Student preview</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        A live look at the student-facing pages. It renders with your own account, so
+        assignment-specific content reflects your login, not a student&apos;s work.
+      </p>
+
+      <div className="mt-4 flex flex-wrap items-end gap-3">
+        <label className="block text-sm">
+          <span className="text-muted-foreground">Page</span>
+          <select
+            value={path}
+            onChange={(e) => setPath(e.target.value)}
+            className="mt-1 min-h-11 w-full min-w-56 rounded-md border border-border bg-background px-2 text-foreground"
+          >
+            {STUDENT_VIEWS.map((v) => (
+              <option key={v.path} value={v.path}>
+                {v.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="flex gap-2">
+          {(["desktop", "mobile"] as const).map((w) => (
+            <button
+              key={w}
+              type="button"
+              onClick={() => setWidth(w)}
+              aria-pressed={width === w}
+              className={
+                "min-h-11 rounded-md border px-3 text-sm capitalize " +
+                (width === w
+                  ? "border-primary bg-primary/15 text-foreground"
+                  : "border-border text-muted-foreground hover:text-foreground")
+              }
+            >
+              {w}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setNonce((n) => n + 1)}
+            className="min-h-11 rounded-md border border-border px-3 text-sm text-muted-foreground hover:text-foreground"
+          >
+            Refresh
+          </button>
+          <a
+            href={path}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex min-h-11 items-center rounded-md border border-border px-3 text-sm text-primary underline"
+          >
+            Open in new tab
+          </a>
+        </div>
+      </div>
+
+      <div className="mt-5 overflow-hidden rounded-lg border border-border bg-background">
+        <div
+          className="mx-auto"
+          style={{ maxWidth: width === "mobile" ? "390px" : "100%" }}
+        >
+          <iframe
+            key={`${path}-${width}-${nonce}`}
+            src={path}
+            title={`Student preview: ${path}`}
+            className="h-[70vh] w-full border-0 bg-background"
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
