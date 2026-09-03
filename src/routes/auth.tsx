@@ -244,6 +244,7 @@ function AuthPage() {
               : "Already have an account? Sign in"}
           </button>
         </form>
+        )}
 
         <Link to="/pki" className="text-xs text-muted-foreground hover:text-foreground">
           Back to the PKI Demo Lab
