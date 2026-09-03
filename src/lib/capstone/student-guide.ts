@@ -4,6 +4,8 @@
  * Contains no instructor notes, calibration, hidden events, answer guidance, or scenario data.
  */
 
+import { RUBRIC_CATEGORIES, RUBRIC_TOTAL_POINTS } from "./rubric-categories";
+
 export interface GuideBlock {
   kind: "para" | "list" | "steps" | "table";
   text?: string;
