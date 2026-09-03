@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as InstructorRouteImport } from './routes/instructor'
 import { Route as Phase3ConsoleRouteImport } from './routes/phase3-console'
+import { Route as Phase3GradingRouteImport } from './routes/phase3-grading'
 import { Route as PkiRouteImport } from './routes/pki'
 import { Route as CyberfoundationsIndexRouteImport } from './routes/cyberfoundations.index'
 import { Route as PkiIndexRouteImport } from './routes/pki.index'
@@ -41,6 +42,11 @@ const InstructorRoute = InstructorRouteImport.update({
 const Phase3ConsoleRoute = Phase3ConsoleRouteImport.update({
   id: '/phase3-console',
   path: '/phase3-console',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Phase3GradingRoute = Phase3GradingRouteImport.update({
+  id: '/phase3-grading',
+  path: '/phase3-grading',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PkiRoute = PkiRouteImport.update({
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/instructor': typeof InstructorRoute
   '/phase3-console': typeof Phase3ConsoleRoute
+  '/phase3-grading': typeof Phase3GradingRoute
   '/pki': typeof PkiRouteWithChildren
   '/pki/capstone': typeof PkiCapstoneRouteWithChildren
   '/cyberfoundations/': typeof CyberfoundationsIndexRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/instructor': typeof InstructorRoute
   '/phase3-console': typeof Phase3ConsoleRoute
+  '/phase3-grading': typeof Phase3GradingRoute
   '/cyberfoundations': typeof CyberfoundationsIndexRoute
   '/pki': typeof PkiIndexRoute
   '/cyberfoundations/week-06/from-the-grid-to-cloud-heights': typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/instructor': typeof InstructorRoute
   '/phase3-console': typeof Phase3ConsoleRoute
+  '/phase3-grading': typeof Phase3GradingRoute
   '/pki': typeof PkiRouteWithChildren
   '/pki/capstone': typeof PkiCapstoneRouteWithChildren
   '/cyberfoundations/': typeof CyberfoundationsIndexRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/instructor'
     | '/phase3-console'
+    | '/phase3-grading'
     | '/pki'
     | '/pki/capstone'
     | '/cyberfoundations/'
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/instructor'
     | '/phase3-console'
+    | '/phase3-grading'
     | '/cyberfoundations'
     | '/pki'
     | '/cyberfoundations/week-06/from-the-grid-to-cloud-heights'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/instructor'
     | '/phase3-console'
+    | '/phase3-grading'
     | '/pki'
     | '/pki/capstone'
     | '/cyberfoundations/'
@@ -186,6 +198,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   InstructorRoute: typeof InstructorRoute
   Phase3ConsoleRoute: typeof Phase3ConsoleRoute
+  Phase3GradingRoute: typeof Phase3GradingRoute
   PkiRoute: typeof PkiRouteWithChildren
   CyberfoundationsIndexRoute: typeof CyberfoundationsIndexRoute
   CyberfoundationsWeek06FromTheGridToCloudHeightsRoute: typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
@@ -220,6 +233,13 @@ declare module '@tanstack/react-router' {
       path: '/phase3-console'
       fullPath: '/phase3-console'
       preLoaderRoute: typeof Phase3ConsoleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/phase3-grading': {
+      id: '/phase3-grading'
+      path: '/phase3-grading'
+      fullPath: '/phase3-grading'
+      preLoaderRoute: typeof Phase3GradingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pki': {
@@ -321,6 +341,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   InstructorRoute: InstructorRoute,
   Phase3ConsoleRoute: Phase3ConsoleRoute,
+  Phase3GradingRoute: Phase3GradingRoute,
   PkiRoute: PkiRouteWithChildren,
   CyberfoundationsIndexRoute: CyberfoundationsIndexRoute,
   CyberfoundationsWeek06FromTheGridToCloudHeightsRoute:
