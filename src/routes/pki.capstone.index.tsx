@@ -264,6 +264,9 @@ function CapstoneOverview() {
         {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
       </Panel>
 
+      <PortfolioPanel projectId={project.id} submitted={Boolean(data.submission)} />
+
+
       {data.submission ? (
         <section className="rounded-xl border border-primary/30 bg-primary/5 p-6">
           <h2 className="flex items-center gap-2 font-display text-lg text-foreground">
