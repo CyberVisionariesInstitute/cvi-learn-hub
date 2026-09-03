@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { useIsStaff } from "@/hooks/useIsStaff";
 
 interface DemoLabShellProps {
   children: ReactNode;
@@ -17,6 +18,7 @@ const nav = [
 ];
 
 export function DemoLabShell({ children, themeClass, bare }: DemoLabShellProps) {
+  const staff = useIsStaff();
   return (
     <div className={cn("atmosphere min-h-screen bg-background", themeClass)}>
       {!bare && (
@@ -50,12 +52,14 @@ export function DemoLabShell({ children, themeClass, bare }: DemoLabShellProps) 
                 </Link>
               ))}
             </nav>
-            <Link
-              to="/instructor"
-              className="ml-auto rounded-md border border-border px-3 py-2 text-xs tracking-[0.16em] text-muted-foreground uppercase transition-colors hover:border-primary/60 hover:text-foreground"
-            >
-              Instructor Console
-            </Link>
+            {staff === "staff" ? (
+              <Link
+                to="/instructor"
+                className="ml-auto rounded-md border border-border px-3 py-2 text-xs tracking-[0.16em] text-muted-foreground uppercase transition-colors hover:border-primary/60 hover:text-foreground"
+              >
+                Instructor Console
+              </Link>
+            ) : null}
           </div>
         </header>
       )}
