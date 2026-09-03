@@ -43,7 +43,7 @@ function AuthPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
   const { session, loading } = useSession();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "recovery">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -57,9 +57,36 @@ function AuthPage() {
   }, []);
   const target = safePath(search.redirect ?? stored);
 
+  // Password-recovery links land here with a recovery token in the URL hash;
+  // the Supabase client exchanges it and emits PASSWORD_RECOVERY.
   useEffect(() => {
-    if (!loading && session) void navigate({ to: target, replace: true });
-  }, [loading, session, navigate, target]);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setMode("recovery");
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (mode !== "recovery" && !loading && session)
+      void navigate({ to: target, replace: true });
+  }, [mode, loading, session, navigate, target]);
+
+  async function handleSetPassword(event: React.FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      const { error: err } = await supabase.auth.updateUser({ password });
+      if (err) throw err;
+      await navigate({ to: target, replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not set password.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -117,12 +144,40 @@ function AuthPage() {
           <p className="text-xs tracking-[0.3em] text-primary uppercase">
             CyberVisionaries Institute
           </p>
-          <h1 className="mt-2 font-display text-3xl text-foreground">Student sign in</h1>
+          <h1 className="mt-2 font-display text-3xl text-foreground">
+            {mode === "recovery" ? "Set your password" : "Student sign in"}
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Your capstone workspace, assigned scenario, and saved project live behind this sign in.
+            {mode === "recovery"
+              ? "Choose a password for your account, then you will be taken to your capstone workspace."
+              : "Your capstone workspace, assigned scenario, and saved project live behind this sign in."}
           </p>
         </div>
 
+        {mode === "recovery" ? (
+          <form onSubmit={handleSetPassword} className="space-y-4 rounded-xl border border-border bg-surface/80 p-6">
+            <label className="block text-sm">
+              <span className="text-muted-foreground">New password</span>
+              <input
+                type="password"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                className="mt-1 min-h-11 w-full rounded-md border border-border bg-background px-3 text-foreground"
+              />
+            </label>
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            <button
+              type="submit"
+              disabled={busy}
+              className="min-h-11 w-full rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-60"
+            >
+              Set password and continue
+            </button>
+          </form>
+        ) : (
         <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-border bg-surface/80 p-6">
           {mode === "signup" ? (
             <label className="block text-sm">
@@ -189,6 +244,7 @@ function AuthPage() {
               : "Already have an account? Sign in"}
           </button>
         </form>
+        )}
 
         <Link to="/pki" className="text-xs text-muted-foreground hover:text-foreground">
           Back to the PKI Demo Lab
