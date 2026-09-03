@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, Download, Upload, FileCheck2, BookOpen, Printer } from "lucide-react";
+import { AlertTriangle, Download, Upload, FileCheck2, BookOpen, Printer, Github } from "lucide-react";
 import { useWorkspace, useRefreshWorkspace } from "@/lib/capstone/useWorkspace";
 import { exportProject, importProject } from "@/lib/capstone/capstone.functions";
+import { exportPortfolio } from "@/lib/capstone/portfolio.functions";
 import { STAGES } from "@/lib/capstone/model";
 import { Panel, Btn, Badge, Empty } from "@/components/capstone/ui";
 import { useDraft } from "@/lib/capstone/draft";
@@ -264,6 +265,9 @@ function CapstoneOverview() {
         {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
       </Panel>
 
+      <PortfolioPanel projectId={project.id} submitted={Boolean(data.submission)} />
+
+
       {data.submission ? (
         <section className="rounded-xl border border-primary/30 bg-primary/5 p-6">
           <h2 className="flex items-center gap-2 font-display text-lg text-foreground">
@@ -280,6 +284,94 @@ function CapstoneOverview() {
         </section>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * Sanitized, public-shareable portfolio package. Deliberately separate from
+ * the signed backup above: this zip cannot be imported to restore work.
+ */
+function PortfolioPanel({ projectId, submitted }: { projectId: string; submitted: boolean }) {
+  const runPortfolio = useServerFn(exportPortfolio);
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function download() {
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const { files, filename } = await runPortfolio({ data: { projectId } });
+      const { zipSync, strToU8 } = await import("fflate");
+      const entries: Record<string, Uint8Array> = {};
+      for (const [path, content] of Object.entries(files)) entries[path] = strToU8(content);
+      const zipped = zipSync(entries, { level: 6 });
+      const blob = new Blob([new Uint8Array(zipped)], { type: "application/zip" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      setConfirming(false);
+      setNotice("Portfolio package downloaded. Review every file before publishing it publicly.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Portfolio export failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Panel
+      id="portfolio"
+      title="Portfolio package for GitHub"
+      description="A sanitized, public-safe copy of your capstone work formatted as a GitHub repository. This is NOT the file used to restore your capstone project."
+    >
+      <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
+        The package contains a portfolio README, architecture and operations write-ups, a workload
+        testing summary, and an evidence index built from your saved work. It contains no account,
+        assignment, or project identifiers, no signatures, and no instructor-only material.
+        {submitted
+          ? " Your capstone is submitted, so this is your final portfolio artifact."
+          : " Until you submit and defend, this is an in-progress portfolio snapshot."}
+      </p>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <Btn variant="primary" onClick={() => setConfirming(true)} disabled={busy}>
+          <Github className="size-4" aria-hidden="true" />
+          Download Portfolio Package
+        </Btn>
+      </div>
+      {confirming ? (
+        <div
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby="portfolio-confirm"
+          className="mt-4 rounded-lg border border-primary/40 bg-primary/5 p-4"
+        >
+          <h3 id="portfolio-confirm" className="font-display text-sm text-foreground">
+            Before you publish this publicly
+          </h3>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            Open the package and read every file first. Anything you wrote in your notes and
+            evidence will appear in the portfolio. Remove anything you do not want to be public.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-3">
+            <Btn variant="primary" onClick={() => void download()} disabled={busy}>
+              <Download className="size-4" aria-hidden="true" />
+              {busy ? "Preparing…" : "Generate & download .zip"}
+            </Btn>
+            <Btn onClick={() => setConfirming(false)} disabled={busy}>
+              Cancel
+            </Btn>
+          </div>
+        </div>
+      ) : null}
+      {notice ? <p className="mt-3 text-sm text-foreground">{notice}</p> : null}
+      {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
+    </Panel>
   );
 }
 
