@@ -44,19 +44,17 @@ export const CHECKPOINT_STATUSES = [
   "Accepted",
 ];
 
-export const RUBRIC: { area: string; points: number }[] = [
-  { area: "Scenario analysis & requirements", points: 10 },
-  { area: "Architecture & trust", points: 20 },
-  { area: "Certificate strategy & ownership", points: 10 },
-  { area: "Lifecycle & automation", points: 15 },
-  { area: "Status & resilience", points: 10 },
-  { area: "Workload integration & diagnosis", points: 10 },
-  { area: "Change adaptation", points: 10 },
-  { area: "Evidence & presentation", points: 10 },
-  { area: "Professional practice & milestones", points: 5 },
-];
+/**
+ * The approved 100-point rubric areas, re-exported from the single canonical
+ * source shared with the staff scoring model so the two cannot drift.
+ */
+export const RUBRIC: { area: string; points: number }[] = RUBRIC_CATEGORIES.map((c) => ({
+  area: c.area,
+  points: c.points,
+}));
 
-export const RUBRIC_TOTAL = RUBRIC.reduce((sum, r) => sum + r.points, 0);
+export const RUBRIC_TOTAL = RUBRIC_TOTAL_POINTS;
+
 
 export const WEEKLY_ROADMAP: { week: string; focus: string }[] = [
   { week: "Week 17", focus: "Scenario analysis and requirements" },
