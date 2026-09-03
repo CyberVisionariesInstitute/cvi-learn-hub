@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { useIsStaff } from "@/hooks/useIsStaff";
 
 interface DemoLabShellProps {
   children: ReactNode;

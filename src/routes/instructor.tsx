@@ -34,6 +34,59 @@ export const Route = createFileRoute("/instructor")({
 });
 
 function InstructorConsole() {
+  const staff = useIsStaff();
+
+  if (staff === "loading") {
+    return (
+      <DemoLabShell bare={false}>
+        <div className="flex min-h-[60vh] items-center justify-center px-5">
+          <p className="text-sm text-muted-foreground" role="status">
+            Checking instructor access…
+          </p>
+        </div>
+      </DemoLabShell>
+    );
+  }
+
+  if (staff !== "staff") {
+    return (
+      <DemoLabShell bare={false}>
+        <div className="flex min-h-[60vh] items-center justify-center px-5">
+          <div className="glass-panel max-w-md rounded-lg p-6 text-center">
+            <h1 className="font-display text-xl font-semibold text-foreground">
+              Instructor access required
+            </h1>
+            <p className="mt-3 text-sm text-muted-foreground">
+              {staff === "signed-out"
+                ? "The Instructor Console is only available to instructor accounts. Sign in with an instructor account to continue."
+                : "Your account does not have instructor access. If you believe this is a mistake, contact your program administrator."}
+            </p>
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
+              {staff === "signed-out" ? (
+                <Link
+                  to="/auth"
+                  className="inline-flex min-h-11 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                >
+                  Sign in
+                </Link>
+              ) : null}
+              <Link
+                to="/"
+                className="inline-flex min-h-11 items-center rounded-md border border-border px-4 text-sm text-foreground hover:border-primary/60"
+              >
+                Back to Demo Lab
+              </Link>
+            </div>
+          </div>
+        </div>
+      </DemoLabShell>
+    );
+  }
+
+  return <InstructorConsoleInner />;
+}
+
+function InstructorConsoleInner() {
   const [programId, setProgramId] = useState<ProgramId>("cyberfoundations");
   const program = programs.find((p) => p.id === programId)!;
   const available = getExperiencesForProgram(programId);
