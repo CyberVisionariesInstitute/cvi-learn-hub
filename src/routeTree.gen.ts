@@ -18,6 +18,7 @@ import { Route as PkiRouteImport } from './routes/pki'
 import { Route as CyberfoundationsIndexRouteImport } from './routes/cyberfoundations.index'
 import { Route as PkiIndexRouteImport } from './routes/pki.index'
 import { Route as PkiCapstoneRouteImport } from './routes/pki.capstone'
+import { Route as PkiPhase3RouteImport } from './routes/pki.phase3'
 import { Route as CyberfoundationsWeek06FromTheGridToCloudHeightsRouteImport } from './routes/cyberfoundations.week-06.from-the-grid-to-cloud-heights'
 import { Route as CyberfoundationsWeek07CloudHeightsGuardPostRouteImport } from './routes/cyberfoundations.week-07.cloud-heights-guard-post'
 import { Route as PkiCapstoneIndexRouteImport } from './routes/pki.capstone.index'
@@ -69,6 +70,11 @@ const PkiCapstoneRoute = PkiCapstoneRouteImport.update({
   path: '/capstone',
   getParentRoute: () => PkiRoute,
 } as any)
+const PkiPhase3Route = PkiPhase3RouteImport.update({
+  id: '/phase3',
+  path: '/phase3',
+  getParentRoute: () => PkiRoute,
+} as any)
 const CyberfoundationsWeek06FromTheGridToCloudHeightsRoute =
   CyberfoundationsWeek06FromTheGridToCloudHeightsRouteImport.update({
     id: '/cyberfoundations/week-06/from-the-grid-to-cloud-heights',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/phase3-grading': typeof Phase3GradingRoute
   '/pki': typeof PkiRouteWithChildren
   '/pki/capstone': typeof PkiCapstoneRouteWithChildren
+  '/pki/phase3': typeof PkiPhase3Route
   '/cyberfoundations/': typeof CyberfoundationsIndexRoute
   '/pki/': typeof PkiIndexRoute
   '/cyberfoundations/week-06/from-the-grid-to-cloud-heights': typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/instructor': typeof InstructorRoute
   '/phase3-console': typeof Phase3ConsoleRoute
   '/phase3-grading': typeof Phase3GradingRoute
+  '/pki/phase3': typeof PkiPhase3Route
   '/cyberfoundations': typeof CyberfoundationsIndexRoute
   '/pki': typeof PkiIndexRoute
   '/cyberfoundations/week-06/from-the-grid-to-cloud-heights': typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/phase3-grading': typeof Phase3GradingRoute
   '/pki': typeof PkiRouteWithChildren
   '/pki/capstone': typeof PkiCapstoneRouteWithChildren
+  '/pki/phase3': typeof PkiPhase3Route
   '/cyberfoundations/': typeof CyberfoundationsIndexRoute
   '/pki/': typeof PkiIndexRoute
   '/cyberfoundations/week-06/from-the-grid-to-cloud-heights': typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/phase3-grading'
     | '/pki'
     | '/pki/capstone'
+    | '/pki/phase3'
     | '/cyberfoundations/'
     | '/pki/'
     | '/cyberfoundations/week-06/from-the-grid-to-cloud-heights'
@@ -168,6 +178,7 @@ export interface FileRouteTypes {
     | '/instructor'
     | '/phase3-console'
     | '/phase3-grading'
+    | '/pki/phase3'
     | '/cyberfoundations'
     | '/pki'
     | '/cyberfoundations/week-06/from-the-grid-to-cloud-heights'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/phase3-grading'
     | '/pki'
     | '/pki/capstone'
+    | '/pki/phase3'
     | '/cyberfoundations/'
     | '/pki/'
     | '/cyberfoundations/week-06/from-the-grid-to-cloud-heights'
@@ -270,6 +282,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PkiCapstoneRouteImport
       parentRoute: typeof PkiRoute
     }
+    '/pki/phase3': {
+      id: '/pki/phase3'
+      path: '/phase3'
+      fullPath: '/pki/phase3'
+      preLoaderRoute: typeof PkiPhase3RouteImport
+      parentRoute: typeof PkiRoute
+    }
     '/cyberfoundations/week-06/from-the-grid-to-cloud-heights': {
       id: '/cyberfoundations/week-06/from-the-grid-to-cloud-heights'
       path: '/cyberfoundations/week-06/from-the-grid-to-cloud-heights'
@@ -326,11 +345,13 @@ const PkiCapstoneRouteWithChildren = PkiCapstoneRoute._addFileChildren(
 
 interface PkiRouteChildren {
   PkiCapstoneRoute: typeof PkiCapstoneRouteWithChildren
+  PkiPhase3Route: typeof PkiPhase3Route
   PkiIndexRoute: typeof PkiIndexRoute
 }
 
 const PkiRouteChildren: PkiRouteChildren = {
   PkiCapstoneRoute: PkiCapstoneRouteWithChildren,
+  PkiPhase3Route: PkiPhase3Route,
   PkiIndexRoute: PkiIndexRoute,
 }
 
