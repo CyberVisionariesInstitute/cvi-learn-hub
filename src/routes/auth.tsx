@@ -234,15 +234,11 @@ function AuthPage() {
             Continue with Google
           </button>
 
-          <button
-            type="button"
-            onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-            className="w-full text-xs text-muted-foreground underline-offset-4 hover:underline"
-          >
-            {mode === "signin"
-              ? "No account yet? Create one"
-              : "Already have an account? Sign in"}
-          </button>
+          <p className="text-center text-xs text-muted-foreground">
+            Accounts are created for you by CyberVisionaries Institute. Sign in with the
+            email address your instructor enrolled — no sign-up needed.
+          </p>
+
         </form>
         )}
 
