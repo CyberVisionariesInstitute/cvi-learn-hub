@@ -79,6 +79,9 @@ function DefenseConsole() {
             grading console.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
+            <Link to="/phase3-cohort" className="text-primary underline">
+              Cohort console
+            </Link>
             <Link to="/phase3-rubric" className="text-primary underline">
               Rubric
             </Link>
