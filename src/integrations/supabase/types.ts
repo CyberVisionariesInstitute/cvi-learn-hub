@@ -162,6 +162,75 @@ export type Database = {
           },
         ]
       }
+      defense_records: {
+        Row: {
+          assignment_id: string | null
+          created_at: string
+          finalized_at: string | null
+          id: string
+          max_points: number
+          outcome: string
+          owner_id: string
+          panel_questions: Json
+          presentation_notes: string
+          project_id: string
+          reviewer_id: string | null
+          scheduled_at: string | null
+          scores: Json
+          total_points: number
+          updated_at: string
+        }
+        Insert: {
+          assignment_id?: string | null
+          created_at?: string
+          finalized_at?: string | null
+          id?: string
+          max_points?: number
+          outcome?: string
+          owner_id: string
+          panel_questions?: Json
+          presentation_notes?: string
+          project_id: string
+          reviewer_id?: string | null
+          scheduled_at?: string | null
+          scores?: Json
+          total_points?: number
+          updated_at?: string
+        }
+        Update: {
+          assignment_id?: string | null
+          created_at?: string
+          finalized_at?: string | null
+          id?: string
+          max_points?: number
+          outcome?: string
+          owner_id?: string
+          panel_questions?: Json
+          presentation_notes?: string
+          project_id?: string
+          reviewer_id?: string | null
+          scheduled_at?: string | null
+          scores?: Json
+          total_points?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "defense_records_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "defense_records_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       evidence_items: {
         Row: {
           body: string | null

@@ -82,6 +82,12 @@ function GradingConsole() {
             <Link to="/phase3-console" className="text-primary underline">
               Phase 3 Console
             </Link>
+            <Link to="/phase3-rubric" className="text-primary underline">
+              Rubric
+            </Link>
+            <Link to="/phase3-defense" className="text-primary underline">
+              Defense stage
+            </Link>
             <label className="flex items-center gap-2 text-muted-foreground">
               <input
                 type="checkbox"
