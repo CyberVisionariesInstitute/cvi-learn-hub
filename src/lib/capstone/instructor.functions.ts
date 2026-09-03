@@ -349,3 +349,180 @@ export const listCheckpoints = createServerFn({ method: "GET" })
       .order("updated_at", { ascending: false });
     return data ?? [];
   });
+
+/* --------------------------------------------------------- Grading console */
+
+/**
+ * Staff-only: cohort grading view. Returns one row per assignment with
+ * derived Stage 1–4 progress, evidence/checkpoint counts and existing
+ * feedback. No instructor-private scenario content is included here.
+ */
+export const cohortGrading = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    await requireStaff(supabase, userId);
+
+    const [assignments, profiles, projects, evidence, checkpoints, submissions, feedback, events] =
+      await Promise.all([
+        supabase
+          .from("assignments")
+          .select("id, user_id, scenario_code, scenario_version, state, is_test, created_at")
+          .order("created_at", { ascending: false }),
+        supabase.from("profiles").select("id, display_name, email"),
+        supabase
+          .from("projects")
+          .select("id, assignment_id, owner_id, revision, updated_at, state"),
+        supabase.from("evidence_items").select("id, project_id, stage, created_at"),
+        supabase.from("checkpoints").select("id, project_id, stage, review_state, updated_at"),
+        supabase.from("submissions").select("id, project_id, review_state, submitted_at"),
+        supabase
+          .from("stage_feedback")
+          .select("id, project_id, stage_group, mark, body, updated_at"),
+        supabase
+          .from("hidden_events")
+          .select("id, assignment_id, activated_at, acknowledged_at"),
+      ]);
+
+    const { normalizeState } = await import("./project-state");
+    const { stageGroupProgress } = await import("./grading");
+
+    const rows = (assignments.data ?? []).map((a) => {
+      const profile = (profiles.data ?? []).find((p) => p.id === a.user_id);
+      const project = (projects.data ?? []).find((p) => p.assignment_id === a.id);
+      const state = normalizeState(project?.state);
+      return {
+        assignmentId: a.id,
+        studentId: a.user_id,
+        studentName: profile?.display_name ?? profile?.email ?? a.user_id.slice(0, 8),
+        studentEmail: profile?.email ?? null,
+        scenarioCode: a.scenario_code,
+        scenarioVersion: a.scenario_version,
+        assignmentState: a.state,
+        isTest: Boolean(a.is_test),
+        projectId: project?.id ?? null,
+        revision: project?.revision ?? 0,
+        updatedAt: project?.updated_at ?? null,
+        started: Boolean(project && (project.revision ?? 0) > 0),
+        progress: project ? stageGroupProgress(state) : [],
+        evidenceCount: (evidence.data ?? []).filter((e) => e.project_id === project?.id).length,
+        checkpoints: (checkpoints.data ?? []).filter((c) => c.project_id === project?.id),
+        submission:
+          (submissions.data ?? []).find((s) => s.project_id === project?.id) ?? null,
+        feedback: (feedback.data ?? []).filter((f) => f.project_id === project?.id),
+        eventsActivated: (events.data ?? []).filter(
+          (e) => e.assignment_id === a.id && e.activated_at,
+        ).length,
+        eventsAcknowledged: (events.data ?? []).filter(
+          (e) => e.assignment_id === a.id && e.acknowledged_at,
+        ).length,
+      };
+    });
+
+    return rows;
+  });
+
+/** Staff-only: one student's evidence, notes and checkpoints for review. */
+export const studentDossier = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ projectId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await requireStaff(supabase, userId);
+
+    const [{ data: project }, { data: evidence }, { data: checkpoints }, { data: feedback }] =
+      await Promise.all([
+        supabase
+          .from("projects")
+          .select("id, owner_id, assignment_id, revision, updated_at, state, scenario_code, scenario_version")
+          .eq("id", data.projectId)
+          .single(),
+        supabase
+          .from("evidence_items")
+          .select("id, stage, week, title, body, created_at")
+          .eq("project_id", data.projectId)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("checkpoints")
+          .select("id, stage, week, student_state, review_state, reviewer_notes, updated_at")
+          .eq("project_id", data.projectId),
+        supabase
+          .from("stage_feedback")
+          .select("id, stage_group, mark, body, updated_at")
+          .eq("project_id", data.projectId),
+      ]);
+
+    if (!project) throw new Error("Project not found");
+
+    const { normalizeState } = await import("./project-state");
+    const state = normalizeState(project.state);
+
+    return {
+      project: {
+        id: project.id,
+        ownerId: project.owner_id,
+        assignmentId: project.assignment_id,
+        revision: project.revision,
+        updatedAt: project.updated_at,
+        scenarioCode: project.scenario_code,
+        scenarioVersion: project.scenario_version,
+      },
+      notes: state.notes,
+      decisions: state.analysis
+        .filter((a) => a.kind === "decision")
+        .map((a) => ({ id: a.id, title: a.title, detail: a.detail, source: a.source })),
+      timeline: state.change.timeline,
+      runs: state.workloads.runs.map((r) => ({
+        id: r.id,
+        at: r.at,
+        result: r.result,
+        definitionId: r.definitionId,
+        failures: r.checks.filter((c) => c.result === "fail").map((c) => c.label),
+      })),
+      evidence: evidence ?? [],
+      checkpoints: checkpoints ?? [],
+      feedback: feedback ?? [],
+    };
+  });
+
+/** Staff-only: write or update feedback on one stage group. */
+export const upsertStageFeedback = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        projectId: z.string().uuid(),
+        assignmentId: z.string().uuid().optional(),
+        ownerId: z.string().uuid(),
+        stageGroup: z.enum(["stage1", "stage2", "stage3", "stage4", "overall"]),
+        mark: z.enum(["strong", "on_track", "needs_work", "blocked"]),
+        body: z.string().max(8000),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await requireStaff(supabase, userId);
+
+    const { error } = await supabase.from("stage_feedback").upsert(
+      {
+        project_id: data.projectId,
+        assignment_id: data.assignmentId ?? null,
+        owner_id: data.ownerId,
+        stage_group: data.stageGroup,
+        mark: data.mark,
+        body: data.body,
+        reviewer_id: userId,
+      },
+      { onConflict: "project_id,stage_group" },
+    );
+    if (error) throw new Error(error.message);
+
+    await supabase.from("audit_log").insert({
+      actor_id: userId,
+      project_id: data.projectId,
+      action: "feedback.saved",
+      detail: { stage_group: data.stageGroup, mark: data.mark },
+    });
+    return { ok: true };
+  });
