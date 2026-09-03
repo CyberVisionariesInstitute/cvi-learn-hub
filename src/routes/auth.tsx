@@ -43,7 +43,7 @@ function AuthPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
   const { session, loading } = useSession();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "recovery">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -57,9 +57,36 @@ function AuthPage() {
   }, []);
   const target = safePath(search.redirect ?? stored);
 
+  // Password-recovery links land here with a recovery token in the URL hash;
+  // the Supabase client exchanges it and emits PASSWORD_RECOVERY.
   useEffect(() => {
-    if (!loading && session) void navigate({ to: target, replace: true });
-  }, [loading, session, navigate, target]);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setMode("recovery");
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (mode !== "recovery" && !loading && session)
+      void navigate({ to: target, replace: true });
+  }, [mode, loading, session, navigate, target]);
+
+  async function handleSetPassword(event: React.FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      const { error: err } = await supabase.auth.updateUser({ password });
+      if (err) throw err;
+      await navigate({ to: target, replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not set password.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
