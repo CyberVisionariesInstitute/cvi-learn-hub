@@ -2,6 +2,7 @@ import { DialogueLayer } from "./DialogueLayer";
 import { EnvironmentLayer } from "./EnvironmentLayer";
 import { EvidencePanel } from "./EvidencePanel";
 import { InteractionLayer } from "./InteractionLayer";
+import { MissionBriefPanel } from "./MissionBriefPanel";
 import { NeighborhoodRoute } from "./interactions/NeighborhoodRoute";
 import { SceneVisualPanel } from "./SceneVisualPanel";
 import { charactersById } from "@/lib/demo-lab/characters";
@@ -52,6 +53,8 @@ export function SceneRenderer({
           opaque={scene.flatPresentation ?? false}
         />
       ) : null}
+
+      {scene.missionBrief ? <MissionBriefPanel brief={scene.missionBrief} /> : null}
 
       {scene.flatPresentation ? (
         /* Readability-first layout: artwork and text never share a surface. */
