@@ -1,4 +1,5 @@
 import type { Experience } from "../types";
+import { vaultExchangeVisuals } from "./vault-exchange-visuals";
 
 /**
  * CyberFoundations Module 3 · Week 8 — The Vault Exchange.
@@ -45,6 +46,7 @@ export const vaultExchangeCryptoWorkbench: Experience = {
   environmentIds: ["vault-exchange-workbench"],
   replayAvailable: true,
   route: "/cyberfoundations/week-08/vault-exchange-crypto-workbench",
+  thumbnail: vaultExchangeVisuals.browserThumbnail,
   instructorNotes: [
     "Language is ELI5-first on purpose. Let students say it wrong once, then tighten the wording together.",
     "Every station resets on its own with 'Reset this scene' — nothing is scored and nothing is lost.",
@@ -69,6 +71,8 @@ export const vaultExchangeCryptoWorkbench: Experience = {
       environmentId: "vault-exchange-workbench",
       characterState: "ivy-briefing",
       hideCharacterFigure: true,
+      flatPresentation: true,
+      visual: vaultExchangeVisuals.openingBriefing,
       continueLabel: "Go to Station 1",
       intro: [
         {
@@ -103,6 +107,8 @@ export const vaultExchangeCryptoWorkbench: Experience = {
       environmentId: "vault-exchange-workbench",
       characterState: "ivy-type",
       hideCharacterFigure: true,
+      flatPresentation: true,
+      visual: vaultExchangeVisuals.protectPrimary,
       continueLabel: "Go to Station 2",
       intro: [
         {
@@ -187,6 +193,7 @@ export const vaultExchangeCryptoWorkbench: Experience = {
       environmentId: "vault-exchange-workbench",
       characterState: "ivy-read-screen",
       hideCharacterFigure: true,
+      flatPresentation: true,
       continueLabel: "Go to Station 3",
       intro: [
         {
@@ -303,6 +310,7 @@ export const vaultExchangeCryptoWorkbench: Experience = {
       environmentId: "vault-exchange-workbench",
       characterState: "ivy-point",
       hideCharacterFigure: true,
+      flatPresentation: true,
       continueLabel: "Go to Station 4",
       intro: [
         {
@@ -395,6 +403,8 @@ export const vaultExchangeCryptoWorkbench: Experience = {
       environmentId: "vault-exchange-workbench",
       characterState: "ivy-working",
       hideCharacterFigure: true,
+      flatPresentation: true,
+      visual: vaultExchangeVisuals.authenticatePrimary,
       continueLabel: "Go to the close",
       intro: [
         {
@@ -513,6 +523,8 @@ export const vaultExchangeCryptoWorkbench: Experience = {
       environmentId: "vault-exchange-workbench",
       characterState: "ivy-briefing",
       hideCharacterFigure: true,
+      flatPresentation: true,
+      visual: vaultExchangeVisuals.closingRecap,
       continueLabel: "End of experience",
       intro: [
         {

@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { DemoLabShell } from "@/components/demo-lab/DemoLabShell";
 import { ExperiencePlayer } from "@/components/demo-lab/ExperiencePlayer";
 import { cyberfoundations } from "@/lib/demo-lab/programs";
-import { ivyVaultHeroImage } from "@/lib/demo-lab/characters";
+import { SceneVisualPanel } from "@/components/demo-lab/SceneVisualPanel";
+import { vaultExchangeVisuals } from "@/lib/demo-lab/experiences/vault-exchange-visuals";
 import { vaultExchangeCryptoWorkbench } from "@/lib/demo-lab/experiences/vault-exchange-crypto-workbench";
 
 const description =
@@ -48,12 +49,7 @@ function WorkbenchPage() {
               {experience.description}
             </p>
           </div>
-          <img
-            src={ivyVaultHeroImage}
-            alt="Ivy, Security Analyst — Vault Access Level 3, at the Vault Exchange"
-            className="h-full w-full rounded-lg object-cover"
-            loading="lazy"
-          />
+          <SceneVisualPanel visual={vaultExchangeVisuals.openingBriefing} />
         </div>
       </header>
       <ExperiencePlayer

@@ -3,7 +3,9 @@ import { EnvironmentLayer } from "./EnvironmentLayer";
 import { EvidencePanel } from "./EvidencePanel";
 import { InteractionLayer } from "./InteractionLayer";
 import { NeighborhoodRoute } from "./interactions/NeighborhoodRoute";
+import { SceneVisualPanel } from "./SceneVisualPanel";
 import { charactersById } from "@/lib/demo-lab/characters";
+import { cn } from "@/lib/utils";
 import type { Environment } from "@/lib/demo-lab/types";
 import type { ExperienceController } from "@/lib/demo-lab/useExperienceState";
 
@@ -47,10 +49,41 @@ export function SceneRenderer({
           characterState={controller.characterState}
           lines={scene.intro}
           visible={controller.dialogueVisible}
+          opaque={scene.flatPresentation ?? false}
         />
       ) : null}
 
-      {scene.interaction?.kind === "route-choice" ? (
+      {scene.flatPresentation ? (
+        /* Readability-first layout: artwork and text never share a surface. */
+        <div
+          className={cn(
+            "grid gap-5",
+            scene.visual ? "@4xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]" : "",
+          )}
+        >
+          {scene.visual ? <SceneVisualPanel visual={scene.visual} /> : null}
+          <div className="min-w-0 space-y-4">
+            <div className="rounded-xl border border-border bg-card p-4 text-card-foreground sm:p-6">
+              {scene.interaction ? (
+                <InteractionLayer
+                  interaction={scene.interaction}
+                  controller={controller}
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  This scene is defined in the experience configuration.
+                </p>
+              )}
+            </div>
+            <EvidencePanel items={visibleEvidence} title="On screen" />
+            {scene.retryPrompt ? (
+              <p className="rounded-lg border border-border bg-card p-3 text-xs text-muted-foreground">
+                {scene.retryPrompt}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      ) : scene.interaction?.kind === "route-choice" ? (
         <div className="grid gap-4 @4xl:grid-cols-[minmax(0,1fr)_minmax(0,18rem)]">
           <NeighborhoodRoute
             interaction={scene.interaction}

@@ -849,6 +849,20 @@ export interface SceneFacilitation {
   transition: string;
 }
 
+/**
+ * A lesson image rendered in its own clean panel. Nothing is ever drawn on
+ * top of it: no gradient, no text, no control.
+ */
+export interface SceneVisual {
+  src: string;
+  /** Meaningful alternative text — the image carries teaching content. */
+  alt: string;
+  /** Optional caption, rendered below the panel, never over the image. */
+  caption?: string;
+  /** `contain` when cropping could remove meaningful content. */
+  fit?: "contain" | "cover";
+}
+
 export interface Scene {
   id: string;
   title: string;
@@ -871,6 +885,14 @@ export interface Scene {
    * workbench): skip the in-scene figure rather than showing a stand-in.
    */
   hideCharacterFigure?: boolean;
+  /**
+   * Flat, readability-first presentation: no cinematic environment art, no
+   * overlays. Artwork sits in its own bordered panel and all instructional
+   * text/controls sit in a separate fully opaque panel.
+   */
+  flatPresentation?: boolean;
+  /** Lesson artwork for this scene, shown in its own panel. */
+  visual?: SceneVisual;
 
   intro: DialogueLine[];
   interaction?: Interaction;
@@ -909,6 +931,8 @@ export interface Experience {
   runOfShow?: Array<{ order: number; title: string; minutes: number; focus: string }>;
   /** Route to launch the experience. */
   route: string;
+  /** Optional card thumbnail, rendered beside the card text — never behind it. */
+  thumbnail?: SceneVisual;
 }
 
 export interface Week {
