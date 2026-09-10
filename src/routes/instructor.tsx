@@ -16,6 +16,7 @@ import {
 } from "@/lib/demo-lab/programs";
 import { useExperienceState } from "@/lib/demo-lab/useExperienceState";
 import { checkInstructorAccess } from "@/lib/demo-lab/instructor.functions";
+import { supabase } from "@/integrations/supabase/client";
 import type { Experience, Program, ProgramId, Scene } from "@/lib/demo-lab/types";
 import { cn } from "@/lib/utils";
 
