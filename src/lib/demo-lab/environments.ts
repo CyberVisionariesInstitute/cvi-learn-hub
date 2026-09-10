@@ -7,6 +7,7 @@ import noc from "@/assets/environments/cyberfoundations/noc.jpg";
 import remoteAccessWorkstation from "@/assets/environments/cyberfoundations/remote-access-workstation.jpg";
 import incidentResponseRoom from "@/assets/environments/cyberfoundations/incident-response-room.jpg";
 import briefingRoom from "@/assets/environments/cyberfoundations/briefing-room.jpg";
+import vaultExchangeWorkbench from "@/assets/environments/cyberfoundations/vault-exchange-workbench.jpg";
 import type { Environment } from "./types";
 
 /**
@@ -81,6 +82,14 @@ export const cyberfoundationsEnvironments: Environment[] = [
     description: "A conference room with a briefing display for the analyst statement.",
     surface: "wall-display",
     backgroundSrc: briefingRoom,
+  },
+  {
+    id: "vault-exchange-workbench",
+    name: "The Vault Exchange — Security Operations",
+    description:
+      "Ivy's Level 3 vault workbench: one incident report, four cryptographic stations.",
+    surface: "monitor",
+    backgroundSrc: vaultExchangeWorkbench,
   },
 ];
 
