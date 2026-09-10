@@ -46,8 +46,19 @@ export function ProgramExperienceBrowser({ program }: { program: Program }) {
                       <Link
                         key={experience.id}
                         to={experience.route}
-                        className="glass-panel block rounded-xl p-6 transition-transform hover:-translate-y-0.5 focus-visible:-translate-y-0.5"
+                        className="glass-panel grid gap-5 rounded-xl p-6 transition-transform hover:-translate-y-0.5 focus-visible:-translate-y-0.5 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]"
                       >
+                        {experience.thumbnail ? (
+                          <span className="block overflow-hidden rounded-lg border border-border bg-surface">
+                            <img
+                              src={experience.thumbnail.src}
+                              alt={experience.thumbnail.alt}
+                              loading="lazy"
+                              className="block aspect-[4/3] w-full object-cover"
+                            />
+                          </span>
+                        ) : null}
+                        <span className="block min-w-0">
                         <span className="flex flex-wrap items-center gap-3 text-xs tracking-[0.18em] uppercase">
                           <span className="text-primary">
                             {experienceTypeLabels[experience.type]}
