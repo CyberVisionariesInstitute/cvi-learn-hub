@@ -74,6 +74,24 @@ export const cyberfoundations: Program = {
         },
       ],
     },
+    {
+      id: "cf-module-3",
+      label: "Module 3",
+      title: "Practical Cryptography",
+      summary:
+        "What protects the information itself once access control is not enough.",
+      weeks: [
+        {
+          id: "cf-week-08",
+          label: "Week 8",
+          title: "The Vault Exchange",
+          summary:
+            "Encryption, hashing, digital signatures and public-key authentication, worked across one incident report at four stations.",
+          experienceIds: [vaultExchangeCryptoWorkbench.id],
+          status: "available",
+        },
+      ],
+    },
   ],
 };
 
