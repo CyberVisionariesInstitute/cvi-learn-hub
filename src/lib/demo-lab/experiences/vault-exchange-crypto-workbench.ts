@@ -74,6 +74,57 @@ export const vaultExchangeCryptoWorkbench: Experience = {
       flatPresentation: true,
       visual: vaultExchangeVisuals.openingBriefing,
       continueLabel: "Go to Station 1",
+      missionBrief: {
+        situation:
+          "The Guard Post can control access, but a copied incident report may still be readable or altered after it leaves the protected system.",
+        mission:
+          "Review the two security questions and identify what access control handles versus what cryptography handles.",
+        evidence: [
+          "“Should this traffic be allowed?” — this question is about the door and the path.",
+          "“Can someone read it, detect a change, verify approval, or prove key possession?” — this question is about the data itself, or the cryptographic proof attached to it.",
+        ],
+        decision: "Why is access control alone not enough?",
+        lookingFor:
+          "Access control decides who should get in; cryptography protects or verifies the information once someone has it. They are complementary layers.",
+        completeWhen:
+          "You can state that distinction in one sentence and are ready to test the same report at four stations.",
+      },
+      instructorAnswerGuide: {
+        actionSequence: [
+          "Read both security questions aloud with the room.",
+          "Sort each question into 'access' or 'data'.",
+          "State the distinction in one sentence before moving to Station 1.",
+        ],
+        expectedAnswer: [
+          {
+            text: "Access control controls entry; cryptography protects or verifies the information once someone has it. We need both.",
+          },
+        ],
+        whyCorrect:
+          "The two controls answer different questions. A permitted or copied file has already passed the access decision, so only protection applied to the data itself still helps.",
+        expectedEvidence: [
+          "The two questions displayed side by side, one about the path and one about the data.",
+        ],
+        misconceptions: [
+          {
+            wrong: "The firewall protects the file.",
+            correction:
+              "It controls permitted traffic, not the readability or integrity of a copied file.",
+          },
+        ],
+        followUp: {
+          question:
+            "If the firewall worked but a backup was exposed, what question comes next?",
+          desiredResponse:
+            "Can the person read it, and can we detect whether it changed?",
+        },
+        boundary:
+          "Nothing here proves any specific control is configured correctly; it only separates the access question from the data question.",
+        readyToAdvance: [
+          "Students distinguish access protection from data protection.",
+          "The room can state the distinction in one sentence.",
+        ],
+      },
       intro: [
         {
           id: "vx-brief-1",
@@ -110,6 +161,73 @@ export const vaultExchangeCryptoWorkbench: Experience = {
       flatPresentation: true,
       visual: vaultExchangeVisuals.protectPrimary,
       continueLabel: "Go to Station 2",
+      missionBrief: {
+        situation:
+          "The incident report is plaintext and readable by anyone who obtains the file.",
+        mission:
+          "Take the report from readable, to unreadable, and back to exactly what it was.",
+        steps: [
+          "Read the original plaintext report.",
+          "Select “Encrypt the report”.",
+          "Inspect the ciphertext and confirm it is no longer readable as the original report.",
+          "Select “Decrypt the report”.",
+          "Compare the recovered text to the original, character for character.",
+        ],
+        evidence: [
+          "The readable plaintext report before you start.",
+          "The unreadable illustrative ciphertext after encryption.",
+          "The recovered text after decryption, identical to the original.",
+        ],
+        decision: "What did encryption protect, and what did it not protect?",
+        lookingFor:
+          "Encryption protects confidentiality — the meaning of the content. It does not stop the file from being copied, stolen, deleted, corrupted, or misused by someone who has the key.",
+        completeWhen:
+          "Both Encrypt and Decrypt have been run and the exact original text is recovered.",
+      },
+      instructorAnswerGuide: {
+        actionSequence: [
+          "Read the plaintext report on screen.",
+          "Run “Encrypt the report” and inspect the ciphertext.",
+          "Run “Decrypt the report”.",
+          "Compare the recovered wording to the original line by line.",
+        ],
+        expectedAnswer: [
+          {
+            text: "Encryption changed readable plaintext into unreadable ciphertext and decryption recovered the exact original. It protects confidentiality, not possession or availability.",
+          },
+        ],
+        whyCorrect:
+          "The round trip demonstrates that the transformation hides meaning and is exactly reversible for the right holder — it says nothing about who holds or can delete the file.",
+        expectedEvidence: [
+          "Plaintext panel readable at the start.",
+          "Ciphertext panel unreadable after encryption.",
+          "Recovered plaintext identical to the original after decryption.",
+        ],
+        misconceptions: [
+          {
+            wrong: "Encryption prevents theft, deletion, or changes.",
+            correction:
+              "The encrypted object can still be stolen, deleted, or modified.",
+          },
+          {
+            wrong: "Ciphertext is a damaged file.",
+            correction:
+              "It is intentionally transformed and recoverable with the right key.",
+          },
+        ],
+        followUp: {
+          question: "What does an attacker still have?",
+          desiredResponse:
+            "A file they may copy or delete, but cannot understand without the key.",
+        },
+        boundary:
+          "This shows confidentiality only. It does not prove who holds the file, that the file still exists, or that the content is genuine.",
+        readyToAdvance: [
+          "Ciphertext has been inspected.",
+          "Recovery exactly matches the original plaintext.",
+          "Students state that confidentiality — not possession — was protected.",
+        ],
+      },
       intro: [
         {
           id: "vx-protect-1",
@@ -195,6 +313,71 @@ export const vaultExchangeCryptoWorkbench: Experience = {
       hideCharacterFigure: true,
       flatPresentation: true,
       continueLabel: "Go to Station 3",
+      missionBrief: {
+        situation:
+          "Two report copies look nearly identical, but one punctuation character changed.",
+        mission:
+          "Use a digest comparison to decide whether the two copies are the same document.",
+        steps: [
+          "Inspect both copies of the report.",
+          "Generate the SHA-256 digest for each copy.",
+          "Compare the complete digest values, not just the first few characters.",
+          "Choose the answer that correctly interprets the evidence.",
+        ],
+        evidence: [
+          "The two digest values differ even though only one character changed.",
+        ],
+        decision: "Are the files identical, and what can the hashes prove?",
+        lookingFor:
+          "No. Different digests mean the contents differ. A hash comparison detects change; it does not identify who changed the file, explain why it changed, prove authorship, hide the content, or recover an earlier version.",
+        completeWhen:
+          "Both digests are visible and you select “No — the digests differ, so the content differs.”",
+      },
+      instructorAnswerGuide: {
+        actionSequence: [
+          "Inspect both copies side by side.",
+          "Run the hash step to display both digests.",
+          "Compare the complete digest values.",
+          "Select the correct interpretation.",
+        ],
+        expectedAnswer: [
+          {
+            text: "The files differ because their complete SHA-256 digests differ.",
+          },
+        ],
+        whyCorrect:
+          "A digest is a fingerprint of the whole content. Any difference in the digests means the compared content is not the same.",
+        expectedEvidence: [
+          "Two digest displays with clearly different values.",
+          "The changed line highlighted in Copy B.",
+        ],
+        misconceptions: [
+          {
+            wrong: "The similar-looking digest proves the files are mostly the same.",
+            correction:
+              "Treat the digest as a complete value; any difference means the compared content differs.",
+          },
+          {
+            wrong: "The hash tells us who changed it.",
+            correction: "It detects a content difference only.",
+          },
+          {
+            wrong: "Hashing is reversible encryption.",
+            correction: "A digest is not used to recover the document.",
+          },
+        ],
+        followUp: {
+          question: "If the digests matched, what would that prove?",
+          desiredResponse:
+            "The checked content matches the recorded content; it would not prove authorship or owner identity.",
+        },
+        boundary:
+          "The comparison does not identify who changed the file, why it changed, who wrote it, or what the earlier version said.",
+        readyToAdvance: [
+          "Both digests are visible.",
+          "The correct interpretation has been selected.",
+        ],
+      },
       intro: [
         {
           id: "vx-compare-1",
@@ -312,6 +495,74 @@ export const vaultExchangeCryptoWorkbench: Experience = {
       hideCharacterFigure: true,
       flatPresentation: true,
       continueLabel: "Go to Station 4",
+      missionBrief: {
+        situation:
+          "A report claims to be approved. A typed name is weak evidence, so the cryptographic signature must be checked.",
+        mission:
+          "Verify the report before and after a change, and work out what verification actually proves.",
+        steps: [
+          "Verify the untouched report and observe the PASS result.",
+          "Change the specified line of the report.",
+          "Verify the altered report and observe the FAIL result.",
+          "Compare what PASS and FAIL each mean.",
+        ],
+        evidence: [
+          "Untouched content passes verification.",
+          "Altered content fails verification with the same signature and public key.",
+        ],
+        decision: "What does signature verification actually prove?",
+        lookingFor:
+          "PASS means the content matches what was signed and the private key paired with the verification public key was used. FAIL means the current content is not the signed content. It does not prove a human personally clicked Sign, identify who altered it, or make the document secret.",
+        completeWhen:
+          "You have observed one passing verification and one failing verification.",
+      },
+      instructorAnswerGuide: {
+        actionSequence: [
+          "Verify the untouched approved report — PASS.",
+          "Change the specified line.",
+          "Verify again — FAIL.",
+          "Optionally restore the approved wording and verify once more.",
+        ],
+        expectedAnswer: [
+          {
+            label: "PASS",
+            text: "The content matches what was signed and the paired private key was used.",
+          },
+          {
+            label: "FAIL",
+            text: "The current content no longer matches the signature; do not treat it as the approved document.",
+          },
+        ],
+        whyCorrect:
+          "Verification is a statement about a specific document and a specific key pair, so any change to the content breaks the match while the document itself stays readable.",
+        expectedEvidence: [
+          "“Signature verification: PASSED” on the untouched report.",
+          "“Signature verification: FAILED” after the line is changed.",
+          "The report text remains readable throughout.",
+        ],
+        misconceptions: [
+          {
+            wrong: "PASS proves Ivy personally signed it.",
+            correction:
+              "It proves use of Ivy's signing key; identity depends on control and trust of that key.",
+          },
+          {
+            wrong: "A signature encrypts the report.",
+            correction: "The report remains readable.",
+          },
+        ],
+        followUp: {
+          question: "What if someone stole the private key?",
+          desiredResponse:
+            "They could create signatures that verify, which is why private-key custody matters.",
+        },
+        boundary:
+          "Verification does not prove which human acted, who altered the document, or keep any content secret.",
+        readyToAdvance: [
+          "Both a PASS and a FAIL have been observed.",
+          "Students state that the key, not the person, is what was proven.",
+        ],
+      },
       intro: [
         {
           id: "vx-sign-1",
@@ -406,6 +657,72 @@ export const vaultExchangeCryptoWorkbench: Experience = {
       flatPresentation: true,
       visual: vaultExchangeVisuals.authenticatePrimary,
       continueLabel: "Go to the close",
+      missionBrief: {
+        situation:
+          "Ivy must log in to the existing analyst@localhost account using a key pair, without sending her private key.",
+        mission:
+          "Place each key where it belongs and run the simulated login proof.",
+        steps: [
+          "Place the public key on the server, in analyst's authorized_keys list.",
+          "Keep the private key with Ivy on her own device.",
+          "Run the simulated ssh analyst@localhost proof.",
+          "Read the server and client exchange line by line.",
+        ],
+        evidence: [
+          "The server has the public key on file.",
+          "The client computes the proof locally.",
+          "“Proof accepted” appears in the output.",
+          "The private key never travels, and the account password is not used.",
+        ],
+        decision: "Which key goes where, and what does the successful login prove?",
+        lookingFor:
+          "The public key goes on the server and may be shared. The private key stays with Ivy. A successful login proves possession of the matching private key — not transmission of it, and not absolute real-world identity.",
+        completeWhen:
+          "Both keys are placed correctly and the simulated login ends with “Welcome, analyst.”",
+      },
+      instructorAnswerGuide: {
+        actionSequence: [
+          "Place the public key on the server's authorized list.",
+          "Keep the private key with Ivy.",
+          "Run the simulated login proof.",
+          "Read the exchange aloud and point out that no key material is sent.",
+        ],
+        expectedAnswer: [
+          {
+            text: "The public key belongs in analyst's authorized_keys; the private key stays with Ivy. Login proves possession of the matching private key.",
+          },
+        ],
+        whyCorrect:
+          "The server only needs the public half to pose the challenge; the answer is computed on Ivy's machine, so possession is demonstrated without disclosure.",
+        expectedEvidence: [
+          "The public key listed in the server panel, the private key in Ivy's panel.",
+          "Output showing the proof computed locally and “Proof accepted.”",
+          "“Welcome, analyst.” as the final line.",
+        ],
+        misconceptions: [
+          {
+            wrong: "Upload the private key to the server.",
+            correction:
+              "Never distribute the private key; the proof is computed locally.",
+          },
+          {
+            wrong: "The key passphrase is the analyst account password.",
+            correction:
+              "A key passphrase protects the private-key file locally; it is not the remote account password.",
+          },
+        ],
+        followUp: {
+          question: "What crossed the network?",
+          desiredResponse: "A cryptographic proof, not the private key.",
+        },
+        boundary:
+          "A successful login proves key possession, not the real-world identity of the person holding the key.",
+        readyToAdvance: [
+          "Both keys are placed correctly.",
+          "The successful login output has been read.",
+          "Students state that possession — not transmission — was proven.",
+        ],
+      },
       intro: [
         {
           id: "vx-auth-1",
@@ -526,6 +843,75 @@ export const vaultExchangeCryptoWorkbench: Experience = {
       flatPresentation: true,
       visual: vaultExchangeVisuals.closingRecap,
       continueLabel: "End of experience",
+      missionBrief: {
+        situation:
+          "The same report passed through four stations because each tool solves a different security problem.",
+        mission:
+          "Review and match each need to the correct tool, then open the Week 9 bridge question.",
+        steps: [
+          "Read each row of the recap table.",
+          "Say the tool and the property it provides out loud.",
+          "Open next week's question.",
+        ],
+        evidence: [
+          "Keep content unreadable → Encryption → Confidentiality.",
+          "Detect whether content changed → Hashing / digest comparison → Integrity.",
+          "Verify signed content and the paired signing key → Digital signature verification → Integrity plus key-based authenticity.",
+          "Prove possession during login → Public-key authentication → Authentication and key possession.",
+        ],
+        decision: "What remains unresolved after learning how to use a public key?",
+        lookingFor:
+          "Knowing how to use a public key does not prove who owns it. The remaining question is how to trust that a public key belongs to the claimed person or system.",
+        completeWhen:
+          "The four mappings are reviewed and you reveal the Week 9 Trust Authority question. We do not answer it this week.",
+      },
+      instructorAnswerGuide: {
+        actionSequence: [
+          "Walk the four recap rows in order.",
+          "Ask the room to name the property each tool provides.",
+          "Reveal the Week 9 bridge question and stop there.",
+        ],
+        expectedAnswer: [
+          { text: "Keep content unreadable → Encryption → Confidentiality." },
+          {
+            text: "Detect whether content changed → Hashing / digest comparison → Integrity.",
+          },
+          {
+            text: "Verify signed content and paired signing key → Digital signature verification → Integrity plus key-based authenticity.",
+          },
+          {
+            text: "Prove possession during login → Public-key authentication → Authentication / key possession.",
+          },
+        ],
+        whyCorrect:
+          "Each station answered one distinct question, so each need maps to exactly one tool and one security property.",
+        expectedEvidence: [
+          "The four-row recap table displayed in full.",
+          "The Week 9 Trust Authority question revealed after the reveal action.",
+        ],
+        misconceptions: [
+          {
+            wrong: "One tool does all four jobs.",
+            correction: "Each tool answers a different question.",
+          },
+          {
+            wrong: "A valid public key proves who owns it.",
+            correction:
+              "The cryptographic relationship works, but ownership and trust are still unresolved.",
+          },
+        ],
+        followUp: {
+          question: "What is the Week 9 question?",
+          desiredResponse:
+            "How do I know this public key really belongs to the claimed person or system?",
+        },
+        boundary:
+          "None of these four tools establishes who owns a key. Certificates and certificate authorities are Week 9 — do not answer that question today.",
+        readyToAdvance: [
+          "The four mappings are clear to the room.",
+          "The Trust Authority question is revealed and left unanswered.",
+        ],
+      },
       intro: [
         {
           id: "vx-close-1",

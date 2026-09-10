@@ -850,6 +850,54 @@ export interface SceneFacilitation {
 }
 
 /**
+ * Explicit, student-facing mission instructions for one scene. Rendered in an
+ * opaque panel directly above the interaction — never over an image, never
+ * hidden in tooltips or instructor-only content.
+ */
+export interface MissionBrief {
+  /** What is happening and why it matters. */
+  situation: string;
+  /** The mission in one plain sentence. */
+  mission: string;
+  /** The exact actions to perform, in order. */
+  steps?: string[];
+  /** The specific visible result(s) to inspect. */
+  evidence: string[];
+  /** The exact question the learner must answer. */
+  decision: string;
+  /** The concept and wording that demonstrate understanding. */
+  lookingFor: string;
+  /** Objective completion criteria. */
+  completeWhen: string;
+}
+
+/** One misconception paired with its correction. */
+export interface InstructorMisconception {
+  wrong: string;
+  correction: string;
+}
+
+/**
+ * Structured answer guide for one scene. Instructor mode only — never
+ * rendered in the student experience.
+ */
+export interface InstructorAnswerGuide {
+  /** Correct learner action sequence. */
+  actionSequence: string[];
+  /** Exact expected answer(s), optionally labelled (e.g. PASS / FAIL). */
+  expectedAnswer: Array<{ label?: string; text: string }>;
+  /** Why that answer is correct. */
+  whyCorrect: string;
+  /** Expected on-screen evidence/result. */
+  expectedEvidence: string[];
+  misconceptions: InstructorMisconception[];
+  followUp: { question: string; desiredResponse: string };
+  /** What the evidence does not prove. */
+  boundary: string;
+  readyToAdvance: string[];
+}
+
+/**
  * A lesson image rendered in its own clean panel. Nothing is ever drawn on
  * top of it: no gradient, no text, no control.
  */
@@ -893,6 +941,10 @@ export interface Scene {
   flatPresentation?: boolean;
   /** Lesson artwork for this scene, shown in its own panel. */
   visual?: SceneVisual;
+  /** Explicit student-facing mission instructions, shown above the interaction. */
+  missionBrief?: MissionBrief;
+  /** Structured instructor answer guide, rendered only in instructor mode. */
+  instructorAnswerGuide?: InstructorAnswerGuide;
 
   intro: DialogueLine[];
   interaction?: Interaction;
