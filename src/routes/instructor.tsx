@@ -1,4 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  isRedirect,
+  Link,
+  redirect,
+} from "@tanstack/react-router";
 import { useState } from "react";
 import { DemoLabShell } from "@/components/demo-lab/DemoLabShell";
 import { useIsStaff } from "@/hooks/useIsStaff";
@@ -10,10 +15,12 @@ import {
   statusLabels,
 } from "@/lib/demo-lab/programs";
 import { useExperienceState } from "@/lib/demo-lab/useExperienceState";
+import { checkInstructorAccess } from "@/lib/demo-lab/instructor.functions";
 import type { Experience, Program, ProgramId, Scene } from "@/lib/demo-lab/types";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/instructor")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Instructor Console — CVI Demo Lab" },
@@ -28,8 +35,21 @@ export const Route = createFileRoute("/instructor")({
         content:
           "Facilitation controls for running CVI Demo Lab experiences during live instruction.",
       },
+      { name: "robots", content: "noindex" },
     ],
   }),
+  beforeLoad: async ({ location }) => {
+    try {
+      await checkInstructorAccess({});
+    } catch (error) {
+      if (isRedirect(error)) throw error;
+      throw redirect({
+        to: "/auth",
+        search: { redirect: location.href },
+        replace: true,
+      });
+    }
+  },
   component: InstructorConsole,
 });
 
