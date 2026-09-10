@@ -39,15 +39,23 @@ export const Route = createFileRoute("/instructor")({
     ],
   }),
   beforeLoad: async ({ location }) => {
-    try {
-      await checkInstructorAccess({});
-    } catch (error) {
-      if (isRedirect(error)) throw error;
-      throw redirect({
+    const toAuth = () =>
+      redirect({
         to: "/auth",
         search: { redirect: location.href },
         replace: true,
       });
+
+    // Check the client session first: calling the protected server function
+    // without a bearer token throws "Unauthorized: No authorization header".
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) throw toAuth();
+
+    try {
+      await checkInstructorAccess({});
+    } catch (error) {
+      if (isRedirect(error)) throw error;
+      throw toAuth();
     }
   },
   component: InstructorConsole,
