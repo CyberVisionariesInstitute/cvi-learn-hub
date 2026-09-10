@@ -445,3 +445,120 @@ function FacilitationGuide({
     </details>
   );
 }
+
+/**
+ * Explicit answer key for the current scene: expected answers, misconceptions
+ * and corrections, boundaries, and the ready-to-advance checklist.
+ * Instructor mode only — never rendered in the student experience.
+ */
+function AnswerGuide({
+  scene,
+  index,
+  presenting,
+}: {
+  scene: Scene;
+  index: number;
+  presenting: boolean;
+}) {
+  const guide = scene.instructorAnswerGuide!;
+
+  return (
+    <details
+      open={!presenting}
+      className="min-w-0 rounded-lg border border-evidence/40 bg-card p-4 text-card-foreground"
+    >
+      <summary className="cursor-pointer font-display text-sm text-foreground">
+        Answer guide — Scene {index + 1}: {scene.title}
+        <span className="ml-2 text-xs text-muted-foreground">(instructor only)</span>
+      </summary>
+
+      <div className="mt-4 space-y-4 text-sm leading-relaxed">
+        <section className="rounded-md border border-border bg-surface-raised/60 p-3">
+          <h4 className="text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+            Correct learner action sequence
+          </h4>
+          <ol className="mt-1.5 list-decimal space-y-1 pl-5 text-foreground">
+            {guide.actionSequence.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="rounded-md border border-evidence/50 bg-evidence/10 p-3">
+          <h4 className="text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+            Exact expected answer
+          </h4>
+          <ul className="mt-1.5 space-y-1 text-foreground">
+            {guide.expectedAnswer.map((answer) => (
+              <li key={answer.text}>
+                {answer.label ? (
+                  <span className="font-medium">{answer.label}: </span>
+                ) : null}
+                {answer.text}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-muted-foreground">
+            <span className="block text-[0.62rem] tracking-[0.2em] uppercase">
+              Why it is correct
+            </span>
+            {guide.whyCorrect}
+          </p>
+        </section>
+
+        <section className="rounded-md border border-border bg-surface-raised/60 p-3">
+          <h4 className="text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+            Expected on-screen evidence
+          </h4>
+          <ul className="mt-1.5 list-disc space-y-1 pl-5 text-foreground">
+            {guide.expectedEvidence.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="rounded-md border border-amber/50 bg-amber/10 p-3">
+          <h4 className="text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+            Common wrong answers and corrections
+          </h4>
+          <dl className="mt-1.5 space-y-2">
+            {guide.misconceptions.map((item) => (
+              <div key={item.wrong}>
+                <dt className="text-foreground">Wrong: “{item.wrong}”</dt>
+                <dd className="text-muted-foreground">Correction: {item.correction}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <section className="rounded-md border border-border bg-surface-raised/60 p-3">
+          <h4 className="text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+            Follow-up question
+          </h4>
+          <p className="mt-1.5 text-foreground">“{guide.followUp.question}”</p>
+          <p className="mt-1 text-muted-foreground">
+            Desired response: {guide.followUp.desiredResponse}
+          </p>
+        </section>
+
+        <p className="rounded-md border border-border p-3 text-muted-foreground">
+          <span className="block text-[0.62rem] tracking-[0.2em] uppercase">
+            Boundary — what this does not prove
+          </span>
+          {guide.boundary}
+        </p>
+
+        <section className="rounded-md border border-primary/40 bg-primary/10 p-3">
+          <h4 className="text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+            Ready to advance when
+          </h4>
+          <ul className="mt-1.5 list-disc space-y-1 pl-5 text-foreground">
+            {guide.readyToAdvance.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    </details>
+  );
+}
