@@ -46,7 +46,11 @@ export function ProgramExperienceBrowser({ program }: { program: Program }) {
                       <Link
                         key={experience.id}
                         to={experience.route}
-                        className="glass-panel grid gap-5 rounded-xl p-6 transition-transform hover:-translate-y-0.5 focus-visible:-translate-y-0.5 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]"
+                        className={`glass-panel grid gap-5 rounded-xl p-6 transition-transform hover:-translate-y-0.5 focus-visible:-translate-y-0.5 ${
+                          experience.thumbnail
+                            ? "sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]"
+                            : ""
+                        }`}
                       >
                         {experience.thumbnail ? (
                           <span className="block overflow-hidden rounded-lg border border-border bg-surface">
@@ -81,6 +85,7 @@ export function ProgramExperienceBrowser({ program }: { program: Program }) {
                           <span aria-hidden="true" className="text-primary">
                             →
                           </span>
+                        </span>
                         </span>
                       </Link>
                     ))}
