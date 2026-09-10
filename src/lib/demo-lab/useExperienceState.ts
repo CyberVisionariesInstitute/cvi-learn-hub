@@ -110,6 +110,37 @@ export function isSceneComplete(scene: Scene, state: SceneState): boolean {
         }) && meaning?.correct === true
       );
     }
+    case "crypto-workbench": {
+      const id = interaction.id;
+      const station = interaction.station;
+      switch (station.kind) {
+        case "protect":
+          return (
+            state.used.includes(`${id}:encrypt`) && state.used.includes(`${id}:decrypt`)
+          );
+        case "compare": {
+          const chosen = station.question.options.find(
+            (o) => o.id === state.answers[`${id}:same`],
+          );
+          return state.used.includes(`${id}:hash`) && chosen?.correct === true;
+        }
+        case "sign":
+          return (
+            state.used.includes(`${id}:verified-valid`) &&
+            state.used.includes(`${id}:verified-invalid`)
+          );
+        case "authenticate":
+          return (
+            station.items.every(
+              (item) => state.answers[item.id] === item.correctPlacement,
+            ) && state.used.includes(`${id}:connect`)
+          );
+        case "recap":
+          return state.used.includes(`${id}:bridge`);
+        default:
+          return true;
+      }
+    }
     default:
       return true;
   }

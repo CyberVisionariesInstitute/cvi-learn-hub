@@ -1,6 +1,8 @@
 import type { Character, CharacterAsset, CharacterMediaType, CharacterState } from "./types";
 
 import ivyPortrait from "@/assets/characters/ivy/ivy-portrait.webp";
+import ivyVaultHeadshot from "@/assets/characters/ivy-vault/ivy-vault-headshot.jpg";
+import ivyVaultHero from "@/assets/characters/ivy-vault/ivy-vault-hero.jpg";
 
 /**
  * Character media delivery.
@@ -128,10 +130,28 @@ export const ivy: Character = {
   productionArtwork: Boolean(ivyAssets["ivy-idle"]?.staticSrc),
 };
 
-export const cyberfoundationsCharacters: Character[] = [ivy];
+/**
+ * Module 3 Ivy — locked approved artwork (hero, headshot, security operations).
+ * These files are not regenerated, redesigned or substituted. The Module 3
+ * environment art already stages her at the workbench, so scenes there set
+ * `hideCharacterFigure` and only the headshot is used for dialogue.
+ */
+export const ivyVaultHeroImage = ivyVaultHero;
+
+export const ivyVault: Character = {
+  id: "ivy-vault",
+  name: "Ivy",
+  role: "Security Analyst — Vault Access Level 3",
+  accentToken: "violet",
+  portraitSrc: ivyVaultHeadshot,
+  productionArtwork: true,
+};
+
+export const cyberfoundationsCharacters: Character[] = [ivy, ivyVault];
 
 export const pkiCharacters: Character[] = [];
 
 export const charactersById: Record<string, Character> = {
   ivy,
+  "ivy-vault": ivyVault,
 };
