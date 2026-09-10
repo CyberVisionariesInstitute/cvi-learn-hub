@@ -43,7 +43,7 @@ export function SceneRenderer({
 
       {character ? (
         <DialogueLayer
-          {...(scene.hideCharacterFigure ? {} : { character })}
+          character={character}
           characterState={controller.characterState}
           lines={scene.intro}
           visible={controller.dialogueVisible}

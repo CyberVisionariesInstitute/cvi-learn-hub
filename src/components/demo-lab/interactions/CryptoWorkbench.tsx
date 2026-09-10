@@ -262,8 +262,9 @@ function SignStation({
       <DocumentPane
         title={station.documentTitle}
         lines={lines}
-        {...(changed ? { highlightLine: station.change.lineIndex } : {})}
-        caption={changed ? station.change.note : undefined}
+        {...(changed
+          ? { highlightLine: station.change.lineIndex, caption: station.change.note }
+          : {})}
       />
 
       <div className="rounded-md border border-border bg-surface-raised/50 p-3">
