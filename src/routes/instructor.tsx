@@ -342,6 +342,14 @@ function ExperienceConsole({ experience }: { experience: Experience }) {
               presenting={presenting}
             />
           ) : null}
+          {controller.scene.instructorAnswerGuide ? (
+            <AnswerGuide
+              key={`${controller.scene.id}-answers`}
+              scene={controller.scene}
+              index={controller.sceneIndex}
+              presenting={presenting}
+            />
+          ) : null}
           <SceneRenderer controller={controller} environments={program.environments} />
         </div>
       </div>
