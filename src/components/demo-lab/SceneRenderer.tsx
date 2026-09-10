@@ -49,6 +49,7 @@ export function SceneRenderer({
           characterState={controller.characterState}
           lines={scene.intro}
           visible={controller.dialogueVisible}
+          opaque={scene.flatPresentation ?? false}
         />
       ) : null}
 

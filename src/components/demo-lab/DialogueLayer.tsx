@@ -10,16 +10,25 @@ export function DialogueLayer({
   characterState,
   lines,
   visible,
+  opaque = false,
 }: {
   character: Character;
   characterState: CharacterState;
   lines: DialogueLine[];
   visible: boolean;
+  /** Readability-first scenes use a fully opaque, high-contrast surface. */
+  opaque?: boolean;
 }) {
   if (!visible || lines.length === 0) return null;
 
   return (
-    <div className="glass-panel rounded-lg p-4">
+    <div
+      className={
+        opaque
+          ? "rounded-lg border border-border bg-card p-4 text-card-foreground"
+          : "glass-panel rounded-lg p-4"
+      }
+    >
       <CharacterLayer character={character} state={characterState} />
       <div className="mt-3 space-y-3">
         {lines.map((line) => (
