@@ -70,7 +70,7 @@ export function SceneRenderer({
       ) : (
         <EnvironmentLayer
           environment={environment}
-          character={character}
+          {...(scene.hideCharacterFigure ? {} : { character })}
           characterState={controller.characterState}
           {...(scene.characterStaging ? { characterStaging: scene.characterStaging } : {})}
           bareSurface={scene.bareSurface ?? false}

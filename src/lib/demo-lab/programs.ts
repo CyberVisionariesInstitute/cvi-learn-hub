@@ -2,11 +2,13 @@ import { cyberfoundationsCharacters, pkiCharacters } from "./characters";
 import { cyberfoundationsEnvironments, pkiEnvironments } from "./environments";
 import { fromTheGridToCloudHeights } from "./experiences/from-the-grid-to-cloud-heights";
 import { cloudHeightsGuardPost } from "./experiences/cloud-heights-guard-post";
+import { vaultExchangeCryptoWorkbench } from "./experiences/vault-exchange-crypto-workbench";
 import type { Experience, Program, ProgramId } from "./types";
 
 export const experiences: Experience[] = [
   fromTheGridToCloudHeights,
   cloudHeightsGuardPost,
+  vaultExchangeCryptoWorkbench,
 ];
 
 export const cyberfoundations: Program = {
@@ -68,6 +70,24 @@ export const cyberfoundations: Program = {
           summary:
             "Rule priority, least privilege and paired testing, worked as a live security incident at the Cloud Heights Guard Post.",
           experienceIds: [cloudHeightsGuardPost.id],
+          status: "available",
+        },
+      ],
+    },
+    {
+      id: "cf-module-3",
+      label: "Module 3",
+      title: "Practical Cryptography",
+      summary:
+        "What protects the information itself once access control is not enough.",
+      weeks: [
+        {
+          id: "cf-week-08",
+          label: "Week 8",
+          title: "The Vault Exchange",
+          summary:
+            "Encryption, hashing, digital signatures and public-key authentication, worked across one incident report at four stations.",
+          experienceIds: [vaultExchangeCryptoWorkbench.id],
           status: "available",
         },
       ],

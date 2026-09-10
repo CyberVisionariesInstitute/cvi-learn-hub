@@ -112,7 +112,8 @@ export type EnvironmentId =
   | "pki-hsm-room"
   | "pki-trust-architecture-room"
   | "pki-incident-room"
-  | "pki-briefing-room";
+  | "pki-briefing-room"
+  | "vault-exchange-workbench";
 
 export interface Environment {
   id: EnvironmentId;
@@ -167,7 +168,8 @@ export type InteractionKind =
   | "briefing"
   | "investigation-request"
   | "rule-evaluation"
-  | "test-comparison";
+  | "test-comparison"
+  | "crypto-workbench";
 
 
 export interface ClassifyOption {
@@ -687,6 +689,122 @@ export interface TestComparisonInteraction {
 }
 
 /** Extend this union to add new interaction patterns. */
+/* ------------------------------------------------------------------ */
+/* crypto-workbench: one incident report, four cryptography stations   */
+/*                                                                     */
+/* Every value rendered by these stations is authored teaching content */
+/* — a clearly labelled conceptual model. No real cryptography is      */
+/* performed, and no real key, secret, password or passphrase is ever  */
+/* generated, displayed or stored.                                     */
+/* ------------------------------------------------------------------ */
+
+export interface CryptoTerm {
+  term: string;
+  meaning: string;
+}
+
+/** Station 1 — plaintext → ciphertext → recovered plaintext. */
+export interface CryptoProtectStation {
+  kind: "protect";
+  documentTitle: string;
+  plaintext: string[];
+  /** Authored unreadable representation. Not produced by a real cipher. */
+  ciphertext: string[];
+  encryptAction: string;
+  decryptAction: string;
+  captions: { plaintext: string; ciphertext: string; recovered: string };
+}
+
+/** Station 2 — two near-identical copies, two authored digest displays. */
+export interface CryptoCompareStation {
+  kind: "compare";
+  hashAction: string;
+  copies: Array<{
+    id: string;
+    label: string;
+    lines: string[];
+    /** Fictional SHA-256-style display value. Not a real calculation. */
+    digest: string;
+    /** Index of the line that differs, for the highlight cue. */
+    changedLineIndex?: number;
+  }>;
+  question: {
+    prompt: string;
+    options: Array<{ id: string; label: string; correct: boolean; response: string }>;
+  };
+}
+
+/** Station 3 — verify a signed report, change one line, verify again. */
+export interface CryptoSignStation {
+  kind: "sign";
+  documentTitle: string;
+  lines: string[];
+  signature: { label: string; value: string; signedBy: string; keyLabel: string };
+  verifyAction: string;
+  changeAction: string;
+  restoreAction: string;
+  /** Line the student is allowed to change, and what it becomes. */
+  change: { lineIndex: number; changedLine: string; note: string };
+  results: {
+    valid: { headline: string; body: string };
+    invalid: { headline: string; body: string };
+  };
+}
+
+/** Station 4 — public key to the server, private key stays with Ivy. */
+export interface CryptoAuthStation {
+  kind: "authenticate";
+  serverLabel: string;
+  serverDetail: string;
+  keeperLabel: string;
+  keeperDetail: string;
+  items: Array<{
+    id: string;
+    label: string;
+    detail: string;
+    /** Where this item legitimately belongs. */
+    correctPlacement: "server" | "keeper";
+    responses: Record<"server" | "keeper", string>;
+  }>;
+  connect: {
+    action: string;
+    command: string;
+    output: string[];
+    verdict: string;
+  };
+}
+
+/** Close — the four-row recap and the Week 9 bridge question. */
+export interface CryptoRecapStation {
+  kind: "recap";
+  rows: Array<{ goal: string; tool: string; detail: string }>;
+  revealAction: string;
+  bridge: { question: string; note: string };
+}
+
+export type CryptoStation =
+  | CryptoProtectStation
+  | CryptoCompareStation
+  | CryptoSignStation
+  | CryptoAuthStation
+  | CryptoRecapStation;
+
+export interface CryptoWorkbenchInteraction {
+  id: string;
+  kind: "crypto-workbench";
+  prompt: string;
+  instruction: string;
+  /** e.g. "Station 1 of 4 — Protect". Always stated as text. */
+  stationLabel: string;
+  /** Permanent "this is a conceptual model" disclosure. */
+  modelNote: string;
+  /** What this tool does not do. Rendered on the surface, never hidden. */
+  boundary: string;
+  terms: CryptoTerm[];
+  station: CryptoStation;
+  completion: { headline: string; body: string };
+}
+
 export type Interaction =
   | ClassifyInteraction
   | RouteChoiceInteraction
@@ -701,7 +819,8 @@ export type Interaction =
   | BriefingInteraction
   | InvestigationRequestInteraction
   | RuleEvaluationInteraction
-  | TestComparisonInteraction;
+  | TestComparisonInteraction
+  | CryptoWorkbenchInteraction;
 
 
 
@@ -747,6 +866,11 @@ export interface Scene {
    * board, briefing display) — the generic panel chrome is dropped.
    */
   bareSurface?: boolean;
+  /**
+   * The environment art already stages the character (or the scene is a flat
+   * workbench): skip the in-scene figure rather than showing a stand-in.
+   */
+  hideCharacterFigure?: boolean;
 
   intro: DialogueLine[];
   interaction?: Interaction;

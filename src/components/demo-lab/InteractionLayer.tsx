@@ -10,6 +10,7 @@ import { BriefingBoard } from "./interactions/BriefingBoard";
 import { InvestigationRequestBoard } from "./interactions/InvestigationRequestBoard";
 import { RuleEvaluationBoard } from "./interactions/RuleEvaluationBoard";
 import { TestComparisonPanel } from "./interactions/TestComparisonPanel";
+import { CryptoWorkbench } from "./interactions/CryptoWorkbench";
 import type { ExperienceController } from "@/lib/demo-lab/useExperienceState";
 import type {
   ClassifyInteraction,
@@ -265,6 +266,8 @@ export function InteractionLayer({
       return <RuleEvaluationBoard interaction={interaction} controller={controller} />;
     case "test-comparison":
       return <TestComparisonPanel interaction={interaction} controller={controller} />;
+    case "crypto-workbench":
+      return <CryptoWorkbench interaction={interaction} controller={controller} />;
     default:
       return null;
   }
