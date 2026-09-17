@@ -3,12 +3,14 @@ import { cyberfoundationsEnvironments, pkiEnvironments } from "./environments";
 import { fromTheGridToCloudHeights } from "./experiences/from-the-grid-to-cloud-heights";
 import { cloudHeightsGuardPost } from "./experiences/cloud-heights-guard-post";
 import { vaultExchangeCryptoWorkbench } from "./experiences/vault-exchange-crypto-workbench";
+import { trustAuthority } from "./experiences/trust-authority";
 import type { Experience, Program, ProgramId } from "./types";
 
 export const experiences: Experience[] = [
   fromTheGridToCloudHeights,
   cloudHeightsGuardPost,
   vaultExchangeCryptoWorkbench,
+  trustAuthority,
 ];
 
 export const cyberfoundations: Program = {
