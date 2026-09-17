@@ -81,7 +81,7 @@ export const cyberfoundations: Program = {
       label: "Module 3",
       title: "Practical Cryptography",
       summary:
-        "What protects the information itself once access control is not enough.",
+        "What protects the information itself once access control is not enough — and how to check who you are sending it to.",
       weeks: [
         {
           id: "cf-week-08",
@@ -90,6 +90,15 @@ export const cyberfoundations: Program = {
           summary:
             "Encryption, hashing, digital signatures and public-key authentication, worked across one incident report at four stations.",
           experienceIds: [vaultExchangeCryptoWorkbench.id],
+          status: "available",
+        },
+        {
+          id: "cf-week-09",
+          label: "Week 9",
+          title: "The Trust Authority",
+          summary:
+            "Certificates, trust chains and warnings: can Ivy trust this connection? Four stations from reading a certificate to stating the limits of a pass.",
+          experienceIds: [trustAuthority.id],
           status: "available",
         },
       ],
