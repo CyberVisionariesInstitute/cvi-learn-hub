@@ -1,6 +1,7 @@
-import ivyVaultHero from "@/assets/characters/ivy-vault/ivy-vault-hero.jpg";
-import ivyVaultHeadshot from "@/assets/characters/ivy-vault/ivy-vault-headshot.jpg";
-import vaultExchangeWorkbench from "@/assets/environments/cyberfoundations/vault-exchange-workbench.jpg";
+import week9Entrance from "@/assets/environments/cyberfoundations/week9/week9-entrance.png.asset.json";
+import week9Gallery from "@/assets/environments/cyberfoundations/week9/week9-gallery.png.asset.json";
+import week9Inspection from "@/assets/environments/cyberfoundations/week9/week9-inspection.png.asset.json";
+import week9Investigation from "@/assets/environments/cyberfoundations/week9/week9-investigation.png.asset.json";
 import type { SceneVisual } from "../types";
 
 /**
@@ -9,10 +10,9 @@ import type { SceneVisual } from "../types";
  * One typed slot per teaching role, matching the Week 8 convention: artwork
  * always sits in its own bordered panel beside the text, never underneath it.
  *
- * TEMPORARY FALLBACKS: dedicated Week 9 lesson illustrations are not in the
- * repository yet, so each slot reuses approved Module 3 artwork. All technical
- * labels (certificate fields, chain diagrams) are rendered as HTML/SVG in the
- * interaction, never baked into an image.
+ * Approved Week 9 story illustrations. These images establish place and mood;
+ * they are never presented as certificate or chain evidence. All technical
+ * labels, fields and diagrams remain readable HTML/SVG in the interaction.
  */
 export type TrustVisualSlot =
   | "browserThumbnail"
@@ -25,42 +25,42 @@ export type TrustVisualSlot =
 
 export const trustAuthorityVisuals: Record<TrustVisualSlot, SceneVisual> = {
   browserThumbnail: {
-    src: vaultExchangeWorkbench,
-    alt: "The Vault Exchange workbench, where Ivy checks the destination certificate",
+    src: week9Entrance.url,
+    alt: "The bright marble entrance hall of the Trust Authority, with a circular vault door beyond the security gates",
     fit: "cover",
   },
   openingBriefing: {
-    src: ivyVaultHero,
-    alt: "Ivy, Security Analyst — Vault Access Level 3, preparing to send the protected report",
+    src: week9Entrance.url,
+    alt: "The Trust Authority entrance hall, where Ivy begins checking the destination before sending the protected report",
     caption: "Ivy protected the report. Now she has to reach the right destination.",
     fit: "contain",
   },
   inspectPrimary: {
-    src: vaultExchangeWorkbench,
-    alt: "The Vault Exchange workbench used for the certificate inspection station",
+    src: week9Inspection.url,
+    alt: "A lit inspection desk displaying a fictional identification badge beside a magnifying glass and laptop",
     caption: "Station 1 — read the badge before you believe the badge.",
     fit: "contain",
   },
   chainPrimary: {
-    src: vaultExchangeWorkbench,
-    alt: "The Vault Exchange workbench used for the trust chain station",
+    src: week9Gallery.url,
+    alt: "A gallery of glowing keys displayed at different points through the Trust Authority hall",
     caption: "Station 2 — who signed this, and who does the client actually trust?",
     fit: "contain",
   },
   warningPrimary: {
-    src: ivyVaultHeadshot,
-    alt: "Ivy reading a certificate warning carefully rather than clicking through it",
+    src: week9Investigation.url,
+    alt: "An investigation workstation with three monitors, including a visible warning symbol on the center screen",
     caption: "Station 3 — read the warning before deciding anything.",
     fit: "contain",
   },
   decisionPrimary: {
-    src: ivyVaultHero,
-    alt: "Ivy making the final connect-or-stop decision at the Vault Exchange",
+    src: week9Investigation.url,
+    alt: "The Trust Authority investigation desk where Ivy compares evidence before making the final connection decision",
     fit: "contain",
   },
   closingRecap: {
-    src: vaultExchangeWorkbench,
-    alt: "The Vault Exchange workbench at the close of the Week 9 session",
+    src: week9Entrance.url,
+    alt: "The Trust Authority entrance hall after Ivy completes the destination check",
     fit: "contain",
   },
 };
