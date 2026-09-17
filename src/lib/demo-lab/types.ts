@@ -169,7 +169,8 @@ export type InteractionKind =
   | "investigation-request"
   | "rule-evaluation"
   | "test-comparison"
-  | "crypto-workbench";
+  | "crypto-workbench"
+  | "trust-authority";
 
 
 export interface ClassifyOption {
@@ -805,6 +806,169 @@ export interface CryptoWorkbenchInteraction {
   completion: { headline: string; body: string };
 }
 
+/* ------------------------------------------------------------------ */
+/* trust-authority: certificate inspection, chains, warnings, decision */
+/*                                                                     */
+/* Every certificate, chain, warning and check result below is         */
+/* authored teaching content using reserved .example names and a fixed */
+/* scenario reference time. No TLS handshake is performed, no OpenSSL  */
+/* command is executed, and no real certificate is parsed.             */
+/* ------------------------------------------------------------------ */
+
+/** Station 1 — read the certificate the way you read an ID badge. */
+export interface TrustInspectStation {
+  kind: "inspect";
+  /** Fixed scenario clock. Never "today" — validity is judged against this. */
+  referenceTime: string;
+  /** The hostname Ivy actually asked for. */
+  requestedHostname: string;
+  /** ID-badge analogy, with its limits stated on the surface. */
+  analogy: { headline: string; body: string; limits: string[] };
+  certificateTitle: string;
+  /** Certificate field cards. Detail is revealed by inspecting the card. */
+  fields: Array<{ id: string; label: string; value: string; detail: string }>;
+  questions: Array<{
+    id: string;
+    prompt: string;
+    options: Array<{ id: string; label: string; correct: boolean; response: string }>;
+  }>;
+}
+
+/** Station 2 — order the chain, then toggle the client's trust store. */
+export interface TrustChainStation {
+  kind: "chain";
+  /** Certificates offered in a fixed, non-answer order. */
+  certificates: Array<{
+    id: string;
+    label: string;
+    subject: string;
+    issuer: string;
+    detail: string;
+  }>;
+  /** Three labelled slots, top (leaf) to bottom (trust anchor). */
+  slots: Array<{ id: string; label: string; hint: string }>;
+  /** Ordered certificate ids matching `slots`. */
+  correctOrder: string[];
+  /** "Signed by" is not the same as "trusted by". Always on the surface. */
+  signingNote: string;
+  /** Self-signature is not a trust decision. */
+  selfSignedNote: string;
+  /** Servers send leaf + intermediates, not their root. */
+  deliveryNote: string;
+  trustStore: {
+    label: string;
+    trustedLabel: string;
+    untrustedLabel: string;
+    trusted: { verdict: string; body: string };
+    untrusted: { verdict: string; body: string };
+    question: {
+      prompt: string;
+      options: Array<{ id: string; label: string; correct: boolean; response: string }>;
+    };
+  };
+  /** Missing intermediate and untrusted root are distinct failures. */
+  distinctFailures: Array<{ label: string; detail: string }>;
+}
+
+/** One investigable client warning. */
+export interface TrustWarningCase {
+  id: string;
+  label: string;
+  summary: string;
+  /** The literal message the client shows. */
+  clientMessage: string;
+  evidence: Array<{ label: string; value: string }>;
+  diagnosis: {
+    prompt: string;
+    options: Array<{ id: string; label: string; correct: boolean; response: string }>;
+  };
+  action: {
+    prompt: string;
+    options: Array<{ id: string; label: string; safe: boolean; response: string }>;
+  };
+  explanation: string;
+}
+
+/** Station 3 — three warnings, diagnosed one at a time. */
+export interface TrustWarningStation {
+  kind: "warning";
+  cases: TrustWarningCase[];
+  /** Predict-first control: nothing is revealed until this is pressed. */
+  revealAction: string;
+  resetCaseAction: string;
+  /** Never bypass, never install an unverified root. */
+  safetyNote: string;
+}
+
+/** One end-to-end decision scenario. */
+export interface TrustDecisionScenario {
+  id: string;
+  label: string;
+  summary: string;
+  checks: Array<{ label: string; result: "pass" | "fail"; detail: string }>;
+  verdict: {
+    prompt: string;
+    options: Array<{ id: string; label: string; correct: boolean; response: string }>;
+  };
+  evidence: {
+    prompt: string;
+    options: Array<{
+      id: string;
+      label: string;
+      supporting: boolean;
+      response: string;
+    }>;
+  };
+  limit: {
+    prompt: string;
+    options: Array<{ id: string; label: string; correct: boolean; response: string }>;
+  };
+}
+
+/** Station 4 — one passing case, one failing case, and the limits. */
+export interface TrustDecisionStation {
+  kind: "decision";
+  scenarios: TrustDecisionScenario[];
+  revealAction: string;
+  /** Possession of the private key is proved separately from the certificate. */
+  possessionNote: string;
+  /** Name/date/path is a beginner checklist, not a complete validator. */
+  checklistNote: string;
+}
+
+/** Close — the recap table and the plain-language takeaway. */
+export interface TrustRecapStation {
+  kind: "recap";
+  rows: Array<{ question: string; check: string; detail: string }>;
+  revealAction: string;
+  takeaway: { headline: string; body: string };
+}
+
+export type TrustStation =
+  | TrustInspectStation
+  | TrustChainStation
+  | TrustWarningStation
+  | TrustDecisionStation
+  | TrustRecapStation;
+
+export interface TrustAuthorityInteraction {
+  id: string;
+  kind: "trust-authority";
+  prompt: string;
+  instruction: string;
+  /** e.g. "Station 2 of 4 — Follow the trust chain". Always text. */
+  stationLabel: string;
+  /** Permanent "this is authored teaching content" disclosure. */
+  modelNote: string;
+  /** What this station does not prove. Rendered on the surface. */
+  boundary: string;
+  /** The fixed scenario clock, restated on every station. */
+  referenceTime: string;
+  terms: CryptoTerm[];
+  station: TrustStation;
+  completion: { headline: string; body: string };
+}
+
 export type Interaction =
   | ClassifyInteraction
   | RouteChoiceInteraction
@@ -820,7 +984,9 @@ export type Interaction =
   | InvestigationRequestInteraction
   | RuleEvaluationInteraction
   | TestComparisonInteraction
-  | CryptoWorkbenchInteraction;
+  | CryptoWorkbenchInteraction
+  | TrustAuthorityInteraction;
+
 
 
 
@@ -878,12 +1044,39 @@ export interface InstructorMisconception {
 }
 
 /**
+ * Per-scenario answer key: one entry per selectable warning case or final
+ * decision scenario inside a station. Instructor mode only.
+ */
+export interface ScenarioAnswerGuide {
+  id: string;
+  title: string;
+  /** Exact click/action sequence in the finished UI. */
+  actionSequence: string[];
+  /** Suggested words for explaining the task to the room. */
+  sayThis: string;
+  /** Expected answer as a complete sentence. */
+  expectedAnswer: string;
+  expectedEvidence: string[];
+  whyCorrect: string;
+  misconceptions: InstructorMisconception[];
+  followUp: { question: string; desiredResponse: string };
+  boundary: string;
+  readyToAdvance: string[];
+}
+
+/**
  * Structured answer guide for one scene. Instructor mode only — never
  * rendered in the student experience.
  */
 export interface InstructorAnswerGuide {
   /** Correct learner action sequence. */
   actionSequence: string[];
+  /** Suggested words for explaining the task to the room. */
+  sayThis?: string;
+  /** Optional facilitation cue: ask for predictions before revealing. */
+  predictionPrompt?: string;
+  /** Answer keys for each selectable case/scenario within the station. */
+  scenarioGuides?: ScenarioAnswerGuide[];
   /** Exact expected answer(s), optionally labelled (e.g. PASS / FAIL). */
   expectedAnswer: Array<{ label?: string; text: string }>;
   /** Why that answer is correct. */
