@@ -141,6 +141,72 @@ export function isSceneComplete(scene: Scene, state: SceneState): boolean {
           return true;
       }
     }
+    case "trust-authority": {
+      const id = interaction.id;
+      const station = interaction.station;
+      switch (station.kind) {
+        case "inspect":
+          return (
+            station.fields.every((f) => state.used.includes(`${id}:field:${f.id}`)) &&
+            station.questions.every((q) => {
+              const chosen = state.answers[`${id}:q:${q.id}`];
+              return q.options.find((o) => o.id === chosen)?.correct === true;
+            })
+          );
+        case "chain": {
+          const orderedCorrectly = station.slots.every(
+            (slot, i) =>
+              state.answers[`${id}:slot:${slot.id}`] === station.correctOrder[i],
+          );
+          const storeChoice = state.answers[`${id}:store-answer`];
+          return (
+            orderedCorrectly &&
+            state.used.includes(`${id}:trusted`) &&
+            state.used.includes(`${id}:untrusted`) &&
+            station.trustStore.question.options.find((o) => o.id === storeChoice)
+              ?.correct === true
+          );
+        }
+        case "warning":
+          return station.cases.every((c) => {
+            const diagnosis = c.diagnosis.options.find(
+              (o) => o.id === state.answers[`${c.id}:diagnosis`],
+            );
+            const action = c.action.options.find(
+              (o) => o.id === state.answers[`${c.id}:action`],
+            );
+            return (
+              state.used.includes(`${c.id}:revealed`) &&
+              diagnosis?.correct === true &&
+              action?.safe === true
+            );
+          });
+        case "decision":
+          return station.scenarios.every((s) => {
+            const verdict = s.verdict.options.find(
+              (o) => o.id === state.answers[`${s.id}:verdict`],
+            );
+            const limit = s.limit.options.find(
+              (o) => o.id === state.answers[`${s.id}:limit`],
+            );
+            const evidenceCorrect = s.evidence.options.every(
+              (o) =>
+                (state.answers[`${s.id}:evidence:${o.id}`] === "selected") ===
+                o.supporting,
+            );
+            return (
+              state.used.includes(`${s.id}:revealed`) &&
+              verdict?.correct === true &&
+              evidenceCorrect &&
+              limit?.correct === true
+            );
+          });
+        case "recap":
+          return state.used.includes(`${id}:takeaway`);
+        default:
+          return true;
+      }
+    }
     default:
       return true;
   }

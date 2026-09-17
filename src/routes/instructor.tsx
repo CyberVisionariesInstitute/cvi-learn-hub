@@ -502,6 +502,24 @@ function AnswerGuide({
       </summary>
 
       <div className="mt-4 space-y-4 text-sm leading-relaxed">
+        {guide.sayThis ? (
+          <p className="rounded-md border border-primary/40 bg-primary/10 p-3 text-foreground">
+            <span className="block text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+              Suggested words
+            </span>
+            “{guide.sayThis}”
+          </p>
+        ) : null}
+
+        {guide.predictionPrompt ? (
+          <p className="rounded-md border border-amber/50 bg-amber/10 p-3 text-foreground">
+            <span className="block text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+              Facilitation option — predict before revealing
+            </span>
+            {guide.predictionPrompt}
+          </p>
+        ) : null}
+
         <section className="rounded-md border border-border bg-surface-raised/60 p-3">
           <h4 className="text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
             Correct learner action sequence
@@ -587,6 +605,104 @@ function AnswerGuide({
             ))}
           </ul>
         </section>
+
+        {guide.scenarioGuides?.length ? (
+          <section className="space-y-3">
+            <h4 className="text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+              Case-by-case answer key
+            </h4>
+            {guide.scenarioGuides.map((entry) => (
+              <details
+                key={entry.id}
+                className="rounded-md border border-evidence/40 bg-surface-raised/60 p-3"
+              >
+                <summary className="cursor-pointer font-display text-sm text-foreground">
+                  {entry.title}
+                </summary>
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <h5 className="text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+                      Click / action sequence
+                    </h5>
+                    <ol className="mt-1 list-decimal space-y-1 pl-5 text-foreground">
+                      {entry.actionSequence.map((step) => (
+                        <li key={step}>{step}</li>
+                      ))}
+                    </ol>
+                  </div>
+                  <p className="rounded-md border border-primary/40 bg-primary/10 p-3 text-foreground">
+                    <span className="block text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+                      Suggested words
+                    </span>
+                    “{entry.sayThis}”
+                  </p>
+                  <p className="rounded-md border border-evidence/50 bg-evidence/10 p-3 text-foreground">
+                    <span className="block text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+                      Expected answer
+                    </span>
+                    {entry.expectedAnswer}
+                  </p>
+                  <div>
+                    <h5 className="text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+                      Exact supporting evidence
+                    </h5>
+                    <ul className="mt-1 list-disc space-y-1 pl-5 text-foreground">
+                      {entry.expectedEvidence.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <p className="text-muted-foreground">
+                    <span className="block text-[0.62rem] tracking-[0.2em] uppercase">
+                      Why it is correct
+                    </span>
+                    {entry.whyCorrect}
+                  </p>
+                  <div className="rounded-md border border-amber/50 bg-amber/10 p-3">
+                    <h5 className="text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+                      Common wrong answers and corrections
+                    </h5>
+                    <dl className="mt-1.5 space-y-2">
+                      {entry.misconceptions.map((item) => (
+                        <div key={item.wrong}>
+                          <dt className="text-foreground">Wrong: “{item.wrong}”</dt>
+                          <dd className="text-muted-foreground">
+                            Correction: {item.correction}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                  <div>
+                    <h5 className="text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+                      Follow-up question
+                    </h5>
+                    <p className="mt-1 text-foreground">“{entry.followUp.question}”</p>
+                    <p className="text-muted-foreground">
+                      Desired response: {entry.followUp.desiredResponse}
+                    </p>
+                  </div>
+                  <p className="rounded-md border border-border p-3 text-muted-foreground">
+                    <span className="block text-[0.62rem] tracking-[0.2em] uppercase">
+                      What this does not prove
+                    </span>
+                    {entry.boundary}
+                  </p>
+                  <div>
+                    <h5 className="text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+                      Ready to advance when
+                    </h5>
+                    <ul className="mt-1 list-disc space-y-1 pl-5 text-foreground">
+                      {entry.readyToAdvance.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </details>
+            ))}
+          </section>
+        ) : null}
       </div>
     </details>
   );
