@@ -6,6 +6,7 @@ import {
 import { cyberfoundations, getExperience } from "./programs";
 import { isSceneComplete, type SceneState } from "./useExperienceState";
 import { vaultExchangeCryptoWorkbench } from "./experiences/vault-exchange-crypto-workbench";
+import { trustAuthorityVisuals } from "./experiences/trust-authority-visuals";
 import type {
   TrustAuthorityInteraction,
   TrustChainStation,
@@ -59,6 +60,44 @@ describe("Week 9 registration and routing", () => {
     expect(total).toBeGreaterThanOrEqual(33);
     expect(total).toBeLessThanOrEqual(35);
     expect(trustAuthority.replayAvailable).toBe(true);
+  });
+});
+
+describe("Week 9 approved artwork mappings", () => {
+  it("uses all four permanent Week 9 project assets", () => {
+    const sources = Object.values(trustAuthorityVisuals).map((visual) => visual.src);
+    expect(sources.every((src) => src.startsWith("/__l5e/assets-v1/"))).toBe(true);
+    expect(sources.some((src) => src.endsWith("/week9-entrance.png"))).toBe(true);
+    expect(sources.some((src) => src.endsWith("/week9-inspection.png"))).toBe(true);
+    expect(sources.some((src) => src.endsWith("/week9-gallery.png"))).toBe(true);
+    expect(sources.some((src) => src.endsWith("/week9-investigation.png"))).toBe(true);
+  });
+
+  it("maps the approved artwork to the browser card and all six scenes", () => {
+    expect(trustAuthority.thumbnail).toBe(trustAuthorityVisuals.browserThumbnail);
+    expect(scenes.map((scene) => scene.visual)).toEqual([
+      trustAuthorityVisuals.openingBriefing,
+      trustAuthorityVisuals.inspectPrimary,
+      trustAuthorityVisuals.chainPrimary,
+      trustAuthorityVisuals.warningPrimary,
+      trustAuthorityVisuals.decisionPrimary,
+      trustAuthorityVisuals.closingRecap,
+    ]);
+  });
+
+  it("keeps station art contained and the card thumbnail cropped", () => {
+    expect(trustAuthorityVisuals.browserThumbnail.fit).toBe("cover");
+    for (const [slot, visual] of Object.entries(trustAuthorityVisuals)) {
+      expect(visual.alt.length, `${slot} alt text`).toBeGreaterThan(30);
+      if (slot !== "browserThumbnail") expect(visual.fit).toBe("contain");
+    }
+  });
+
+  it("uses the same scene objects in the protected instructor console", () => {
+    for (const scene of scenes) {
+      expect(scene.visual).toBeDefined();
+      expect(scene.instructorAnswerGuide).toBeDefined();
+    }
   });
 });
 
