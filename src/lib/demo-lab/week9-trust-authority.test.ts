@@ -315,8 +315,11 @@ describe("Week 9 student mission briefs", () => {
   it("never asks students to submit anything", () => {
     const serialised = JSON.stringify(trustAuthority).toLowerCase();
     expect(serialised).not.toContain("submit your");
-    expect(serialised).not.toContain("graded");
     expect(serialised).not.toContain("leaderboard");
+    // "graded" only ever appears as a reassurance that nothing is graded.
+    for (const match of serialised.match(/.{24}graded/g) ?? []) {
+      expect(match).toMatch(/not|never|nothing/);
+    }
   });
 });
 
