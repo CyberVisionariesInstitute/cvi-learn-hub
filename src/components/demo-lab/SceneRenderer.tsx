@@ -74,7 +74,7 @@ export function SceneRenderer({
                 />
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  This scene is defined in the experience configuration.
+                  Read the brief, then continue when the room is ready.
                 </p>
               )}
             </div>
