@@ -502,6 +502,24 @@ function AnswerGuide({
       </summary>
 
       <div className="mt-4 space-y-4 text-sm leading-relaxed">
+        {guide.sayThis ? (
+          <p className="rounded-md border border-primary/40 bg-primary/10 p-3 text-foreground">
+            <span className="block text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+              Suggested words
+            </span>
+            “{guide.sayThis}”
+          </p>
+        ) : null}
+
+        {guide.predictionPrompt ? (
+          <p className="rounded-md border border-amber/50 bg-amber/10 p-3 text-foreground">
+            <span className="block text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
+              Facilitation option — predict before revealing
+            </span>
+            {guide.predictionPrompt}
+          </p>
+        ) : null}
+
         <section className="rounded-md border border-border bg-surface-raised/60 p-3">
           <h4 className="text-[0.62rem] tracking-[0.2em] text-muted-foreground uppercase">
             Correct learner action sequence
