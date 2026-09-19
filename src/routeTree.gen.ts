@@ -27,6 +27,7 @@ import { Route as CyberfoundationsWeek07CloudHeightsGuardPostRouteImport } from 
 import { Route as CyberfoundationsWeek08VaultExchangeCryptoWorkbenchRouteImport } from './routes/cyberfoundations.week-08.vault-exchange-crypto-workbench'
 import { Route as CyberfoundationsWeek09TrustAuthorityRouteImport } from './routes/cyberfoundations.week-09.trust-authority'
 import { Route as CyberfoundationsWeek10IndexRouteImport } from './routes/cyberfoundations.week-10.index'
+import { Route as CyberfoundationsWeek10InstructorRouteImport } from './routes/cyberfoundations.week-10.instructor'
 import { Route as CyberfoundationsWeek10Lab1RouteImport } from './routes/cyberfoundations.week-10.lab-1'
 import { Route as CyberfoundationsWeek10Lab2RouteImport } from './routes/cyberfoundations.week-10.lab-2'
 import { Route as PkiCapstoneIndexRouteImport } from './routes/pki.capstone.index'
@@ -129,6 +130,12 @@ const CyberfoundationsWeek10IndexRoute =
     path: '/cyberfoundations/week-10/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const CyberfoundationsWeek10InstructorRoute =
+  CyberfoundationsWeek10InstructorRouteImport.update({
+    id: '/cyberfoundations/week-10/instructor',
+    path: '/cyberfoundations/week-10/instructor',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const CyberfoundationsWeek10Lab1Route =
   CyberfoundationsWeek10Lab1RouteImport.update({
     id: '/cyberfoundations/week-10/lab-1',
@@ -180,6 +187,7 @@ export interface FileRoutesByFullPath {
   '/cyberfoundations/week-07/cloud-heights-guard-post': typeof CyberfoundationsWeek07CloudHeightsGuardPostRoute
   '/cyberfoundations/week-08/vault-exchange-crypto-workbench': typeof CyberfoundationsWeek08VaultExchangeCryptoWorkbenchRoute
   '/cyberfoundations/week-09/trust-authority': typeof CyberfoundationsWeek09TrustAuthorityRoute
+  '/cyberfoundations/week-10/instructor': typeof CyberfoundationsWeek10InstructorRoute
   '/cyberfoundations/week-10/lab-1': typeof CyberfoundationsWeek10Lab1Route
   '/cyberfoundations/week-10/lab-2': typeof CyberfoundationsWeek10Lab2Route
   '/pki/capstone/$stage': typeof PkiCapstoneStageRoute
@@ -204,6 +212,7 @@ export interface FileRoutesByTo {
   '/cyberfoundations/week-07/cloud-heights-guard-post': typeof CyberfoundationsWeek07CloudHeightsGuardPostRoute
   '/cyberfoundations/week-08/vault-exchange-crypto-workbench': typeof CyberfoundationsWeek08VaultExchangeCryptoWorkbenchRoute
   '/cyberfoundations/week-09/trust-authority': typeof CyberfoundationsWeek09TrustAuthorityRoute
+  '/cyberfoundations/week-10/instructor': typeof CyberfoundationsWeek10InstructorRoute
   '/cyberfoundations/week-10/lab-1': typeof CyberfoundationsWeek10Lab1Route
   '/cyberfoundations/week-10/lab-2': typeof CyberfoundationsWeek10Lab2Route
   '/pki/capstone/$stage': typeof PkiCapstoneStageRoute
@@ -231,6 +240,7 @@ export interface FileRoutesById {
   '/cyberfoundations/week-07/cloud-heights-guard-post': typeof CyberfoundationsWeek07CloudHeightsGuardPostRoute
   '/cyberfoundations/week-08/vault-exchange-crypto-workbench': typeof CyberfoundationsWeek08VaultExchangeCryptoWorkbenchRoute
   '/cyberfoundations/week-09/trust-authority': typeof CyberfoundationsWeek09TrustAuthorityRoute
+  '/cyberfoundations/week-10/instructor': typeof CyberfoundationsWeek10InstructorRoute
   '/cyberfoundations/week-10/lab-1': typeof CyberfoundationsWeek10Lab1Route
   '/cyberfoundations/week-10/lab-2': typeof CyberfoundationsWeek10Lab2Route
   '/pki/capstone/$stage': typeof PkiCapstoneStageRoute
@@ -259,6 +269,7 @@ export interface FileRouteTypes {
     | '/cyberfoundations/week-07/cloud-heights-guard-post'
     | '/cyberfoundations/week-08/vault-exchange-crypto-workbench'
     | '/cyberfoundations/week-09/trust-authority'
+    | '/cyberfoundations/week-10/instructor'
     | '/cyberfoundations/week-10/lab-1'
     | '/cyberfoundations/week-10/lab-2'
     | '/pki/capstone/$stage'
@@ -283,6 +294,7 @@ export interface FileRouteTypes {
     | '/cyberfoundations/week-07/cloud-heights-guard-post'
     | '/cyberfoundations/week-08/vault-exchange-crypto-workbench'
     | '/cyberfoundations/week-09/trust-authority'
+    | '/cyberfoundations/week-10/instructor'
     | '/cyberfoundations/week-10/lab-1'
     | '/cyberfoundations/week-10/lab-2'
     | '/pki/capstone/$stage'
@@ -309,6 +321,7 @@ export interface FileRouteTypes {
     | '/cyberfoundations/week-07/cloud-heights-guard-post'
     | '/cyberfoundations/week-08/vault-exchange-crypto-workbench'
     | '/cyberfoundations/week-09/trust-authority'
+    | '/cyberfoundations/week-10/instructor'
     | '/cyberfoundations/week-10/lab-1'
     | '/cyberfoundations/week-10/lab-2'
     | '/pki/capstone/$stage'
@@ -333,6 +346,7 @@ export interface RootRouteChildren {
   CyberfoundationsWeek07CloudHeightsGuardPostRoute: typeof CyberfoundationsWeek07CloudHeightsGuardPostRoute
   CyberfoundationsWeek08VaultExchangeCryptoWorkbenchRoute: typeof CyberfoundationsWeek08VaultExchangeCryptoWorkbenchRoute
   CyberfoundationsWeek09TrustAuthorityRoute: typeof CyberfoundationsWeek09TrustAuthorityRoute
+  CyberfoundationsWeek10InstructorRoute: typeof CyberfoundationsWeek10InstructorRoute
   CyberfoundationsWeek10Lab1Route: typeof CyberfoundationsWeek10Lab1Route
   CyberfoundationsWeek10Lab2Route: typeof CyberfoundationsWeek10Lab2Route
   CyberfoundationsWeek10IndexRoute: typeof CyberfoundationsWeek10IndexRoute
@@ -466,6 +480,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CyberfoundationsWeek10IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cyberfoundations/week-10/instructor': {
+      id: '/cyberfoundations/week-10/instructor'
+      path: '/cyberfoundations/week-10/instructor'
+      fullPath: '/cyberfoundations/week-10/instructor'
+      preLoaderRoute: typeof CyberfoundationsWeek10InstructorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cyberfoundations/week-10/lab-1': {
       id: '/cyberfoundations/week-10/lab-1'
       path: '/cyberfoundations/week-10/lab-1'
@@ -562,6 +583,7 @@ const rootRouteChildren: RootRouteChildren = {
     CyberfoundationsWeek08VaultExchangeCryptoWorkbenchRoute,
   CyberfoundationsWeek09TrustAuthorityRoute:
     CyberfoundationsWeek09TrustAuthorityRoute,
+  CyberfoundationsWeek10InstructorRoute: CyberfoundationsWeek10InstructorRoute,
   CyberfoundationsWeek10Lab1Route: CyberfoundationsWeek10Lab1Route,
   CyberfoundationsWeek10Lab2Route: CyberfoundationsWeek10Lab2Route,
   CyberfoundationsWeek10IndexRoute: CyberfoundationsWeek10IndexRoute,
