@@ -1187,6 +1187,11 @@ export interface Week {
   summary: string;
   experienceIds: string[];
   status: ExperienceStatus;
+  /**
+   * Direct launch links for weeks delivered as their own lab pages rather than
+   * as scene-engine experiences (e.g. Week 10's two-lab investigation).
+   */
+  links?: Array<{ label: string; to: string; detail?: string }>;
 }
 
 export interface ProgramModule {
