@@ -103,6 +103,41 @@ export const cyberfoundations: Program = {
         },
       ],
     },
+    {
+      id: "cf-module-4",
+      label: "Module 4",
+      title: "Thinking Like a Security Professional",
+      summary:
+        "Turning the tools of the first three modules into business judgement: what is worth protecting, what could go wrong, and what to do first.",
+      weeks: [
+        {
+          id: "cf-week-10",
+          label: "Week 10",
+          title: "Risk & Threats",
+          summary:
+            "Cloud Heights Family Clinic: investigate five rooms, build risk scenarios from evidence, then rate, prioritise and recommend controls. Two labs, about 45–60 minutes each.",
+          experienceIds: [],
+          status: "available",
+          links: [
+            {
+              label: "Week 10 overview & clinic investigation",
+              to: "/cyberfoundations/week-10",
+              detail: "Case packet, floor plan and evidence rooms",
+            },
+            {
+              label: "Launch Week 10 Lab 1",
+              to: "/cyberfoundations/week-10/lab-1",
+              detail: "Investigate what needs protection",
+            },
+            {
+              label: "Launch Week 10 Lab 2",
+              to: "/cyberfoundations/week-10/lab-2",
+              detail: "Prioritize risks and recommend controls",
+            },
+          ],
+        },
+      ],
+    },
   ],
 };
 

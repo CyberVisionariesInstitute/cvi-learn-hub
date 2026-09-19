@@ -42,6 +42,27 @@ export function ProgramExperienceBrowser({ program }: { program: Program }) {
 
                   <div className="space-y-3">
                     <p className="text-sm text-muted-foreground">{week.summary}</p>
+                    {week.links?.length ? (
+                      <ul className="flex flex-wrap gap-2">
+                        {week.links.map((link) => (
+                          <li key={link.to}>
+                            <Link
+                              to={link.to}
+                              className="glass-panel block rounded-lg px-4 py-3 transition-transform hover:-translate-y-0.5"
+                            >
+                              <span className="block text-sm font-medium text-foreground">
+                                {link.label}
+                              </span>
+                              {link.detail ? (
+                                <span className="block text-xs text-muted-foreground">
+                                  {link.detail}
+                                </span>
+                              ) : null}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
                     {weekExperiences.map((experience) => (
                       <Link
                         key={experience.id}
