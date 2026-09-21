@@ -121,7 +121,25 @@ export function ModeToggle({
   );
 }
 
-export function SaveIndicator({ status }: { status: SaveStatus }) {
+export function SaveIndicator({
+  status,
+  error,
+}: {
+  status: SaveStatus;
+  error?: string | null;
+}) {
+  if (status === "error") {
+    return (
+      <p
+        aria-live="assertive"
+        className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-foreground"
+      >
+        <strong>Not saved.</strong>{" "}
+        {error ??
+          "Your latest work could not be saved in this browser. Download the JSON backup below now."}
+      </p>
+    );
+  }
   return (
     <p
       aria-live="polite"
