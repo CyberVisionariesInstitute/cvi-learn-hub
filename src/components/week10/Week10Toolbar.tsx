@@ -98,14 +98,14 @@ export function Week10Toolbar({ store }: { store: Week10Store }) {
           <button
             type="button"
             className={btn}
-            onClick={() => downloadText(`${prefix}-lab-1.md`, lab1Report(state, learner))}
+            onClick={() => { flush(); downloadText(`${prefix}-lab-1.md`, lab1Report(state, learner)); }}
           >
             Download Lab 1 report (Markdown)
           </button>
           <button
             type="button"
             className={btn}
-            onClick={() => downloadText(`${prefix}-lab-2.md`, lab2Report(state, learner))}
+            onClick={() => { flush(); downloadText(`${prefix}-lab-2.md`, lab2Report(state, learner)); }}
           >
             Download Lab 2 report (Markdown)
           </button>
@@ -121,7 +121,7 @@ export function Week10Toolbar({ store }: { store: Week10Store }) {
           <button
             type="button"
             className={btn}
-            onClick={() => downloadText("week10-case-packet.md", casePacketMarkdown())}
+            onClick={() => downloadText("week10-case-packet.md", casePacketMarkdown(state.mode))}
           >
             Download case packet
           </button>

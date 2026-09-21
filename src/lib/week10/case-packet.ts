@@ -570,7 +570,12 @@ export const glossary: GlossaryTerm[] = [
 /* Printable case packet                                               */
 /* ------------------------------------------------------------------ */
 
-export function casePacketMarkdown(): string {
+/**
+ * Printable case packet. In independent study mode the authored CIA notes are
+ * replaced by the questions themselves, so a download cannot hand over the
+ * assessed answers. Facts, evidence and vocabulary are always included.
+ */
+export function casePacketMarkdown(mode: "guided" | "independent" = "guided"): string {
   const lines: string[] = [];
   lines.push(`# Cloud Heights Family Clinic — Case Packet`);
   lines.push("");
@@ -588,9 +593,15 @@ export function casePacketMarkdown(): string {
   assets.forEach((a) => {
     lines.push(`### ${a.id} — ${a.name}`);
     lines.push(a.purpose);
-    lines.push(`- Confidentiality: ${a.cia.confidentiality}`);
-    lines.push(`- Integrity: ${a.cia.integrity}`);
-    lines.push(`- Availability: ${a.cia.availability}`);
+    if (mode === "guided") {
+      lines.push(`- Confidentiality: ${a.cia.confidentiality}`);
+      lines.push(`- Integrity: ${a.cia.integrity}`);
+      lines.push(`- Availability: ${a.cia.availability}`);
+    } else {
+      lines.push("- What here must stay private?");
+      lines.push("- What here must stay correct?");
+      lines.push("- What here must stay available?");
+    }
     lines.push("");
   });
   lines.push("## Rooms and evidence");
