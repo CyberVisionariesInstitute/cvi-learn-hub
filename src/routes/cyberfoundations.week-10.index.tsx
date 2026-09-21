@@ -42,6 +42,12 @@ export const Route = createFileRoute("/cyberfoundations/week-10/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>): Week10OverviewSearch => {
+    const room = search['room'];
+    return typeof room === "string" && rooms.some((r) => r.id === room)
+      ? { room: room as RoomId }
+      : {};
+  },
   component: Week10Overview,
 });
 
