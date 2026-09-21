@@ -208,7 +208,7 @@ function RoomGuides({ data }: { data: Week10InstructorKey }) {
         const room = roomById(guide.roomId as never);
         return (
           <Panel key={guide.roomId} eyebrow="Room" title={room.name}>
-            <ClinicIllustration illustration={clinicRoomIllustrations[room.id]} />
+            <ClinicIllustration illustration={clinicRoomIllustrations[room.id]} className="mb-4" />
             <div className="rounded-md border border-primary/40 bg-primary/10 p-3">
               <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">
                 Ask before revealing
