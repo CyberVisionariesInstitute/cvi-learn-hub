@@ -213,10 +213,6 @@ export function visitedRoomIds(state: Week10State): string[] {
   return rooms.map((r) => r.id).filter((id) => state.visitedRooms.includes(id));
 }
 
-export function unvisitedRooms() {
-  return rooms;
-}
-
 export interface ControlStatus {
   control: boolean;
   howItHelps: boolean;
