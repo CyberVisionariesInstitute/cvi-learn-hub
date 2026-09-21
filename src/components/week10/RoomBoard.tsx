@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearch } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { Field, Hint, Panel } from "./ui";
 import { ClinicMap } from "./ClinicMap";
