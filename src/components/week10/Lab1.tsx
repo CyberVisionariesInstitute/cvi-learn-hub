@@ -146,7 +146,6 @@ export function Lab1({ store }: { store: Week10Store }) {
 
         <div className="mt-4 space-y-4">
           {state.scenarios.map((s, index) => {
-            const suggested = threatEvents[index];
             return (
               <div key={s.id} className="rounded-lg border border-border bg-background p-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -154,12 +153,9 @@ export function Lab1({ store }: { store: Week10Store }) {
                     Scenario {index + 1}{" "}
                     <span className="font-mono text-xs text-primary">{s.id}</span>
                   </p>
-                  {suggested && state.mode === "guided" ? (
-                    <p className="text-xs text-muted-foreground">
-                      Starting point: {suggested.name}
-                    </p>
-                  ) : null}
                 </div>
+                {state.mode === "guided" ? <ScenarioQuestionHints /> : null}
+
 
                 <label className="mt-3 block text-sm">
                   <span className="block font-medium text-foreground">Asset</span>
