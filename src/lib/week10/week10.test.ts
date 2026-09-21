@@ -10,6 +10,9 @@ import {
 import {
   band,
   checklist,
+  controlStatus,
+  ratingStatus,
+  visitedRoomIds,
   createInitialState,
   reconcile,
   score,
@@ -24,6 +27,7 @@ import { cyberfoundations } from "@/lib/demo-lab/programs";
 
 function completed(): Week10State {
   const state = createInitialState();
+  state.visitedRooms = rooms.map((r) => r.id);
   state.findings = evidence.slice(0, 6).map((e) => e.id);
   state.scenarios = state.scenarios.map((s, i) => ({
     ...s,
@@ -244,5 +248,90 @@ describe("Week 10 registration", () => {
     ["cf-week-06", "cf-week-07", "cf-week-08", "cf-week-09"].forEach((id) =>
       expect(ids).toContain(id),
     );
+  });
+});
+
+
+describe("Week 10 room visits and completion", () => {
+  it("counts only unique valid room IDs", () => {
+    const state = createInitialState();
+    state.visitedRooms = ["reception", "reception", "not-a-room"];
+    expect(visitedRoomIds(state)).toEqual(["reception"]);
+  });
+
+  it("requires all five room visits before Week 10 is complete", () => {
+    const state = completed();
+    state.visitedRooms = rooms.slice(0, 4).map((r) => r.id);
+    const items = checklist(state);
+    const roomsItem = items.find((i) => i.id === "rooms");
+    expect(roomsItem?.done).toBe(false);
+    expect(items.every((i) => i.done)).toBe(false);
+    expect(checklist(completed()).every((i) => i.done)).toBe(true);
+  });
+
+  it("records the first room shown as a visit once the store is ready", () => {
+    // visitRoom is idempotent, mirroring the RoomBoard hydration effect.
+    let state = createInitialState();
+    const visit = (id: string) =>
+      state.visitedRooms.includes(id)
+        ? state
+        : { ...state, visitedRooms: [...state.visitedRooms, id] };
+    state = visit("reception");
+    state = visit("reception");
+    expect(state.visitedRooms).toEqual(["reception"]);
+    expect(visitedRoomIds(state)).toEqual(["reception"]);
+  });
+
+  it("separates control, how it helps and remaining risk", () => {
+    const state = createInitialState();
+    state.controls = [
+      { scenarioId: "SC-01", control: "MFA", howItHelps: "", residual: "" },
+    ];
+    expect(controlStatus(state, "SC-01")).toEqual({
+      control: true,
+      howItHelps: false,
+      residual: false,
+      complete: false,
+    });
+    state.controls = [
+      { scenarioId: "SC-01", control: "MFA", howItHelps: "stops reuse", residual: "some" },
+    ];
+    expect(controlStatus(state, "SC-01").complete).toBe(true);
+    expect(controlStatus(state, "SC-02").control).toBe(false);
+  });
+
+  it("distinguishes incomplete ratings from justified ones", () => {
+    const state = createInitialState();
+    expect(ratingStatus(state, "SC-01")).toBe("unrated");
+    state.ratings = [
+      { scenarioId: "SC-01", likelihood: 2, impact: 0, likelihoodWhy: "", impactWhy: "" },
+    ];
+    expect(ratingStatus(state, "SC-01")).toBe("partly-rated");
+    state.ratings = [
+      { scenarioId: "SC-01", likelihood: 2, impact: 3, likelihoodWhy: "", impactWhy: "" },
+    ];
+    expect(ratingStatus(state, "SC-01")).toBe("rated-without-reasons");
+    state.ratings = [
+      { scenarioId: "SC-01", likelihood: 2, impact: 3, likelihoodWhy: "a", impactWhy: "b" },
+    ];
+    expect(ratingStatus(state, "SC-01")).toBe("justified");
+  });
+});
+
+describe("Week 10 independent-mode answer protection", () => {
+  it("keeps authored threat answers out of student reports", () => {
+    const md = portfolioReport(completed(), "Learner");
+    threatEvents.forEach((t) => expect(md).not.toContain(t.name));
+  });
+
+  it("omits authored CIA answers from the independent-mode case packet", () => {
+    const independent = casePacketMarkdown("independent");
+    const guided = casePacketMarkdown("guided");
+    assets.forEach((a) => {
+      expect(independent).not.toContain(a.cia.confidentiality);
+      expect(guided).toContain(a.cia.confidentiality);
+      expect(independent).toContain(a.name);
+    });
+    evidence.forEach((e) => expect(independent).toContain(e.id));
   });
 });
