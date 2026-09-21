@@ -79,18 +79,23 @@ function header(
     "",
   ];
   if (missing.length) {
-    lines.push("> **DRAFT — this report is incomplete.** Still to finish:");
+    lines.push(`> **DRAFT — this report is incomplete.** Still to finish in ${scopeLabel}:`);
     missing.forEach((m) => lines.push(`> - ${m.label}`));
     lines.push("");
   } else {
-    lines.push("Completion checklist: all required work is present.");
+    lines.push(`Completion checklist: all required work for ${scopeLabel} is present.`);
     lines.push("");
   }
   return lines;
 }
 
 export function lab1Report(state: Week10State, learner = ""): string {
-  const lines = header(state, "Week 10 — Lab 1: Investigate What Needs Protection", learner);
+  const lines = header(
+    state,
+    "Week 10 — Lab 1: Investigate What Needs Protection",
+    learner,
+    "lab1",
+  );
 
   lines.push("## Evidence added to my findings");
   if (!state.findings.length) lines.push("(no evidence added yet)");
