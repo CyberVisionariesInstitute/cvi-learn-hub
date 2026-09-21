@@ -193,11 +193,21 @@ export function lab2Report(state: Week10State, learner = ""): string {
 }
 
 export function portfolioReport(state: Week10State, learner = ""): string {
+  /** The combined report is judged against every Week 10 requirement. */
+  const missing = checklistFor(state, "all").filter((c) => !c.done);
+  const overall = missing.length
+    ? [
+        "> **DRAFT — Week 10 is not complete.** Still to finish:",
+        ...missing.map((m) => `> - ${m.label}`),
+        "",
+      ]
+    : ["All Week 10 requirements are present, including all five room visits.", ""];
   return [
     "# Week 10 — Cloud Heights Family Clinic: Full Portfolio Report",
     "",
     "This report combines Lab 1 and Lab 2. It contains only your own work.",
     "",
+    ...overall,
     "---",
     "",
     lab1Report(state, learner),
