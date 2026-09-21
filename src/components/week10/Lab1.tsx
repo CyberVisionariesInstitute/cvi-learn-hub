@@ -48,20 +48,33 @@ export function Lab1({ store }: { store: Week10Store }) {
               <p className="font-mono text-xs text-primary">{a.id}</p>
               <p className="mt-1 text-sm font-medium text-foreground">{a.name}</p>
               <p className="mt-1 text-sm text-muted-foreground">{a.purpose}</p>
-              <dl className="mt-3 space-y-1 text-sm text-foreground">
-                <div>
-                  <dt className="inline font-medium">Kept private: </dt>
-                  <dd className="inline">{a.cia.confidentiality}</dd>
-                </div>
-                <div>
-                  <dt className="inline font-medium">Correct: </dt>
-                  <dd className="inline">{a.cia.integrity}</dd>
-                </div>
-                <div>
-                  <dt className="inline font-medium">Available: </dt>
-                  <dd className="inline">{a.cia.availability}</dd>
-                </div>
-              </dl>
+              {state.mode === "guided" ? (
+                <details className="mt-3 rounded-md border border-amber/40 bg-amber/10 p-3">
+                  <summary className="cursor-pointer text-sm font-medium text-foreground">
+                    Show a hint: why this asset matters
+                  </summary>
+                  <dl className="mt-2 space-y-1 text-sm text-foreground">
+                    <div>
+                      <dt className="inline font-medium">Kept private: </dt>
+                      <dd className="inline">{a.cia.confidentiality}</dd>
+                    </div>
+                    <div>
+                      <dt className="inline font-medium">Correct: </dt>
+                      <dd className="inline">{a.cia.integrity}</dd>
+                    </div>
+                    <div>
+                      <dt className="inline font-medium">Available: </dt>
+                      <dd className="inline">{a.cia.availability}</dd>
+                    </div>
+                  </dl>
+                </details>
+              ) : (
+                <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
+                  <li>What here must stay private?</li>
+                  <li>What here must stay correct?</li>
+                  <li>What here must stay available?</li>
+                </ul>
+              )}
             </div>
           ))}
         </div>
@@ -142,7 +155,7 @@ export function Lab1({ store }: { store: Week10Store }) {
                     Scenario {index + 1}{" "}
                     <span className="font-mono text-xs text-primary">{s.id}</span>
                   </p>
-                  {suggested ? (
+                  {suggested && state.mode === "guided" ? (
                     <p className="text-xs text-muted-foreground">
                       Starting point: {suggested.name}
                     </p>

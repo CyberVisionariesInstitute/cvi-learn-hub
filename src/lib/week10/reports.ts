@@ -5,7 +5,7 @@
  * material is imported here, so it cannot reach a student download.
  */
 
-import { assets, evidenceById, scenarioDate, threatEvents } from "./case-packet";
+import { assets, evidenceById, scenarioDate } from "./case-packet";
 import {
   band,
   bandLabels,
@@ -187,11 +187,6 @@ export function portfolioReport(state: Week10State, learner = ""): string {
     "---",
     "",
     lab2Report(state, learner),
-    "",
-    "---",
-    "",
-    "## Reference — case threat events",
-    ...threatEvents.map((t) => `- ${t.id} ${t.name}: ${t.plain}`),
     "",
   ].join("\n");
 }

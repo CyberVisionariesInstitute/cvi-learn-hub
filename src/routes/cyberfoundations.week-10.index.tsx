@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { DemoLabShell } from "@/components/demo-lab/DemoLabShell";
 import { cyberfoundations } from "@/lib/demo-lab/programs";
-import { Panel } from "@/components/week10/ui";
+import { Hint, Panel } from "@/components/week10/ui";
 import { RoomBoard } from "@/components/week10/RoomBoard";
 import { Week10Toolbar } from "@/components/week10/Week10Toolbar";
 import { ClinicIllustration } from "@/components/week10/ClinicIllustration";
@@ -12,7 +12,6 @@ import {
   assets,
   clinicProfile,
   scenarioDate,
-  threatEvents,
   WEEK10_ROUTES,
 } from "@/lib/week10/case-packet";
 
@@ -117,20 +116,15 @@ function Week10Overview() {
               </div>
             ))}
           </div>
-          <h3 className="mt-5 font-display text-sm text-foreground">
-            Things that could go wrong here
-          </h3>
-          <ul className="mt-2 space-y-1 text-sm text-foreground">
-            {threatEvents.map((t) => (
-              <li key={t.id}>
-                <span className="font-mono text-xs text-primary">{t.id}</span> {t.name} —{" "}
-                {t.plain}
-              </li>
-            ))}
-          </ul>
+          <p className="mt-5 text-sm leading-relaxed text-foreground">
+            Working out what could go wrong here is the job of this lab. Walk the rooms,
+            read the evidence, and write your own list in Lab 1.
+          </p>
+
         </Panel>
 
-        <Panel title="Investigate the clinic">
+        <Panel id="rooms" title="Investigate the clinic">
+          <GuidedHints mode={store.state.mode} />
           <RoomBoard store={store} />
         </Panel>
 
@@ -139,6 +133,29 @@ function Week10Overview() {
         <Week10Toolbar store={store} />
       </div>
     </DemoLabShell>
+  );
+}
+
+/**
+ * Guided-mode hints. These are questions and method, never the answers: the
+ * five assessed threat scenarios are the learner's to find.
+ */
+function GuidedHints({ mode }: { mode: "guided" | "independent" }) {
+  return (
+    <Hint mode={mode}>
+      <p>Work through the rooms one at a time and ask, in this order:</p>
+      <ol className="mt-2 space-y-1">
+        <li>1. What does this room need in order to do its job?</li>
+        <li>2. Which evidence card actually shows a weakness — not a worry, a weakness?</li>
+        <li>3. Who or what could take advantage of it, and how would they do it?</li>
+        <li>4. What would it cost the clinic and its patients if they did?</li>
+        <li>5. What does the evidence still not tell me? Write that down as an unknown.</li>
+      </ol>
+      <p className="mt-2">
+        Lab 1 has a fully worked example built on a different, non-assessed situation, if
+        you want to see the shape of a finished row.
+      </p>
+    </Hint>
   );
 }
 

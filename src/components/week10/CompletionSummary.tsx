@@ -4,11 +4,15 @@ import {
   band,
   bandLabels,
   checklist,
+  controlStatus,
+  ratingStatus,
   score,
+  visitedRoomIds,
   wordCount,
   type Week10State,
 } from "@/lib/week10/state";
 import {
+  assets,
   evidenceById,
   rooms,
   WEEK10_ROUTES,
@@ -20,13 +24,31 @@ import type { Week10Store } from "@/lib/week10/useWeek10";
  *
  * Shows only the learner's own work: rooms opened, evidence they chose,
  * decisions they wrote, and what is still outstanding. No instructor answer
- * material, sample wording or grading is referenced here.
+ * material, sample wording or grading is referenced here. "Opened" is only
+ * ever described as opened — never as understood or correct.
  */
+
+const notWritten = "Not written yet";
+
+function assetName(id: string): string {
+  return assets.find((a) => a.id === id)?.name ?? id;
+}
+
+const ratingText: Record<ReturnType<typeof ratingStatus>, string> = {
+  unrated: "Not rated yet",
+  "partly-rated": "Only one of likelihood and impact chosen",
+  "rated-without-reasons": "Rated, reasons still to write",
+  justified: "Rated with your reasons",
+};
+
 export function CompletionSummary({ store }: { store: Week10Store }) {
   const state: Week10State = store.state;
   const items = checklist(state);
   const done = items.filter((i) => i.done).length;
   const remaining = items.filter((i) => !i.done);
+
+  const visited = visitedRoomIds(state);
+  const unvisited = rooms.filter((r) => !visited.includes(r.id));
 
   const findings = state.findings
     .map((id) => evidenceById(id))
@@ -34,12 +56,34 @@ export function CompletionSummary({ store }: { store: Week10Store }) {
 
   const emailSigns = state.email.signs.filter((s) => s.trim()).length;
   const briefingWords = wordCount(state.briefing);
+  const everythingDone = remaining.length === 0;
+
+  const decisions = state.scenarios.map((s, i) => {
+    const rating = state.ratings.find((r) => r.scenarioId === s.id);
+    const value = rating ? score(rating) : 0;
+    return {
+      index: i + 1,
+      id: s.id,
+      asset: assetName(s.assetId),
+      threat: s.threat.trim(),
+      evidence: s.evidenceIds.length ? s.evidenceIds.join(", ") : "None chosen yet",
+      ratingLabel:
+        rating && rating.likelihood && rating.impact
+          ? `${rating.likelihood} × ${rating.impact} = ${value}`
+          : "Not rated yet",
+      ratingState: ratingText[ratingStatus(state, s.id)],
+      bandLabel: bandLabels[band(value)],
+      isPriority: state.priorities.includes(s.id),
+      control: controlStatus(state, s.id),
+    };
+  });
 
   return (
     <Panel title="Your Week 10 summary">
       <p className="text-sm text-muted-foreground">
         This is a picture of your own work so far. Nothing here is graded, and no model
         answers are shown — it simply reflects what you have opened, chosen and written.
+        Opening a room records that you looked at it; it does not say your answer is right.
       </p>
 
       <div className="mt-4">
@@ -51,18 +95,18 @@ export function CompletionSummary({ store }: { store: Week10Store }) {
           <h3 className="font-display text-sm text-foreground">Rooms you have visited</h3>
           <ul className="mt-2 space-y-1 text-sm text-foreground">
             {rooms.map((r) => {
-              const visited = state.visitedRooms.includes(r.id);
+              const isVisited = visited.includes(r.id);
               return (
                 <li key={r.id}>
-                  <span aria-hidden="true">{visited ? "✓" : "○"}</span>{" "}
-                  <span className="sr-only">{visited ? "Visited:" : "Not opened yet:"}</span>
+                  <span aria-hidden="true">{isVisited ? "✓" : "○"}</span>{" "}
+                  <span className="sr-only">{isVisited ? "Visited:" : "Not opened yet:"}</span>
                   {r.name}
                 </li>
               );
             })}
           </ul>
           <p className="mt-2 text-xs text-muted-foreground">
-            {state.visitedRooms.length} of {rooms.length} rooms opened.
+            {visited.length} of {rooms.length} rooms opened.
           </p>
         </section>
 
@@ -86,84 +130,180 @@ export function CompletionSummary({ store }: { store: Week10Store }) {
 
       <section className="mt-5">
         <h3 className="font-display text-sm text-foreground">Decisions you have recorded</h3>
-        <div className="mt-2 overflow-x-auto">
-          <table className="w-full min-w-[34rem] border-collapse text-left text-sm">
+        <p className="mt-1 text-xs text-muted-foreground">
+          Everything below is your own writing.
+        </p>
+
+        {/* Small screens: one readable card per scenario. */}
+        <ul className="mt-3 space-y-3 @3xl:hidden">
+          {decisions.map((d) => (
+            <li key={d.id} className="rounded-md border border-border bg-background p-4">
+              <p className="font-display text-sm text-foreground">
+                {d.index}. {d.asset}{" "}
+                <span className="font-mono text-xs text-primary">{d.id}</span>
+              </p>
+              <dl className="mt-2 space-y-2 text-sm">
+                <div>
+                  <dt className="font-medium text-foreground">Your threat / event</dt>
+                  <dd className={d.threat ? "text-foreground" : "text-muted-foreground"}>
+                    {d.threat || notWritten}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-foreground">Evidence attached</dt>
+                  <dd className="text-foreground">{d.evidence}</dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-foreground">Likelihood × impact</dt>
+                  <dd className="text-foreground">
+                    {d.ratingLabel} — {d.ratingState}. {d.bandLabel}.
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-foreground">Recommendation</dt>
+                  <dd className="text-foreground">
+                    <RecommendationStatus
+                      isPriority={d.isPriority}
+                      control={d.control}
+                      inline={false}
+                    />
+                  </dd>
+                </div>
+              </dl>
+            </li>
+          ))}
+        </ul>
+
+        {/* Wide screens: the same information as a table. */}
+        <div className="mt-3 hidden overflow-x-auto @3xl:block">
+          <table className="w-full min-w-[40rem] border-collapse text-left text-sm">
             <caption className="sr-only">
-              Your scenarios, with the evidence attached, your likelihood and impact ratings,
-              your classroom band, and whether the scenario is one of your priorities.
+              Your scenarios: the asset, the threat you described, the evidence attached, your
+              likelihood and impact ratings, the classroom band, and how far your
+              recommendation has been written.
             </caption>
             <thead>
               <tr className="text-xs tracking-wide text-muted-foreground uppercase">
-                <th scope="col" className="py-2 pr-3">Scenario</th>
+                <th scope="col" className="py-2 pr-3">Scenario &amp; asset</th>
+                <th scope="col" className="py-2 pr-3">Your threat / event</th>
                 <th scope="col" className="py-2 pr-3">Evidence</th>
                 <th scope="col" className="py-2 pr-3">Likelihood × impact</th>
                 <th scope="col" className="py-2 pr-3">Band</th>
-                <th scope="col" className="py-2">Priority &amp; control</th>
+                <th scope="col" className="py-2">Priority &amp; recommendation</th>
               </tr>
             </thead>
             <tbody>
-              {state.scenarios.map((s, i) => {
-                const rating = state.ratings.find((r) => r.scenarioId === s.id);
-                const value = rating ? score(rating) : 0;
-                const isPriority = state.priorities.includes(s.id);
-                const control = state.controls.find((c) => c.scenarioId === s.id);
-                return (
-                  <tr key={s.id} className="border-t border-border align-top">
-                    <th scope="row" className="py-2 pr-3 font-normal text-foreground">
-                      {i + 1}. <span className="font-mono text-xs text-primary">{s.id}</span>
-                    </th>
-                    <td className="py-2 pr-3 text-foreground">
-                      {s.evidenceIds.length ? s.evidenceIds.join(", ") : "None yet"}
-                    </td>
-                    <td className="py-2 pr-3 text-foreground">
-                      {rating && rating.likelihood && rating.impact
-                        ? `${rating.likelihood} × ${rating.impact} = ${value}`
-                        : "Not rated yet"}
-                    </td>
-                    <td className="py-2 pr-3 text-foreground">{bandLabels[band(value)]}</td>
-                    <td className="py-2 text-foreground">
-                      {isPriority
-                        ? control?.control.trim()
-                          ? "Priority — control written"
-                          : "Priority — control still to write"
-                        : "Not chosen as a priority"}
-                    </td>
-                  </tr>
-                );
-              })}
+              {decisions.map((d) => (
+                <tr key={d.id} className="border-t border-border align-top">
+                  <th scope="row" className="py-2 pr-3 font-normal text-foreground">
+                    {d.index}. {d.asset}
+                    <br />
+                    <span className="font-mono text-xs text-primary">{d.id}</span>
+                  </th>
+                  <td
+                    className={
+                      d.threat ? "py-2 pr-3 text-foreground" : "py-2 pr-3 text-muted-foreground"
+                    }
+                  >
+                    {d.threat || notWritten}
+                  </td>
+                  <td className="py-2 pr-3 text-foreground">{d.evidence}</td>
+                  <td className="py-2 pr-3 text-foreground">
+                    {d.ratingLabel}
+                    <br />
+                    <span className="text-xs text-muted-foreground">{d.ratingState}</span>
+                  </td>
+                  <td className="py-2 pr-3 text-foreground">{d.bandLabel}</td>
+                  <td className="py-2 text-foreground">
+                    <RecommendationStatus
+                      isPriority={d.isPriority}
+                      control={d.control}
+                      inline
+                    />
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
+
         <ul className="mt-3 space-y-1 text-sm text-foreground">
           <li>
             Suspicious email: {emailSigns} of 3 warning signs written
-            {state.email.safeStep.trim() ? ", reporting step written" : ", reporting step still to write"}.
+            {state.email.safeStep.trim()
+              ? ", reporting step written"
+              : ", reporting step still to write"}
+            .
           </li>
           <li>
-            Owner briefing: {briefingWords
+            Priority reasoning:{" "}
+            {state.priorities.length >= 2
+              ? state.priorityWhy.trim()
+                ? "two priorities chosen, reasoning written"
+                : "two priorities chosen, reasoning still to write"
+              : `${state.priorities.length} of 2 priorities chosen`}
+            .
+          </li>
+          <li>
+            Owner briefing:{" "}
+            {briefingWords
               ? `${briefingWords} words written (about 100–150 is the guide)`
-              : "not started yet"}.
+              : "not started yet"}
+            .
           </li>
           <li>
-            Notebook: {state.notebook.trim() ? "you have notes saved" : "empty so far"}.
+            Notebook (optional): {state.notebook.trim() ? "you have notes saved" : "empty so far"}
+            .
           </li>
         </ul>
       </section>
 
       <section className="mt-5">
         <h3 className="font-display text-sm text-foreground">Still to do</h3>
+        {unvisited.length ? (
+          <div className="mt-2 rounded-md border border-amber/40 bg-amber/10 p-3">
+            <p className="text-sm text-foreground">
+              Investigation steps left — this lab asks you to walk all {rooms.length} rooms:
+            </p>
+            <ul className="mt-2 space-y-1 text-sm text-foreground">
+              {unvisited.map((r) => (
+                <li key={r.id}>
+                  •{" "}
+                  <Link
+                    to={WEEK10_ROUTES.overview}
+                    hash="rooms"
+                    className="underline underline-offset-2 hover:text-primary"
+                  >
+                    Investigate the {r.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
         {remaining.length ? (
           <ul className="mt-2 space-y-1 text-sm text-foreground">
             {remaining.map((i) => (
-              <li key={i.id}>• Lab {i.lab} — {i.label}</li>
+              <li key={i.id}>
+                • Lab {i.lab} — {i.label}
+              </li>
             ))}
           </ul>
-        ) : (
+        ) : null}
+
+        {everythingDone ? (
           <p className="mt-2 text-sm text-foreground">
-            Everything required is present. You can download your combined portfolio report
-            and submit it in the CVI Tracker.
+            Every required step is present, including all {rooms.length} room visits. You can
+            download your combined portfolio report and submit it in the CVI Tracker.
+          </p>
+        ) : (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Your Week 10 investigation is not finished yet. Finish the steps above before you
+            submit.
           </p>
         )}
+
         <div className="mt-3 flex flex-wrap gap-2 text-sm">
           <Link
             to={WEEK10_ROUTES.lab1}
@@ -180,5 +320,34 @@ export function CompletionSummary({ store }: { store: Week10Store }) {
         </div>
       </section>
     </Panel>
+  );
+}
+
+function RecommendationStatus({
+  isPriority,
+  control,
+  inline,
+}: {
+  isPriority: boolean;
+  control: { control: boolean; howItHelps: boolean; residual: boolean; complete: boolean };
+  inline: boolean;
+}) {
+  if (!isPriority) return <span>Not chosen as a priority</span>;
+  const parts = [
+    `Control: ${control.control ? "written" : notWritten.toLowerCase()}`,
+    `How it helps: ${control.howItHelps ? "written" : notWritten.toLowerCase()}`,
+    `Remaining risk: ${control.residual ? "written" : notWritten.toLowerCase()}`,
+  ];
+  return (
+    <span className={inline ? "block" : undefined}>
+      <span className="block font-medium">
+        Priority — recommendation {control.complete ? "complete" : "not complete yet"}
+      </span>
+      <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+        {parts.map((p) => (
+          <li key={p}>{p}</li>
+        ))}
+      </ul>
+    </span>
   );
 }

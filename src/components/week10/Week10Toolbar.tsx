@@ -10,7 +10,7 @@ const btn =
   "min-h-11 rounded-md border border-border px-3 py-2 text-sm text-foreground transition-colors hover:border-primary/60";
 
 export function Week10Toolbar({ store }: { store: Week10Store }) {
-  const { state, status, setMode, resetWeek, restore, backupJson } = store;
+  const { state, status, saveError, setMode, resetWeek, restore, backupJson, flush } = store;
   const [learner, setLearner] = useState("");
   const [confirmReset, setConfirmReset] = useState(false);
   const [restoreProblems, setRestoreProblems] = useState<string[]>([]);
@@ -75,7 +75,7 @@ export function Week10Toolbar({ store }: { store: Week10Store }) {
       <Panel title="Study mode and saving">
         <ModeToggle mode={state.mode} onChange={setMode} />
         <div className="mt-3">
-          <SaveIndicator status={status} />
+          <SaveIndicator status={status} error={saveError} />
         </div>
         <label className="mt-3 block text-sm">
           <span className="block font-medium text-foreground">
@@ -98,14 +98,14 @@ export function Week10Toolbar({ store }: { store: Week10Store }) {
           <button
             type="button"
             className={btn}
-            onClick={() => downloadText(`${prefix}-lab-1.md`, lab1Report(state, learner))}
+            onClick={() => { flush(); downloadText(`${prefix}-lab-1.md`, lab1Report(state, learner)); }}
           >
             Download Lab 1 report (Markdown)
           </button>
           <button
             type="button"
             className={btn}
-            onClick={() => downloadText(`${prefix}-lab-2.md`, lab2Report(state, learner))}
+            onClick={() => { flush(); downloadText(`${prefix}-lab-2.md`, lab2Report(state, learner)); }}
           >
             Download Lab 2 report (Markdown)
           </button>
@@ -121,7 +121,7 @@ export function Week10Toolbar({ store }: { store: Week10Store }) {
           <button
             type="button"
             className={btn}
-            onClick={() => downloadText("week10-case-packet.md", casePacketMarkdown())}
+            onClick={() => downloadText("week10-case-packet.md", casePacketMarkdown(state.mode))}
           >
             Download case packet
           </button>
@@ -146,7 +146,10 @@ export function Week10Toolbar({ store }: { store: Week10Store }) {
           <button
             type="button"
             className={btn}
-            onClick={() => downloadText(`${prefix}-backup.json`, backupJson(), "application/json")}
+            onClick={() => {
+              flush();
+              downloadText(`${prefix}-backup.json`, backupJson(), "application/json");
+            }}
           >
             Download JSON backup
           </button>

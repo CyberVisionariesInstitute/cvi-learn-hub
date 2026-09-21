@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Field, Hint, Panel } from "./ui";
 import { ClinicMap } from "./ClinicMap";
@@ -17,12 +17,21 @@ const kindLabels: Record<string, string> = {
 
 export function RoomBoard({ store }: { store: Week10Store }) {
   const [active, setActive] = useState<RoomId | null>("reception");
-  const { state, toggleFinding, visitRoom, update } = store;
+  const { ready, state, toggleFinding, visitRoom, update } = store;
   const room = active ? roomById(active) : null;
+
+  /**
+   * Record the room actually on screen — including the one shown first —
+   * but only once the learner's saved work has loaded, so a restored visit
+   * list is never overwritten. visitRoom is idempotent, so no loop.
+   */
+  useEffect(() => {
+    if (!ready || !active) return;
+    visitRoom(active);
+  }, [ready, active, visitRoom]);
 
   function select(id: RoomId) {
     setActive(id);
-    visitRoom(id);
   }
 
   return (
