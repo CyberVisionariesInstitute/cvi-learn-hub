@@ -251,8 +251,18 @@ export function CompletionSummary({ store }: { store: Week10Store }) {
               : "not started yet"}
             .
           </li>
+          {/*
+            Wording describes what is entered, never that it was stored: only
+            the save indicator knows whether a write actually succeeded.
+          */}
           <li>
-            Notebook (optional): {state.notebook.trim() ? "you have notes saved" : "empty so far"}
+            Notebook (optional):{" "}
+            {state.notebook.trim()
+              ? `${wordCount(state.notebook)} words entered`
+              : "nothing entered yet"}
+            {store.status === "error"
+              ? " — your latest work could not be saved in this browser; see the save message and download a backup"
+              : ""}
             .
           </li>
         </ul>
@@ -271,6 +281,7 @@ export function CompletionSummary({ store }: { store: Week10Store }) {
                   •{" "}
                   <Link
                     to={WEEK10_ROUTES.overview}
+                    search={{ room: r.id }}
                     hash="rooms"
                     className="underline underline-offset-2 hover:text-primary"
                   >

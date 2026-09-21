@@ -310,6 +310,22 @@ export function checklist(state: Week10State): ChecklistItem[] {
   return items;
 }
 
+/**
+ * Which requirements a given surface is judged against.
+ *
+ * Exports are scoped so a finished Lab 1 report is not labelled a draft
+ * because Lab 2 is still outstanding. The combined Week 10 portfolio and the
+ * on-screen summary keep using every requirement, including all five rooms.
+ */
+export type ChecklistScope = "lab1" | "lab2" | "all";
+
+export function checklistFor(state: Week10State, scope: ChecklistScope): ChecklistItem[] {
+  const all = checklist(state);
+  if (scope === "all") return all;
+  const lab = scope === "lab1" ? 1 : 2;
+  return all.filter((i) => i.lab === lab);
+}
+
 export function wordCount(text: string): number {
   return text.trim() ? text.trim().split(/\s+/).length : 0;
 }

@@ -11,9 +11,19 @@ import { clinicEntranceIllustration } from "@/lib/week10/clinic-art";
 import {
   assets,
   clinicProfile,
+  rooms,
   scenarioDate,
   WEEK10_ROUTES,
+  type RoomId,
 } from "@/lib/week10/case-packet";
+
+/**
+ * `?room=` lets a "Investigate the Records Office" link open that exact room.
+ * Anything unrecognised is dropped, so the board falls back to its first room.
+ */
+export interface Week10OverviewSearch {
+  room?: RoomId;
+}
 
 const description =
   "Week 10 interactive investigation: walk a small clinic room by room, collect evidence, and turn what you find into risk scenarios, ratings and practical recommendations.";
@@ -32,6 +42,12 @@ export const Route = createFileRoute("/cyberfoundations/week-10/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>): Week10OverviewSearch => {
+    const room = search['room'];
+    return typeof room === "string" && rooms.some((r) => r.id === room)
+      ? { room: room as RoomId }
+      : {};
+  },
   component: Week10Overview,
 });
 

@@ -9,9 +9,10 @@ import { assets, evidenceById, scenarioDate } from "./case-packet";
 import {
   band,
   bandLabels,
-  checklist,
+  checklistFor,
   score,
   wordCount,
+  type ChecklistScope,
   type Week10State,
 } from "./state";
 
@@ -58,8 +59,15 @@ function ciaLine(cia: { confidentiality: boolean; integrity: boolean; availabili
   return parts.length ? parts.join(", ") : "(none selected)";
 }
 
-function header(state: Week10State, title: string, learner: string): string[] {
-  const missing = checklist(state).filter((c) => !c.done);
+function header(
+  state: Week10State,
+  title: string,
+  learner: string,
+  scope: ChecklistScope,
+): string[] {
+  const scopeLabel =
+    scope === "lab1" ? "Lab 1" : scope === "lab2" ? "Lab 2" : "the whole of Week 10";
+  const missing = checklistFor(state, scope).filter((c) => !c.done);
   const lines = [
     `# ${title}`,
     "",
@@ -71,18 +79,23 @@ function header(state: Week10State, title: string, learner: string): string[] {
     "",
   ];
   if (missing.length) {
-    lines.push("> **DRAFT — this report is incomplete.** Still to finish:");
+    lines.push(`> **DRAFT — this report is incomplete.** Still to finish in ${scopeLabel}:`);
     missing.forEach((m) => lines.push(`> - ${m.label}`));
     lines.push("");
   } else {
-    lines.push("Completion checklist: all required work is present.");
+    lines.push(`Completion checklist: all required work for ${scopeLabel} is present.`);
     lines.push("");
   }
   return lines;
 }
 
 export function lab1Report(state: Week10State, learner = ""): string {
-  const lines = header(state, "Week 10 — Lab 1: Investigate What Needs Protection", learner);
+  const lines = header(
+    state,
+    "Week 10 — Lab 1: Investigate What Needs Protection",
+    learner,
+    "lab1",
+  );
 
   lines.push("## Evidence added to my findings");
   if (!state.findings.length) lines.push("(no evidence added yet)");
@@ -124,7 +137,12 @@ export function lab1Report(state: Week10State, learner = ""): string {
 }
 
 export function lab2Report(state: Week10State, learner = ""): string {
-  const lines = header(state, "Week 10 — Lab 2: Prioritize Risks and Recommend Controls", learner);
+  const lines = header(
+    state,
+    "Week 10 — Lab 2: Prioritize Risks and Recommend Controls",
+    learner,
+    "lab2",
+  );
 
   lines.push("## Risk ratings");
   lines.push("");
@@ -175,11 +193,21 @@ export function lab2Report(state: Week10State, learner = ""): string {
 }
 
 export function portfolioReport(state: Week10State, learner = ""): string {
+  /** The combined report is judged against every Week 10 requirement. */
+  const missing = checklistFor(state, "all").filter((c) => !c.done);
+  const overall = missing.length
+    ? [
+        "> **DRAFT — Week 10 is not complete.** Still to finish:",
+        ...missing.map((m) => `> - ${m.label}`),
+        "",
+      ]
+    : ["All Week 10 requirements are present, including all five room visits.", ""];
   return [
     "# Week 10 — Cloud Heights Family Clinic: Full Portfolio Report",
     "",
     "This report combines Lab 1 and Lab 2. It contains only your own work.",
     "",
+    ...overall,
     "---",
     "",
     lab1Report(state, learner),
