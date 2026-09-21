@@ -137,7 +137,12 @@ export function lab1Report(state: Week10State, learner = ""): string {
 }
 
 export function lab2Report(state: Week10State, learner = ""): string {
-  const lines = header(state, "Week 10 — Lab 2: Prioritize Risks and Recommend Controls", learner);
+  const lines = header(
+    state,
+    "Week 10 — Lab 2: Prioritize Risks and Recommend Controls",
+    learner,
+    "lab2",
+  );
 
   lines.push("## Risk ratings");
   lines.push("");
