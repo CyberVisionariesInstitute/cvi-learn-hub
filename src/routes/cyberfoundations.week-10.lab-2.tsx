@@ -5,6 +5,7 @@ import { Panel } from "@/components/week10/ui";
 import { Lab2 } from "@/components/week10/Lab2";
 import { Week10Toolbar } from "@/components/week10/Week10Toolbar";
 import { ClinicIllustration } from "@/components/week10/ClinicIllustration";
+import { CompletionSummary } from "@/components/week10/CompletionSummary";
 import { useWeek10 } from "@/lib/week10/useWeek10";
 import { WEEK10_ROUTES } from "@/lib/week10/case-packet";
 import { clinicEntranceIllustration } from "@/lib/week10/clinic-art";
@@ -65,6 +66,7 @@ function Lab2Page() {
         </Panel>
 
         <Lab2 store={store} />
+        <CompletionSummary store={store} />
         <Week10Toolbar store={store} />
       </div>
     </DemoLabShell>

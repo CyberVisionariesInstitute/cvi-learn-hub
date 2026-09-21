@@ -5,6 +5,7 @@ import { Panel } from "@/components/week10/ui";
 import { RoomBoard } from "@/components/week10/RoomBoard";
 import { Week10Toolbar } from "@/components/week10/Week10Toolbar";
 import { ClinicIllustration } from "@/components/week10/ClinicIllustration";
+import { CompletionSummary } from "@/components/week10/CompletionSummary";
 import { useWeek10 } from "@/lib/week10/useWeek10";
 import { clinicEntranceIllustration } from "@/lib/week10/clinic-art";
 import {
@@ -132,6 +133,8 @@ function Week10Overview() {
         <Panel title="Investigate the clinic">
           <RoomBoard store={store} />
         </Panel>
+
+        <CompletionSummary store={store} />
 
         <Week10Toolbar store={store} />
       </div>
