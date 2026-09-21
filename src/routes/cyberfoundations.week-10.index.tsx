@@ -4,7 +4,9 @@ import { cyberfoundations } from "@/lib/demo-lab/programs";
 import { Panel } from "@/components/week10/ui";
 import { RoomBoard } from "@/components/week10/RoomBoard";
 import { Week10Toolbar } from "@/components/week10/Week10Toolbar";
+import { ClinicIllustration } from "@/components/week10/ClinicIllustration";
 import { useWeek10 } from "@/lib/week10/useWeek10";
+import { clinicEntranceIllustration } from "@/lib/week10/clinic-art";
 import {
   assets,
   clinicProfile,
@@ -43,6 +45,7 @@ function Week10Overview() {
     <DemoLabShell themeClass={cyberfoundations.themeClass}>
       <div className="mx-auto max-w-6xl space-y-4 px-5 py-8 sm:px-8">
         <Panel eyebrow="Module 4 · Week 10 · Two labs · about 45–60 minutes each">
+          <ClinicIllustration illustration={clinicEntranceIllustration} priority className="mb-5" />
           <h1 className="font-display text-3xl text-foreground">
             Cloud Heights Family Clinic — Risk &amp; Threat Investigation
           </h1>
