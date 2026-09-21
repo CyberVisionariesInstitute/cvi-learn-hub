@@ -5,12 +5,14 @@ import { cyberfoundations } from "@/lib/demo-lab/programs";
 import { supabase } from "@/integrations/supabase/client";
 import { Panel } from "@/components/week10/ui";
 import { RoomBoard } from "@/components/week10/RoomBoard";
+import { ClinicIllustration } from "@/components/week10/ClinicIllustration";
 import { Lab1 } from "@/components/week10/Lab1";
 import { Lab2 } from "@/components/week10/Lab2";
 import { Week10Toolbar } from "@/components/week10/Week10Toolbar";
 import { useWeek10 } from "@/lib/week10/useWeek10";
 import { getWeek10InstructorKey } from "@/lib/week10/week10-instructor.functions";
 import { roomById, WEEK10_ROUTES } from "@/lib/week10/case-packet";
+import { clinicRoomIllustrations } from "@/lib/week10/clinic-art";
 import type { Week10InstructorKey } from "@/lib/week10/instructor-key.server";
 import { cn } from "@/lib/utils";
 
@@ -206,6 +208,7 @@ function RoomGuides({ data }: { data: Week10InstructorKey }) {
         const room = roomById(guide.roomId as never);
         return (
           <Panel key={guide.roomId} eyebrow="Room" title={room.name}>
+            <ClinicIllustration illustration={clinicRoomIllustrations[room.id]} />
             <div className="rounded-md border border-primary/40 bg-primary/10 p-3">
               <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">
                 Ask before revealing

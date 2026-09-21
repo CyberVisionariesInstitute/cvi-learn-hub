@@ -4,8 +4,10 @@ import { cyberfoundations } from "@/lib/demo-lab/programs";
 import { Panel } from "@/components/week10/ui";
 import { Lab2 } from "@/components/week10/Lab2";
 import { Week10Toolbar } from "@/components/week10/Week10Toolbar";
+import { ClinicIllustration } from "@/components/week10/ClinicIllustration";
 import { useWeek10 } from "@/lib/week10/useWeek10";
 import { WEEK10_ROUTES } from "@/lib/week10/case-packet";
+import { clinicEntranceIllustration } from "@/lib/week10/clinic-art";
 
 const description =
   "Week 10 Lab 2: rate the clinic's risks for likelihood and impact, place them on a 3x3 matrix, choose priorities, recommend controls, and brief the practice manager.";
@@ -33,6 +35,7 @@ function Lab2Page() {
     <DemoLabShell themeClass={cyberfoundations.themeClass}>
       <div className="mx-auto max-w-6xl space-y-4 px-5 py-8 sm:px-8">
         <Panel eyebrow="Module 4 · Week 10 · Lab 2 · about 45–60 minutes">
+          <ClinicIllustration illustration={clinicEntranceIllustration} priority className="mb-5" />
           <h1 className="font-display text-3xl text-foreground">
             Prioritize Risks and Recommend Controls
           </h1>

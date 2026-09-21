@@ -2,7 +2,9 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Field, Hint, Panel } from "./ui";
 import { ClinicMap } from "./ClinicMap";
+import { ClinicIllustration } from "./ClinicIllustration";
 import { evidenceById, roomById, rooms, type RoomId } from "@/lib/week10/case-packet";
+import { clinicRoomIllustrations } from "@/lib/week10/clinic-art";
 import type { Week10Store } from "@/lib/week10/useWeek10";
 
 const kindLabels: Record<string, string> = {
@@ -29,15 +31,19 @@ export function RoomBoard({ store }: { store: Week10Store }) {
 
       {room ? (
         <Panel eyebrow={`Room ${rooms.findIndex((r) => r.id === room.id) + 1}`} title={room.name}>
-          <p className="text-sm leading-relaxed text-foreground">{room.plainIntro}</p>
-
-          <div className="mt-4 rounded-md border border-border bg-background p-4">
-            <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">
-              {room.staff.name} — {room.staff.role}
-            </p>
-            <p className="mt-2 text-sm leading-relaxed text-foreground">
-              “{room.staff.statement}”
-            </p>
+          <div className="grid items-start gap-4 @3xl:grid-cols-[minmax(0,1.35fr)_minmax(17rem,0.65fr)]">
+            <ClinicIllustration illustration={clinicRoomIllustrations[room.id]} />
+            <div>
+              <p className="text-sm leading-relaxed text-foreground">{room.plainIntro}</p>
+              <div className="mt-4 rounded-md border border-border bg-background p-4">
+                <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">
+                  {room.staff.name} — {room.staff.role}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-foreground">
+                  “{room.staff.statement}”
+                </p>
+              </div>
+            </div>
           </div>
 
           <h3 className="mt-5 font-display text-sm text-foreground">Evidence in this room</h3>
