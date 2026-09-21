@@ -13,6 +13,9 @@ import {
   controlStatus,
   ratingStatus,
   visitedRoomIds,
+  clear,
+  load,
+  save,
   createInitialState,
   reconcile,
   score,
@@ -333,5 +336,44 @@ describe("Week 10 independent-mode answer protection", () => {
       expect(independent).toContain(a.name);
     });
     evidence.forEach((e) => expect(independent).toContain(e.id));
+  });
+});
+
+describe("Week 10 storage slots", () => {
+  function withStorage<T>(fn: (store: Map<string, string>) => T, fail = false): T {
+    const map = new Map<string, string>();
+    const storage = {
+      getItem: (k: string) => map.get(k) ?? null,
+      setItem: (k: string, v: string) => {
+        if (fail) throw new Error("QuotaExceededError");
+        map.set(k, v);
+      },
+      removeItem: (k: string) => void map.delete(k),
+    };
+    (globalThis as unknown as { window: unknown }).window = { localStorage: storage };
+    try {
+      return fn(map);
+    } finally {
+      delete (globalThis as unknown as { window?: unknown }).window;
+    }
+  }
+
+  it("writes the newest state to the learner's own slot and restores it", () => {
+    withStorage(() => {
+      const student = { kind: "student" as const, id: "u1" };
+      const demo = { kind: "instructor-demo" as const, id: "u1" };
+      const state = { ...createInitialState(), notebook: "typed then navigated" };
+      save(student, state);
+      expect(load(student)?.notebook).toBe("typed then navigated");
+      expect(load(demo)).toBeNull();
+      clear(student);
+      expect(load(student)).toBeNull();
+    });
+  });
+
+  it("surfaces a storage failure instead of reporting a save", () => {
+    withStorage(() => {
+      expect(() => save({ kind: "student", id: "u1" }, createInitialState())).toThrow();
+    }, true);
   });
 });
