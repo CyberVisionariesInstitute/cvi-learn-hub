@@ -17,9 +17,38 @@ const kindLabels: Record<string, string> = {
 };
 
 export function RoomBoard({ store }: { store: Week10Store }) {
-  const [active, setActive] = useState<RoomId | null>("reception");
+  /**
+   * `?room=` on the overview lets a summary link open a named room directly.
+   * The value is validated against the case packet, so only a real room can
+   * ever be opened — and the room actually shown is the only one recorded.
+   */
+  const search = useSearch({ strict: false }) as { room?: string };
+  const requested: RoomId | null = rooms.some((r) => r.id === search.room)
+    ? (search.room as RoomId)
+    : null;
+
+  const [active, setActive] = useState<RoomId | null>(requested ?? "reception");
   const { ready, state, toggleFinding, visitRoom, update } = store;
   const room = active ? roomById(active) : null;
+
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const lastRequested = useRef<RoomId | null>(requested);
+  const scrollPending = useRef<boolean>(Boolean(requested));
+
+  /* Follow the URL — including browser back/forward to a different room. */
+  useEffect(() => {
+    if (!requested) return;
+    setActive(requested);
+    if (lastRequested.current !== requested) scrollPending.current = true;
+    lastRequested.current = requested;
+  }, [requested]);
+
+  /* Bring the requested room's investigation into view once it is rendered. */
+  useEffect(() => {
+    if (!scrollPending.current || !room) return;
+    scrollPending.current = false;
+    panelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [room]);
 
   /**
    * Record the room actually on screen — including the one shown first —
@@ -36,7 +65,7 @@ export function RoomBoard({ store }: { store: Week10Store }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" ref={panelRef}>
       <ClinicMap active={active} visited={state.visitedRooms} onSelect={select} />
 
       {room ? (

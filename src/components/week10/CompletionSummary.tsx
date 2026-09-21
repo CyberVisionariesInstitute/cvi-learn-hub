@@ -281,6 +281,7 @@ export function CompletionSummary({ store }: { store: Week10Store }) {
                   •{" "}
                   <Link
                     to={WEEK10_ROUTES.overview}
+                    search={{ room: r.id }}
                     hash="rooms"
                     className="underline underline-offset-2 hover:text-primary"
                   >
