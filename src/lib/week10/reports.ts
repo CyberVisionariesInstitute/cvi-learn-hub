@@ -9,9 +9,10 @@ import { assets, evidenceById, scenarioDate } from "./case-packet";
 import {
   band,
   bandLabels,
-  checklist,
+  checklistFor,
   score,
   wordCount,
+  type ChecklistScope,
   type Week10State,
 } from "./state";
 
