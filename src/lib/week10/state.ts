@@ -8,7 +8,7 @@
  * demonstration and a student's own work can never be mixed.
  */
 
-import { assets, threatEvents } from "./case-packet";
+import { assets, rooms, threatEvents } from "./case-packet";
 
 export const WEEK10_SCHEMA = "cvi.week10.v1";
 
@@ -205,8 +205,52 @@ export interface ChecklistItem {
 
 const filled = (s: string) => s.trim().length > 0;
 
+/**
+ * Unique, valid room IDs the learner has actually opened. Guards against a
+ * duplicated or stale ID inflating the count in a restored backup.
+ */
+export function visitedRoomIds(state: Week10State): string[] {
+  return rooms.map((r) => r.id).filter((id) => state.visitedRooms.includes(id));
+}
+
+export function unvisitedRooms() {
+  return rooms;
+}
+
+export interface ControlStatus {
+  control: boolean;
+  howItHelps: boolean;
+  residual: boolean;
+  complete: boolean;
+}
+
+/** Per-scenario control completeness: a typed control alone is not a recommendation. */
+export function controlStatus(state: Week10State, scenarioId: string): ControlStatus {
+  const c = state.controls.find((x) => x.scenarioId === scenarioId);
+  const control = Boolean(c && filled(c.control));
+  const howItHelps = Boolean(c && filled(c.howItHelps));
+  const residual = Boolean(c && filled(c.residual));
+  return { control, howItHelps, residual, complete: control && howItHelps && residual };
+}
+
+export type RatingStatus = "unrated" | "partly-rated" | "rated-without-reasons" | "justified";
+
+/** Distinguishes an incomplete rating from a fully justified one. */
+export function ratingStatus(state: Week10State, scenarioId: string): RatingStatus {
+  const r = state.ratings.find((x) => x.scenarioId === scenarioId);
+  if (!r || (!r.likelihood && !r.impact)) return "unrated";
+  if (!r.likelihood || !r.impact) return "partly-rated";
+  return filled(r.likelihoodWhy) && filled(r.impactWhy) ? "justified" : "rated-without-reasons";
+}
+
 export function checklist(state: Week10State): ChecklistItem[] {
   const items: ChecklistItem[] = [];
+  items.push({
+    id: "rooms",
+    lab: 1,
+    label: `All ${rooms.length} clinic rooms opened (the walkthrough this lab asks for)`,
+    done: visitedRoomIds(state).length === rooms.length,
+  });
   items.push({
     id: "findings",
     lab: 1,
