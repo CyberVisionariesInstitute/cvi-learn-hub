@@ -329,3 +329,52 @@ export function Lab1({ store }: { store: Week10Store }) {
     </div>
   );
 }
+
+/**
+ * Guided-mode support for a scenario row.
+ *
+ * These are questions only, revealed one step at a time and entirely optional.
+ * No authored threat name, weakness or CIA answer appears here — the five
+ * assessed scenarios stay the learner's to find. Full worked answers live in
+ * the server-protected instructor view.
+ */
+function ScenarioQuestionHints() {
+  const steps = [
+    {
+      title: "Step 1 — Look again at the evidence",
+      body: "Which cards in your findings mention this asset? Read them once more and underline the sentence that describes how things are actually done today, not how they should be done.",
+    },
+    {
+      title: "Step 2 — Name what could go wrong",
+      body: "Describe an event: who or what acts, and what happens as a result. Write it as something that happens (\"someone does X\"), not as a feeling that this looks risky.",
+    },
+    {
+      title: "Step 3 — Explain the weakness that allows it",
+      body: "Point at the specific condition in the evidence that makes your event possible. If you cannot point at a card, it may be an unknown rather than a weakness — write it in the unknown box instead.",
+    },
+    {
+      title: "Step 4 — Work out the CIA impact",
+      body: "Ask which of three things your event breaks: would something private be seen (confidentiality), would something become wrong or untrustworthy (integrity), or would something the clinic needs be missing (availability)? More than one can apply.",
+    },
+  ];
+  return (
+    <details className="mt-3 rounded-md border border-amber/40 bg-amber/10 p-3">
+      <summary className="cursor-pointer text-sm font-medium text-foreground">
+        Stuck? Open step-by-step questions (no answers)
+      </summary>
+      <p className="mt-2 text-xs text-muted-foreground">
+        These are questions to work through, not answers. Take one step at a time.
+      </p>
+      <ol className="mt-2 space-y-2">
+        {steps.map((step) => (
+          <li key={step.title}>
+            <details className="rounded-md border border-border bg-background p-2">
+              <summary className="cursor-pointer text-sm text-foreground">{step.title}</summary>
+              <p className="mt-1 text-sm leading-relaxed text-foreground">{step.body}</p>
+            </details>
+          </li>
+        ))}
+      </ol>
+    </details>
+  );
+}
