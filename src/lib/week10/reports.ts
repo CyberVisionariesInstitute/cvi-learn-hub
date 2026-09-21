@@ -59,8 +59,15 @@ function ciaLine(cia: { confidentiality: boolean; integrity: boolean; availabili
   return parts.length ? parts.join(", ") : "(none selected)";
 }
 
-function header(state: Week10State, title: string, learner: string): string[] {
-  const missing = checklist(state).filter((c) => !c.done);
+function header(
+  state: Week10State,
+  title: string,
+  learner: string,
+  scope: ChecklistScope,
+): string[] {
+  const scopeLabel =
+    scope === "lab1" ? "Lab 1" : scope === "lab2" ? "Lab 2" : "the whole of Week 10";
+  const missing = checklistFor(state, scope).filter((c) => !c.done);
   const lines = [
     `# ${title}`,
     "",
