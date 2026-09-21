@@ -6,7 +6,6 @@ import {
   evidence,
   evidenceById,
   glossary,
-  threatEvents,
 } from "@/lib/week10/case-packet";
 import type { Week10Store } from "@/lib/week10/useWeek10";
 import type { ScenarioRow } from "@/lib/week10/state";
