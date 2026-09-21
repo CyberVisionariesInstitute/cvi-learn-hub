@@ -10,6 +10,7 @@ import {
 import {
   band,
   checklist,
+  checklistFor,
   controlStatus,
   ratingStatus,
   visitedRoomIds,
@@ -375,5 +376,64 @@ describe("Week 10 storage slots", () => {
     withStorage(() => {
       expect(() => save({ kind: "student", id: "u1" }, createInitialState())).toThrow();
     }, true);
+  });
+});
+
+describe("Week 10 review fixes", () => {
+  it("scopes the Lab 1 export to Lab 1 requirements", () => {
+    // Lab 1 finished, Lab 2 untouched.
+    const state = completed();
+    state.ratings = state.scenarios.map((s) => ({
+      scenarioId: s.id,
+      likelihood: 0,
+      likelihoodWhy: "",
+      impact: 0,
+      impactWhy: "",
+    }));
+    state.priorities = [];
+    state.priorityWhy = "";
+    state.controls = [];
+    state.briefing = "";
+
+    expect(checklistFor(state, "lab1").every((i) => i.done)).toBe(true);
+    expect(checklistFor(state, "lab2").some((i) => !i.done)).toBe(true);
+    expect(checklistFor(state, "all").some((i) => !i.done)).toBe(true);
+
+    expect(lab1Report(state)).not.toContain("DRAFT");
+    expect(lab2Report(state)).toContain("DRAFT");
+    expect(portfolioReport(state)).toContain("Week 10 is not complete");
+  });
+
+  it("marks the combined portfolio complete only when every requirement is met", () => {
+    const state = completed();
+    expect(portfolioReport(state)).not.toContain("DRAFT");
+
+    const missingRooms = { ...state, visitedRooms: ["reception"] };
+    expect(portfolioReport(missingRooms)).toContain("Week 10 is not complete");
+    // Lab 1's own export still cares about the five-room walkthrough.
+    expect(lab1Report(missingRooms)).toContain("DRAFT");
+    // Lab 2's export is not blocked by the room walkthrough.
+    expect(lab2Report(missingRooms)).not.toContain("DRAFT");
+  });
+
+  it("keeps guided Lab 1 hints free of the five authored threat answers", async () => {
+    const source = await import("node:fs").then((fs) =>
+      fs.readFileSync("src/components/week10/Lab1.tsx", "utf8"),
+    );
+    expect(source).not.toContain("threatEvents");
+    threatEvents.forEach((t) => expect(source).not.toContain(t.name));
+  });
+
+  it("does not leak authored threat answers into learner exports", () => {
+    const state = completed();
+    const text = `${lab1Report(state)}\n${portfolioReport(state)}`;
+    threatEvents.forEach((t) => expect(text).not.toContain(t.name));
+  });
+
+  it("counts only unique valid rooms actually opened", () => {
+    const state = createInitialState();
+    state.visitedRooms = ["records", "records", "not-a-room"];
+    expect(visitedRoomIds(state)).toEqual(["records"]);
+    expect(checklist(state).find((i) => i.id === "rooms")?.done).toBe(false);
   });
 });
