@@ -104,6 +104,7 @@ export function Week10Toolbar({ store }: { store: Week10Store }) {
           <input
             value={learner}
             maxLength={120}
+            disabled={!store.ready}
             onChange={(e) => {
               const learnerName = e.target.value;
               update((prev) => ({ ...prev, learnerName }));
