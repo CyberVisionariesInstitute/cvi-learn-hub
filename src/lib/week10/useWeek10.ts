@@ -135,14 +135,25 @@ export function useWeek10(demo = false): Week10Store {
     };
   }, [flush]);
 
-  const update = useCallback((fn: (prev: Week10State) => Week10State) => {
-    dirty.current = true;
-    setState((prev) => {
-      const next = reconcile(fn(prev));
+  /*
+   * Compute the next state synchronously from the ref and write it to storage
+   * immediately. A deferred React updater meant a hard navigation right after
+   * typing could unload the page before the newest value existed anywhere.
+   * Writes are skipped until hydration so defaults never overwrite saved work.
+   */
+  const readyRef = useRef(false);
+  readyRef.current = ready;
+  const update = useCallback(
+    (fn: (prev: Week10State) => Week10State) => {
+      const next = reconcile(fn(stateRef.current));
+      if (next === stateRef.current) return;
       stateRef.current = next;
-      return next;
-    });
-  }, []);
+      dirty.current = true;
+      setState(next);
+      if (readyRef.current) writeNow(identityRef.current, next);
+    },
+    [writeNow],
+  );
 
   const setMode = useCallback(
     (mode: StudyMode) => update((prev) => ({ ...prev, mode })),

@@ -104,6 +104,7 @@ export function Week10Toolbar({ store }: { store: Week10Store }) {
           <input
             value={learner}
             maxLength={120}
+            disabled={!store.ready}
             onChange={(e) => {
               const learnerName = e.target.value;
               update((prev) => ({ ...prev, learnerName }));
@@ -279,30 +280,57 @@ export function Week10Toolbar({ store }: { store: Week10Store }) {
   );
 }
 
-/** Shared, unambiguous hand-in instructions for Week 10. */
+/** Shared, unambiguous GitHub portfolio upload instructions for Week 10. */
 export function SubmissionSteps() {
   return (
     <div className="mt-3 rounded-md border border-border bg-background p-3 text-sm text-foreground">
-      <p className="font-medium">How to hand in Week 10 (two separate submissions)</p>
-      <ol className="mt-2 space-y-1">
+      <p className="font-medium">How to add your Week 10 reports to your GitHub portfolio</p>
+      <ol className="mt-2 space-y-2">
         <li>
-          1. Download <span className="font-mono">week10-lab-1.md</span> and submit it to the{" "}
-          <strong>Week 10 Lab 1</strong> assignment in the CVI Tracker.
+          1. Finish the lab here, check the required-work list and your reasoning, and enter or
+          check your name above.
         </li>
         <li>
-          2. Download <span className="font-mono">week10-lab-2.md</span> and submit it to the{" "}
-          <strong>Week 10 Lab 2</strong> assignment in the CVI Tracker.
+          2. Use <strong>Download Lab 1 report (Markdown)</strong> to get{" "}
+          <span className="font-mono">week10-lab-1.md</span>, or{" "}
+          <strong>Download Lab 2 report (Markdown)</strong> to get{" "}
+          <span className="font-mono">week10-lab-2.md</span>.
+        </li>
+        <li>
+          3. Open <strong>your own</strong> existing CyberFoundations student portfolio
+          repository on GitHub — not the institute&apos;s template repository. Go to the Week 10
+          location given in your course repository instructions.
+        </li>
+        <li>
+          4. In that location choose <strong>Add file → Upload files</strong>, select the
+          matching downloaded <span className="font-mono">.md</span> report, check the filename
+          and destination, type a meaningful commit message, and choose{" "}
+          <strong>Commit changes</strong> (follow GitHub&apos;s confirmation if it asks).
+        </li>
+        <li>
+          5. Open the committed file on GitHub and confirm your name and latest completed
+          answers show. Downloading a report alone does not upload it to GitHub or submit it
+          for grading.
         </li>
       </ol>
-      <ul className="mt-2 space-y-1 text-muted-foreground">
-        <li>• Downloading a file does not submit anything — you still upload it in the Tracker.</li>
-        <li>• Check the Tracker for your cohort&apos;s due dates.</li>
+      <p className="mt-3 font-medium">Revising a report</p>
+      <p className="mt-1 text-muted-foreground">
+        Edit your answers here, download a fresh report, and keep the original filename
+        (remove any &ldquo;(1)&rdquo; or &ldquo;(2)&rdquo; your browser added). Upload it to the
+        same repository folder, check that you are updating the intended file, commit, then
+        reopen it to verify. Do not delete your other work.
+      </p>
+      <ul className="mt-3 space-y-1 text-muted-foreground">
+        <li>• Grading submission instructions will be provided separately.</li>
         <li>
-          • The combined portfolio report is for keeping or showcasing both labs together. It
-          does not replace the two Tracker submissions.
+          • The combined portfolio report is optional and does not replace the two individual
+          reports.
         </li>
-        <li>• The JSON backup is only for restoring editable work — do not submit it.</li>
-        <li>• Screenshots are optional and never required.</li>
+        <li>
+          • The JSON backup only restores editable work in this demo — it is not a lab report
+          to upload.
+        </li>
+        <li>• Screenshots are optional.</li>
       </ul>
     </div>
   );
