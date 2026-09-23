@@ -437,3 +437,46 @@ describe("Week 10 review fixes", () => {
     expect(checklist(state).find((i) => i.id === "rooms")?.done).toBe(false);
   });
 });
+
+describe("reviewed fixes: reflection, learner name, legacy backups", () => {
+  function completeLab1() {
+    const s = createInitialState();
+    s.visitedRooms = rooms.map((r) => r.id);
+    s.findings = evidence.slice(0, 5).map((e) => e.id);
+    s.scenarios = s.scenarios.map((sc) => ({
+      ...sc, evidenceIds: [evidence[0]!.id], threat: "t", vulnerability: "v", consequence: "c",
+      cia: { confidentiality: true, integrity: false, availability: false },
+    }));
+    s.email = { signs: ["a", "b", "c"], safeStep: "report", proofNote: "   " };
+    return s;
+  }
+  it("blank reflection keeps Lab 1 and portfolio incomplete but not Lab 2 scope", () => {
+    const s = completeLab1();
+    expect(checklistFor(s, "lab1").every((i) => i.done)).toBe(false);
+    expect(lab1Report(s)).toContain("DRAFT");
+    expect(portfolioReport(s)).toContain("DRAFT");
+    expect(checklistFor(s, "lab2").some((i) => i.id === "email")).toBe(false);
+    s.email.proofNote = "suspicious, not proven";
+    expect(checklistFor(s, "lab1").every((i) => i.done)).toBe(true);
+    expect(lab1Report(s)).not.toContain("DRAFT");
+  });
+  it("legacy backup without learnerName loads with all work and empty name", () => {
+    const s = completeLab1();
+    const legacy = JSON.parse(JSON.stringify(s));
+    delete legacy.learnerName;
+    const r = validate(legacy);
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.state.learnerName).toBe("");
+      expect(r.state.findings).toEqual(s.findings);
+      expect(r.state.scenarios[0]!.threat).toBe("t");
+    }
+  });
+  it("learner name round-trips through backup and appears on reports", () => {
+    const s = { ...createInitialState(), learnerName: "Test Learner" };
+    const r = validate(JSON.parse(JSON.stringify(s)));
+    expect(r.ok && r.state.learnerName).toBe("Test Learner");
+    expect(lab1Report(s)).toContain("Learner: Test Learner");
+    expect(lab2Report(s)).toContain("Learner: Test Learner");
+  });
+});

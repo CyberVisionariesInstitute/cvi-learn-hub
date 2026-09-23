@@ -40,9 +40,12 @@ function Lab1Page() {
             each one anchored to evidence you can point at.
           </p>
           <p className="mt-3 text-sm text-foreground">
-            <strong>You are finished when</strong> five scenarios each have evidence, a
-            threat, a vulnerability, a consequence and at least one CIA concern, and the
-            email analysis has three warning signs plus a safe reporting step.
+            <strong>You are finished when</strong> you have opened all five clinic rooms, added
+            at least five pieces of evidence to your findings, five scenarios each have
+            evidence, a threat, a vulnerability, a consequence and at least one CIA concern,
+            and the email analysis has three warning signs, a safe reporting step and your
+            &ldquo;suspicious vs proven&rdquo; reflection. Finished means the work is present —
+            it is not a judgement of whether your analysis is correct.
           </p>
           <div className="mt-4 flex flex-wrap gap-2 text-sm">
             <Link

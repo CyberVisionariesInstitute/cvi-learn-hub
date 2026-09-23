@@ -68,10 +68,11 @@ function header(
   const scopeLabel =
     scope === "lab1" ? "Lab 1" : scope === "lab2" ? "Lab 2" : "the whole of Week 10";
   const missing = checklistFor(state, scope).filter((c) => !c.done);
+  const name = learner.trim() || state.learnerName;
   const lines = [
     `# ${title}`,
     "",
-    `Learner: ${mdBlock(learner) || "(name not recorded)"}`,
+    `Learner: ${mdBlock(name) || "(name not recorded)"}`,
     `Case: Cloud Heights Family Clinic — Risk & Threat Investigation`,
     `Scenario date: ${scenarioDate}`,
     `Report generated: ${new Date().toISOString()}`,

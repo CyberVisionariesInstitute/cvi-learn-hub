@@ -50,22 +50,18 @@ export function Lab1({ store }: { store: Week10Store }) {
               {state.mode === "guided" ? (
                 <details className="mt-3 rounded-md border border-amber/40 bg-amber/10 p-3">
                   <summary className="cursor-pointer text-sm font-medium text-foreground">
-                    Show a hint: why this asset matters
+                    Show a hint: how to think about this asset
                   </summary>
-                  <dl className="mt-2 space-y-1 text-sm text-foreground">
-                    <div>
-                      <dt className="inline font-medium">Kept private: </dt>
-                      <dd className="inline">{a.cia.confidentiality}</dd>
-                    </div>
-                    <div>
-                      <dt className="inline font-medium">Correct: </dt>
-                      <dd className="inline">{a.cia.integrity}</dd>
-                    </div>
-                    <div>
-                      <dt className="inline font-medium">Available: </dt>
-                      <dd className="inline">{a.cia.availability}</dd>
-                    </div>
-                  </dl>
+                  <ul className="mt-2 space-y-1 text-sm text-foreground">
+                    <li>Private: who should never see what is stored or shown here?</li>
+                    <li>Correct: what would go wrong if this held wrong or changed information?</li>
+                    <li>Available: what stops for the clinic if this cannot be used today?</li>
+                  </ul>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Everyday example (not this clinic): a community theatre&apos;s ticket list must
+                    stay private (buyers&apos; phone numbers), correct (right seats) and available
+                    (on show night).
+                  </p>
                 </details>
               ) : (
                 <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
@@ -138,6 +134,12 @@ export function Lab1({ store }: { store: Week10Store }) {
 
       {/* C — scenarios */}
       <Panel eyebrow="Part C" title="Build your five risk scenarios">
+        <p className="mb-3 rounded-md border border-border bg-background p-3 text-sm text-foreground">
+          Two separate steps: <strong>&ldquo;Add to my findings&rdquo;</strong> in a room collects
+          evidence into your overall list; <strong>&ldquo;Evidence I am using&rdquo;</strong> below
+          attaches evidence to one particular scenario. You need both. Changes here carry into
+          Lab 2 — if you change a scenario, reconsider its rating and recommendation there.
+        </p>
         <p className="text-sm text-muted-foreground">
           One row per situation. Tick the evidence you are relying on — the IDs travel with
           your work into Lab 2 and into your report. Where the evidence does not tell you
@@ -274,8 +276,9 @@ export function Lab1({ store }: { store: Week10Store }) {
 
         <Hint mode={state.mode}>
           If your threat and vulnerability boxes say the same thing, you have written one
-          idea twice. The threat is the event ("someone signs in as reception"); the
-          vulnerability is why it is possible ("password only, no second step").
+          idea twice. Everyday example (not this clinic): at a community theatre, the event is
+          &ldquo;someone walks into the costume store and takes costumes&rdquo;; the weakness is
+          &ldquo;the store door is propped open during rehearsals&rdquo;.
         </Hint>
       </Panel>
 

@@ -47,7 +47,9 @@ export function Lab2({ store }: { store: Week10Store }) {
         <p className="text-sm text-muted-foreground">
           These are the same rows, matched by their IDs. Editing Lab 1 keeps everything you
           write here; deleting a row would remove its rating and control so your report can
-          never show work for something that no longer exists.
+          never show work for something that no longer exists. If you change a scenario in
+          Lab 1, reread its rating and recommendation here and update them if they no longer
+          fit.
         </p>
         {emptyRows.length ? (
           <p className="mt-3 rounded-md border border-amber/40 bg-amber/10 p-3 text-sm text-foreground">
@@ -263,9 +265,11 @@ export function Lab2({ store }: { store: Week10Store }) {
           })}
         </div>
         <Hint mode={state.mode}>
-          A good control names the weakness it closes. "Improve security" closes nothing;
-          "individual named accounts for each reception member" closes the attribution gap
-          you found in the records office.
+          A good control names the weakness it closes. Ask: which weakness in my scenario does
+          this remove or shrink, and what does it leave behind? Everyday example (not this
+          clinic): &ldquo;improve security&rdquo; closes nothing at a community theatre;
+          &ldquo;the costume store door closes and locks automatically&rdquo; closes the
+          propped-open-door weakness.
         </Hint>
       </Panel>
 
