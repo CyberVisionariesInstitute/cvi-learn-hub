@@ -104,9 +104,10 @@ function Week10Overview() {
               and brief the practice manager.
             </li>
             <li>
-              5. Download week10-lab-1.md and week10-lab-2.md and upload each one to your own
-              CyberFoundations portfolio repository on GitHub (step-by-step directions are
-              in Downloads on each lab page). Downloading alone does not upload anything.
+              5. Download week10-lab-1.md and week10-lab-2.md and upload each one to the
+              week-10/labs/ folder of your own CyberFoundations portfolio repository on
+              GitHub (step-by-step directions are in Downloads on each lab page).
+              Downloading alone does not upload anything.
             </li>
           </ol>
           <p className="mt-4 text-sm text-foreground">
