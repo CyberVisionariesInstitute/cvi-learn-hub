@@ -306,14 +306,14 @@ export function CompletionSummary({ store }: { store: Week10Store }) {
         {everythingDone ? (
           <p className="mt-2 text-sm text-foreground">
             Every required step is present, including all {rooms.length} room visits. Download
-            week10-lab-1.md and week10-lab-2.md and submit each to its own Week 10 assignment
-            in the CVI Tracker (see Downloads below). The combined portfolio is for keeping,
-            not a substitute submission.
+            week10-lab-1.md and week10-lab-2.md and upload each to your own CyberFoundations
+            portfolio repository on GitHub (see Downloads below). The combined portfolio is
+            optional and does not replace the two reports.
           </p>
         ) : (
           <p className="mt-2 text-sm text-muted-foreground">
             Your Week 10 investigation is not finished yet. Finish the steps above before you
-            submit.
+            upload your reports to GitHub.
           </p>
         )}
 
