@@ -298,17 +298,31 @@ export function SubmissionSteps() {
         </li>
         <li>
           3. Open <strong>your own</strong> existing CyberFoundations student portfolio
-          repository on GitHub — not the institute&apos;s template repository. Go to the Week 10
-          location given in your course repository instructions.
+          repository on GitHub — not the institute&apos;s template repository. Week 10 reports
+          belong in the <span className="font-mono">week-10/labs/</span> folder, the same
+          pattern as Week 8 (<span className="font-mono">week-08/labs/</span>) and Week 9 (
+          <span className="font-mono">week-09/labs/</span>). The full destinations are{" "}
+          <span className="font-mono">week-10/labs/week10-lab-1.md</span> and{" "}
+          <span className="font-mono">week-10/labs/week10-lab-2.md</span>.
         </li>
         <li>
-          4. In that location choose <strong>Add file → Upload files</strong>, select the
-          matching downloaded <span className="font-mono">.md</span> report, check the filename
-          and destination, type a meaningful commit message, and choose{" "}
-          <strong>Commit changes</strong> (follow GitHub&apos;s confirmation if it asks).
+          4. If the <span className="font-mono">week-10/labs/</span> folder does not exist yet,
+          create it once: from your repository&apos;s main page choose{" "}
+          <strong>Add file → Create new file</strong>, type{" "}
+          <span className="font-mono">week-10/labs/README.md</span> as the filename, add a short
+          heading such as <span className="font-mono"># Week 10 Lab Reports</span>, and choose{" "}
+          <strong>Commit changes</strong>. If the folder already exists, use it as it is —
+          don&apos;t replace an existing README.
         </li>
         <li>
-          5. Open the committed file on GitHub and confirm your name and latest completed
+          5. Open the <span className="font-mono">week-10/labs/</span> folder, choose{" "}
+          <strong>Add file → Upload files</strong>, select the matching downloaded{" "}
+          <span className="font-mono">.md</span> report, check the filename and destination,
+          type a meaningful commit message, and choose <strong>Commit changes</strong> (follow
+          GitHub&apos;s confirmation if it asks).
+        </li>
+        <li>
+          6. Open the committed file on GitHub and confirm your name and latest completed
           answers show. Downloading a report alone does not upload it to GitHub or submit it
           for grading.
         </li>
@@ -317,7 +331,8 @@ export function SubmissionSteps() {
       <p className="mt-1 text-muted-foreground">
         Edit your answers here, download a fresh report, and keep the original filename
         (remove any &ldquo;(1)&rdquo; or &ldquo;(2)&rdquo; your browser added). Upload it to the
-        same repository folder, check that you are updating the intended file, commit, then
+        same <span className="font-mono">week-10/labs/</span> folder under the same filename,
+        check that you are updating the intended file, commit, then
         reopen it to verify. Do not delete your other work.
       </p>
       <ul className="mt-3 space-y-1 text-muted-foreground">

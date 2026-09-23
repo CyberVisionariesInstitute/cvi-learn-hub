@@ -306,9 +306,9 @@ export function CompletionSummary({ store }: { store: Week10Store }) {
         {everythingDone ? (
           <p className="mt-2 text-sm text-foreground">
             Every required step is present, including all {rooms.length} room visits. Download
-            week10-lab-1.md and week10-lab-2.md and upload each to your own CyberFoundations
-            portfolio repository on GitHub (see Downloads below). The combined portfolio is
-            optional and does not replace the two reports.
+            week10-lab-1.md and week10-lab-2.md and upload each to the week-10/labs/ folder of
+            your own CyberFoundations portfolio repository on GitHub (see Downloads below).
+            The combined portfolio is optional and does not replace the two reports.
           </p>
         ) : (
           <p className="mt-2 text-sm text-muted-foreground">
