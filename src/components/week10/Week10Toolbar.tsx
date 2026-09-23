@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ModeToggle, Panel, ProgressBar, SaveIndicator } from "./ui";
-import { checklist } from "@/lib/week10/state";
+import { checklist, validate } from "@/lib/week10/state";
 import { casePacketMarkdown, WEEK10_ROUTES } from "@/lib/week10/case-packet";
 import { lab1Report, lab2Report, portfolioReport } from "@/lib/week10/reports";
 import { downloadText, type Week10Store } from "@/lib/week10/useWeek10";
@@ -10,8 +10,9 @@ const btn =
   "min-h-11 rounded-md border border-border px-3 py-2 text-sm text-foreground transition-colors hover:border-primary/60";
 
 export function Week10Toolbar({ store }: { store: Week10Store }) {
-  const { state, status, saveError, setMode, resetWeek, restore, backupJson, flush } = store;
-  const [learner, setLearner] = useState("");
+  const { state, status, saveError, setMode, resetWeek, restore, backupJson, flush, update } = store;
+  const learner = state.learnerName;
+  const [pendingRestore, setPendingRestore] = useState<{ raw: unknown; fileName: string } | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const [restoreProblems, setRestoreProblems] = useState<string[]>([]);
   const [restoreOk, setRestoreOk] = useState(false);
@@ -24,17 +25,36 @@ export function Week10Toolbar({ store }: { store: Week10Store }) {
 
   async function onRestoreFile(file: File) {
     setRestoreOk(false);
+    setPendingRestore(null);
     try {
-      const result = restore(JSON.parse(await file.text()));
-      if (result.ok) {
-        setRestoreProblems([]);
-        setRestoreOk(true);
-      } else {
-        setRestoreProblems(result.problems);
+      const raw: unknown = JSON.parse(await file.text());
+      const check = validate(raw);
+      if (!check.ok) {
+        setRestoreProblems(check.problems);
+        return;
       }
+      setRestoreProblems([]);
+      setPendingRestore({ raw, fileName: file.name });
     } catch {
       setRestoreProblems(["That file is not readable as JSON. Choose the backup file you downloaded from this page."]);
     }
+  }
+
+  function confirmRestore() {
+    if (!pendingRestore) return;
+    const result = restore(pendingRestore.raw);
+    setPendingRestore(null);
+    if (result.ok) {
+      setRestoreProblems([]);
+      setRestoreOk(true);
+    } else {
+      setRestoreProblems(result.problems);
+    }
+  }
+
+  function downloadBackup() {
+    flush();
+    downloadText(`${prefix}-backup.json`, backupJson(), "application/json");
   }
 
   return (
@@ -83,13 +103,26 @@ export function Week10Toolbar({ store }: { store: Week10Store }) {
           </span>
           <input
             value={learner}
-            onChange={(e) => setLearner(e.target.value)}
+            maxLength={120}
+            onChange={(e) => {
+              const learnerName = e.target.value;
+              update((prev) => ({ ...prev, learnerName }));
+            }}
             className="mt-1 min-h-11 w-full rounded-md border border-border bg-background p-2 text-sm text-foreground"
           />
         </label>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Saved with your Week 10 work on this browser/device and included in your JSON backup.
+        </p>
       </Panel>
 
       <Panel title="Downloads">
+        {!learner.trim() ? (
+          <p className="mb-3 rounded-md border border-amber/40 bg-amber/10 p-3 text-sm text-foreground">
+            Reminder: enter your name above before downloading, so your reports show who wrote
+            them.
+          </p>
+        ) : null}
         <p className="text-sm text-muted-foreground">
           Reports contain your own writing only. Unfinished work is still downloadable and is
           clearly marked as a draft with a list of what is missing.
@@ -112,9 +145,7 @@ export function Week10Toolbar({ store }: { store: Week10Store }) {
           <button
             type="button"
             className={btn}
-            onClick={() =>
-              downloadText(`${prefix}-portfolio.md`, portfolioReport(state, learner))
-            }
+            onClick={() => { flush(); downloadText(`${prefix}-portfolio.md`, portfolioReport(state, learner)); }}
           >
             Download combined portfolio report
           </button>
@@ -129,11 +160,7 @@ export function Week10Toolbar({ store }: { store: Week10Store }) {
             Print / save as PDF
           </button>
         </div>
-        <p className="mt-3 rounded-md border border-border bg-background p-3 text-sm text-foreground">
-          <strong>How to hand this in:</strong> download your combined portfolio report, then
-          submit the file in the CVI Tracker as instructed by your facilitator. Screenshots
-          are optional and never required.
-        </p>
+        <SubmissionSteps />
       </Panel>
 
       <Panel title="Backup and restore (this browser only)">
@@ -146,10 +173,7 @@ export function Week10Toolbar({ store }: { store: Week10Store }) {
           <button
             type="button"
             className={btn}
-            onClick={() => {
-              flush();
-              downloadText(`${prefix}-backup.json`, backupJson(), "application/json");
-            }}
+            onClick={downloadBackup}
           >
             Download JSON backup
           </button>
@@ -168,6 +192,34 @@ export function Week10Toolbar({ store }: { store: Week10Store }) {
             }}
           />
         </div>
+        {pendingRestore ? (
+          <div
+            role="alertdialog"
+            aria-labelledby="w10-restore-title"
+            aria-describedby="w10-restore-desc"
+            className="mt-3 rounded-md border border-amber/50 bg-amber/10 p-3"
+          >
+            <p id="w10-restore-title" className="text-sm font-medium text-foreground">
+              Replace your current Week 10 work with “{pendingRestore.fileName}”?
+            </p>
+            <p id="w10-restore-desc" className="mt-1 text-sm text-foreground">
+              The file checked out as a valid Week 10 backup. Restoring replaces your current
+              answers, findings, ratings, controls, notebook and name with the file&apos;s
+              contents. We recommend downloading a backup of your current work first.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button type="button" className={btn} onClick={downloadBackup}>
+                Download current backup first
+              </button>
+              <button type="button" className={btn} onClick={confirmRestore}>
+                Replace my work with this backup
+              </button>
+              <button type="button" className={btn} autoFocus onClick={() => setPendingRestore(null)}>
+                Cancel — keep my current work
+              </button>
+            </div>
+          </div>
+        ) : null}
         <div aria-live="polite" className="mt-3">
           {restoreOk ? (
             <p className="rounded-md border border-primary/40 bg-primary/10 p-3 text-sm text-foreground">
@@ -223,6 +275,35 @@ export function Week10Toolbar({ store }: { store: Week10Store }) {
           </button>
         )}
       </Panel>
+    </div>
+  );
+}
+
+/** Shared, unambiguous hand-in instructions for Week 10. */
+export function SubmissionSteps() {
+  return (
+    <div className="mt-3 rounded-md border border-border bg-background p-3 text-sm text-foreground">
+      <p className="font-medium">How to hand in Week 10 (two separate submissions)</p>
+      <ol className="mt-2 space-y-1">
+        <li>
+          1. Download <span className="font-mono">week10-lab-1.md</span> and submit it to the{" "}
+          <strong>Week 10 Lab 1</strong> assignment in the CVI Tracker.
+        </li>
+        <li>
+          2. Download <span className="font-mono">week10-lab-2.md</span> and submit it to the{" "}
+          <strong>Week 10 Lab 2</strong> assignment in the CVI Tracker.
+        </li>
+      </ol>
+      <ul className="mt-2 space-y-1 text-muted-foreground">
+        <li>• Downloading a file does not submit anything — you still upload it in the Tracker.</li>
+        <li>• Check the Tracker for your cohort&apos;s due dates.</li>
+        <li>
+          • The combined portfolio report is for keeping or showcasing both labs together. It
+          does not replace the two Tracker submissions.
+        </li>
+        <li>• The JSON backup is only for restoring editable work — do not submit it.</li>
+        <li>• Screenshots are optional and never required.</li>
+      </ul>
     </div>
   );
 }
