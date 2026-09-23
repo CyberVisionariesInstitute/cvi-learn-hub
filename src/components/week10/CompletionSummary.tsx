@@ -305,8 +305,10 @@ export function CompletionSummary({ store }: { store: Week10Store }) {
 
         {everythingDone ? (
           <p className="mt-2 text-sm text-foreground">
-            Every required step is present, including all {rooms.length} room visits. You can
-            download your combined portfolio report and submit it in the CVI Tracker.
+            Every required step is present, including all {rooms.length} room visits. Download
+            week10-lab-1.md and week10-lab-2.md and submit each to its own Week 10 assignment
+            in the CVI Tracker (see Downloads below). The combined portfolio is for keeping,
+            not a substitute submission.
           </p>
         ) : (
           <p className="mt-2 text-sm text-muted-foreground">

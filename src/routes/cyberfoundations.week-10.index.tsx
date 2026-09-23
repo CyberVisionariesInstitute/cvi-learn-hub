@@ -104,7 +104,9 @@ function Week10Overview() {
               and brief the practice manager.
             </li>
             <li>
-              5. Download your report and submit it in the CVI Tracker.
+              5. Download week10-lab-1.md and submit it to the Week 10 Lab 1 assignment in
+              the CVI Tracker; download week10-lab-2.md and submit it to the Week 10 Lab 2
+              assignment. Downloading alone does not submit anything.
             </li>
           </ol>
           <p className="mt-4 text-sm text-foreground">
