@@ -50,6 +50,8 @@ export interface Week10State {
   findings: string[];
   /** Free-text notebook, learner-owned. */
   notebook: string;
+  /** Name printed on reports. Optional in older saves/backups (defaults to ""). */
+  learnerName: string;
   /** Lab 1 */
   scenarios: ScenarioRow[];
   email: {
@@ -90,6 +92,7 @@ export function createInitialState(mode: StudyMode = "guided"): Week10State {
     mode,
     findings: [],
     notebook: "",
+    learnerName: "",
     scenarios,
     email: { signs: ["", "", ""], safeStep: "", proofNote: "" },
     ratings: scenarios.map((s) => ({
@@ -270,8 +273,12 @@ export function checklist(state: Week10State): ChecklistItem[] {
   items.push({
     id: "email",
     lab: 1,
-    label: "Email analysis: three warning signs and a safe reporting step",
-    done: state.email.signs.every(filled) && filled(state.email.safeStep),
+    label:
+      "Email analysis: three warning signs, a safe reporting step, and your \"suspicious vs proven\" reflection",
+    done:
+      state.email.signs.every(filled) &&
+      filled(state.email.safeStep) &&
+      filled(state.email.proofNote),
   });
   state.scenarios.forEach((s, i) => {
     const r = state.ratings.find((x) => x.scenarioId === s.id);
@@ -423,6 +430,7 @@ export function validate(input: unknown): ValidationResult {
     mode: raw['mode'] === "independent" ? "independent" : "guided",
     findings: (raw['findings'] as unknown[]).filter((x): x is string => typeof x === "string"),
     notebook: str(raw['notebook']),
+    learnerName: str(raw['learnerName']).slice(0, 120),
     scenarios: scenarios.length ? scenarios : base.scenarios,
     email: {
       signs: [str(signsRaw[0]), str(signsRaw[1]), str(signsRaw[2])],
