@@ -66,7 +66,7 @@ export function computeReadiness(s: SimState, learner: Learner, ev: EvidenceRow[
     aj && aj.status !== "enabled" && "Jamie's account should end enabled (ACT-301).",
     !disableSeq && "Run the disable → denied → re-enable validation sequence.",
     disableSeq > 0 && !s.tests.some((t) => t.account === "ad-jamie" && t.decision === "deny" && t.seq > disableSeq) && !s.signins.some((x) => x.account === "ad-jamie" && x.raw['reason'] === "ACCOUNT_DISABLED") && "Show a denied sign-in or access test while Jamie is disabled.",
-    !tested(s, "ad-jamie", "R-HAND", "read", "allow", disableSeq) && "Test Staff Handbook read after re-enabling and a fresh sign-in.",
+    !tested(s, "ad-jamie", "R-HAND", "read", "allow", undefined, disableSeq) && "Test Staff Handbook read after re-enabling and a fresh sign-in.",
     slot(ev, learner, "E05"), slot(ev, learner, "E06"), slot(ev, learner, "E07"), ...questions("M03"),
   ]);
 
@@ -95,7 +95,7 @@ export function computeReadiness(s: SimState, learner: Learner, ev: EvidenceRow[
     !tested(s, "cl-emi", "R-AUD", "read", "allow") && "Required test: Emi audit read.",
     !tested(s, "cl-emi", "R-AUD", "export", "allow") && "Required test: Emi audit export.",
     !tested(s, "cl-emi", "R-AUD", "delete", "deny") && "Required test: Emi audit delete.",
-    (!blairAudAllow || !tested(s, "cl-blair", "R-AUD", "read", "deny", blairAudAllow.seq)) && "Complete the temporary grant → allowed test → revoke → denied retest for Blair.",
+    (!blairAudAllow || !tested(s, "cl-blair", "R-AUD", "read", "deny", undefined, blairAudAllow.seq)) && "Complete the temporary grant → allowed test → revoke → denied retest for Blair.",
     !abac.some((t) => t.mode === "current-access" && t.decision === "allow") && "Run Casey's Internal Response Note read under current state.",
     !whatIf("deviceTrust") && "Run the what-if case changing only the device.",
     !whatIf("department") && "Run the what-if case changing only the department.",

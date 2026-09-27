@@ -106,7 +106,7 @@ export type Command =
   | { type: "revoke_sessions"; account: string; ticket?: string | undefined; reason?: string }
   | { type: "transfer_department"; person: string; dept: DeptKey; ticket: string }
   | { type: "ticket_status"; ticket: string; status: "investigating" | "in_progress" | "resolved" | "escalated"; note: string }
-  | { type: "test_access"; account: string; session?: string | null | undefined; resource: string; action: string; mode: "current-access" | "preview" | "abac-what-if"; device?: string | undefined; overrides?: Record<string, string> }
+  | { type: "test_access"; account: string; session?: string | null | undefined; resource: string; action: string; mode: "current-access" | "preview" | "abac-what-if"; device?: string | undefined; overrides?: Record<string, string> | undefined }
   | { type: "review_config"; group: string; note: string }
   | { type: "open_recovery"; account: string };
 
@@ -487,7 +487,7 @@ export const reasonText = (r: string[]) => r.map((x) => reasonCopy[x] ?? x).join
 /** Authoritative decision order (spec 6.2). Pure; used by the command above. */
 export function evaluateAccess(
   s: SimState,
-  cmd: { account: string; session?: string | null | undefined; resource: string; action: string; mode: AccessTest["mode"]; device?: string | undefined; overrides?: Record<string, string> },
+  cmd: { account: string; session?: string | null | undefined; resource: string; action: string; mode: AccessTest["mode"]; device?: string | undefined; overrides?: Record<string, string> | undefined },
 ): Omit<AccessTest, "id" | "seq" | "revision"> {
   const a = s.accounts.find((x) => x.key === cmd.account)!;
   const res = resources.find((r) => r.key === cmd.resource)!;

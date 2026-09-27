@@ -7,7 +7,7 @@ import { Badge, btn, btnPrimary, Card, input, KV, Select, TableWrap } from "./ui
 
 const ticketOptions = [{ value: "", label: "No ticket — write a reason" }, ...tickets.map((t) => ({ value: t.key, label: `${t.key} — ${t.title}` }))];
 
-function Justify({ store, onChange }: { store: Week11Store; onChange: (j: { ticket?: string; reason?: string }) => void }) {
+function Justify({ store, onChange }: { store: Week11Store; onChange: (j: { ticket?: string | undefined; reason?: string | undefined }) => void }) {
   const recov = store.view!.state.recoveryTickets.map((r) => ({ value: r.key, label: `${r.key} (training recovery)` }));
   const [t, setT] = useState("");
   const [r, setR] = useState("");
@@ -63,7 +63,7 @@ function AccountDetail({ store, accountKey, onBack }: { store: Week11Store; acco
   const mem = s.memberships.filter((m) => m.account === a.key);
   const eff = effectiveAccess(s, a.key);
   const sessions = s.sessions.filter((x) => x.account === a.key);
-  const [j, setJ] = useState<{ ticket?: string; reason?: string }>({});
+  const [j, setJ] = useState<{ ticket?: string | undefined; reason?: string | undefined }>({});
   const [grp, setGrp] = useState(groups.find((g) => g.dir === a.dir)!.key);
   const [ou, setOu] = useState(a.ou ?? "OU-STAFF");
   const [dept, setDept] = useState(a.dept);
