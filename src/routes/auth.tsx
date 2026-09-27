@@ -127,7 +127,7 @@ function AuthPage() {
       if (mode === "signin") {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) throw err;
-        await navigate({ to: target, replace: true });
+        // Routing happens in the session effect (student vs staff).
       } else {
         const { error: err } = await supabase.auth.signUp({
           email,
@@ -153,6 +153,7 @@ function AuthPage() {
     setError(null);
     try {
       sessionStorage.setItem("cvi:post-auth", target);
+      if (staffMode) sessionStorage.setItem("cvi:post-auth-staff", "1");
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: `${window.location.origin}/auth`,
       });
@@ -161,7 +162,6 @@ function AuthPage() {
         return;
       }
       if (result.redirected) return;
-      await navigate({ to: target, replace: true });
     } finally {
       setBusy(false);
     }
@@ -175,12 +175,14 @@ function AuthPage() {
             CyberVisionaries Institute
           </p>
           <h1 className="mt-2 font-display text-3xl text-foreground">
-            {mode === "recovery" ? "Set your password" : "Student sign in"}
+            {mode === "recovery" ? "Set your password" : staffMode ? "Staff sign in" : "Student sign in"}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {mode === "recovery"
               ? "Choose a password for your account, then you will be taken to your capstone workspace."
-              : "Your capstone workspace, assigned scenario, and saved project live behind this sign in."}
+              : staffMode
+                ? "For instructors and admins. You'll go straight to the instructor console — no student area."
+                : "Your capstone workspace, assigned scenario, and saved project live behind this sign in."}
           </p>
         </div>
 
@@ -272,6 +274,19 @@ function AuthPage() {
         </form>
         )}
 
+        {mode !== "recovery" ? (
+          <button
+            type="button"
+            onClick={() => {
+              setError(null);
+              setStaffStored(false);
+              void navigate({ to: "/auth", search: { redirect: search.redirect, staff: staffMode ? undefined : "1" }, replace: true });
+            }}
+            className="text-left text-sm text-primary underline"
+          >
+            {staffMode ? "Student? Use the student sign in" : "Instructor or admin? Staff sign in"}
+          </button>
+        ) : null}
         <Link to="/pki" className="text-xs text-muted-foreground hover:text-foreground">
           Back to the PKI Demo Lab
         </Link>
