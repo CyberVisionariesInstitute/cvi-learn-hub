@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { devices, groups, resources, roles } from "@/lib/week11/seed";
 import { reasonText, type AccessTest } from "@/lib/week11/engine";
+import { expectedDenyNote } from "@/lib/week11/guidance";
 import type { Week11Store } from "@/lib/week11/useWeek11";
 import { Badge, btnPrimary, Card, Decision, KV, Select } from "./ui";
 
@@ -17,6 +18,7 @@ export function TestTrace({ t }: { t: AccessTest }) {
         {t.mode !== "current-access" ? <Badge tone="warn">{t.mode === "preview" ? "Preview — not access evidence" : "What-if branch — policy simulation"}</Badge> : null}
       </div>
       <p className="mt-2">{reasonText(t.reasons)}</p>
+      {expectedDenyNote(t) ? <p className="mt-2 rounded-md border border-primary/40 bg-primary/10 p-2 text-xs"><strong>Expected learning result:</strong> {expectedDenyNote(t)} A denial here is not a mistake.</p> : null}
       <div className="mt-2">
         <KV rows={[
           ["Session", t.session ?? "none"],
@@ -66,7 +68,7 @@ export function AccessTester({ store, account: initial }: { store: Week11Store; 
   const [resource, setResource] = useState(eligible[0]?.key ?? "R-HAND");
   const res = resources.find((r) => r.key === resource) ?? eligible[0];
   const [action, setAction] = useState(res?.actions[0] ?? "read");
-  const sessions = v.state.sessions.filter((s) => s.account === account && s.status === "active");
+  const sessions = v.state.sessions.filter((s) => s.account === account && (s.status === "active" || account.endsWith("-finley")));
   const [session, setSession] = useState("");
   const sess = session || sessions.at(-1)?.key || "";
   const [mode, setMode] = useState<"current-access" | "preview" | "abac-what-if">("current-access");
@@ -90,8 +92,10 @@ export function AccessTester({ store, account: initial }: { store: Week11Store; 
             <Select label="Device trust override" value={ov['deviceTrust'] ?? ""} onChange={(x) => setOv({ ...ov, deviceTrust: x })} options={[{ value: "", label: "(current)" }, { value: "managed", label: "managed" }, { value: "unmanaged", label: "unmanaged" }, { value: "unknown", label: "unknown" }]} />
             <Select label="Classification override" value={ov['classification'] ?? ""} onChange={(x) => setOv({ ...ov, classification: x })} options={[{ value: "", label: "(current)" }, { value: "Internal", label: "Internal" }, { value: "Confidential", label: "Confidential" }]} />
           </div>
+          {Object.values(ov).filter(Boolean).length !== 1 ? <p className="mt-2 text-xs font-medium" role="status">Set exactly one override for this run to count as a what-if case ({Object.values(ov).filter(Boolean).length} set now).</p> : null}
         </div>
       ) : null}
+      {sessions.length === 0 ? <p className="mt-3 text-xs text-muted-foreground">No active session — use the Sign-in tester above first. After a sign-in, pick older sessions from the Session list to retest them.</p> : null}
       <button type="button" className={`${btnPrimary} mt-3`} disabled={store.busy} onClick={run}>Run test</button>
       <div className="mt-3 space-y-2" aria-live="polite">
         {myTests.map((t) => <TestTrace key={t.id} t={t} />)}
