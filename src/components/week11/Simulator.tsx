@@ -74,6 +74,7 @@ function Dashboard({ store, onView, onMission }: { store: Week11Store; onView: (
   const [name, setName] = [store.learner.displayName ?? "", (x: string) => store.setLearner((l) => ({ ...l, displayName: x }))];
   return (
     <div className="space-y-4">
+      <Week11Hero />
       <Card eyebrow="Cloud Heights Services (fictional)" title="Organization summary">
         <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
           <p><strong className="block text-2xl">{s.people.length}</strong>people</p>
@@ -125,6 +126,7 @@ function MissionView({ store, mission, onMission, onView }: { store: Week11Store
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-1.5" role="group" aria-label="Missions">{missions.map((x) => <button key={x.key} type="button" aria-pressed={x.key === m.key} className={`${btn} text-xs ${x.key === m.key ? "border-primary bg-primary/10" : ""}`} onClick={() => onMission(x.key)}>{x.lab}</button>)}</div>
+      <MissionArt mission={m.key} />
       <Card eyebrow={`${m.lab} · ${m.time} (estimate)`} title={m.title}>
         <p className="text-sm"><strong>Objective:</strong> {m.objective}</p>
         <p className="mt-1 text-sm"><strong>Situation:</strong> {m.situation}</p>
@@ -132,6 +134,7 @@ function MissionView({ store, mission, onMission, onView }: { store: Week11Store
         <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm">{m.steps.map((st) => <li key={st}>{st}</li>)}</ol>
         <p className="mt-3 text-xs text-muted-foreground">Any valid path through the console counts — you don't have to click screens in this exact order. Plain language → analogy → term: an account is like a badge; a group is a list on the door; a role is a job's bundle of keys; a permission is one specific key.</p>
       </Card>
+      <ConceptGuides mission={m.key} />
       {m.key === "M01" ? (
         <Card title="Directory trace — seven concepts" eyebrow="Pick real objects, not definitions">
           <div className="grid gap-3 sm:grid-cols-2">{traceConcepts.map((c) => (
