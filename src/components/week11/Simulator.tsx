@@ -6,6 +6,7 @@ import { GroupsView, OUsView, ResourcesView, RolesView, TicketsView, UsersView }
 import { EvidenceView, LogsView, ReportView } from "./InvestigationViews";
 import { Badge, btn, btnPrimary, Card, input, Select, TextArea } from "./ui";
 import { ConceptGuides, MissionArt, Week11Hero } from "./Visuals";
+import { CurrentMissionPanel } from "./CurrentMissionPanel";
 
 export const VIEWS = ["dashboard", "missions", "users", "groups", "ous", "roles", "resources", "tickets", "signins", "audit", "evidence", "report"] as const;
 export type View = (typeof VIEWS)[number];
@@ -15,6 +16,7 @@ export function Simulator({ store, view, onView, mission, onMission }: { store: 
   const v = store.view!;
   const [dir, setDir] = useState<Directory>("AD");
   const [selected, setSelected] = useState<string | null>(null);
+  const [missionPanelOpen, setMissionPanelOpen] = useState(true);
   const archived = v.status === "archived";
   const save = store.textSave;
   return (
@@ -43,6 +45,13 @@ export function Simulator({ store, view, onView, mission, onMission }: { store: 
           </ul>
         </nav>
         <main className="min-w-0 space-y-4">
+          <CurrentMissionPanel
+            store={store}
+            mission={mission}
+            open={missionPanelOpen}
+            onOpenChange={setMissionPanelOpen}
+            onView={onView}
+          />
           {store.lastResult ? (
             <div role="status" className={`flex items-start justify-between gap-2 rounded-md border p-3 text-sm ${store.lastResult.ok ? "border-primary/50 bg-primary/10" : "border-destructive/50 bg-destructive/10"}`}>
               <span>{store.lastResult.message}</span>
