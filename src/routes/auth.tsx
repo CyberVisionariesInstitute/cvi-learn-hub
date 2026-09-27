@@ -9,7 +9,13 @@ import { pki } from "@/lib/demo-lab/programs";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
+  staff: z.union([z.literal("1"), z.literal("true")]).optional(),
 });
+
+async function isStaffUser(userId: string): Promise<boolean> {
+  const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+  return (data ?? []).some((r) => r.role === "instructor" || r.role === "admin");
+}
 
 export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
@@ -34,8 +40,8 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-function safePath(value: string | undefined) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/pki/capstone";
+function safePath(value: string | undefined, fallback = "/pki/capstone") {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return fallback;
   return value;
 }
 
@@ -43,6 +49,8 @@ function AuthPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
   const { session, loading } = useSession();
+  const [staffStored, setStaffStored] = useState(false);
+  const staffMode = search.staff === "1" || search.staff === "true" || staffStored;
   const [mode, setMode] = useState<"signin" | "signup" | "recovery">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -54,6 +62,7 @@ function AuthPage() {
   const [stored, setStored] = useState<string | undefined>(undefined);
   useEffect(() => {
     setStored(sessionStorage.getItem("cvi:post-auth") ?? undefined);
+    setStaffStored(sessionStorage.getItem("cvi:post-auth-staff") === "1");
   }, []);
   const target = safePath(search.redirect ?? stored);
 
@@ -68,10 +77,31 @@ function AuthPage() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Single post-sign-in routing point. Staff sign-in sends instructors/admins
+  // to the instructor console; role is read from user_roles (server RLS still
+  // enforces access on every instructor data call).
   useEffect(() => {
-    if (mode !== "recovery" && !loading && session)
-      void navigate({ to: target, replace: true });
-  }, [mode, loading, session, navigate, target]);
+    if (mode === "recovery" || loading || !session) return;
+    let active = true;
+    void (async () => {
+      sessionStorage.removeItem("cvi:post-auth-staff");
+      if (!staffMode) {
+        await navigate({ to: target, replace: true });
+        return;
+      }
+      const staff = await isStaffUser(session.user.id);
+      if (!active) return;
+      if (staff) {
+        await navigate({ to: "/instructor", replace: true });
+      } else {
+        await supabase.auth.signOut();
+        setError("This account is not an instructor or admin account. Use the student sign in instead.");
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [mode, loading, session, navigate, target, staffMode]);
 
   async function handleSetPassword(event: React.FormEvent) {
     event.preventDefault();
@@ -97,7 +127,7 @@ function AuthPage() {
       if (mode === "signin") {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) throw err;
-        await navigate({ to: target, replace: true });
+        // Routing happens in the session effect (student vs staff).
       } else {
         const { error: err } = await supabase.auth.signUp({
           email,
@@ -123,6 +153,7 @@ function AuthPage() {
     setError(null);
     try {
       sessionStorage.setItem("cvi:post-auth", target);
+      if (staffMode) sessionStorage.setItem("cvi:post-auth-staff", "1");
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: `${window.location.origin}/auth`,
       });
@@ -131,7 +162,6 @@ function AuthPage() {
         return;
       }
       if (result.redirected) return;
-      await navigate({ to: target, replace: true });
     } finally {
       setBusy(false);
     }
@@ -145,12 +175,14 @@ function AuthPage() {
             CyberVisionaries Institute
           </p>
           <h1 className="mt-2 font-display text-3xl text-foreground">
-            {mode === "recovery" ? "Set your password" : "Student sign in"}
+            {mode === "recovery" ? "Set your password" : staffMode ? "Staff sign in" : "Student sign in"}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {mode === "recovery"
               ? "Choose a password for your account, then you will be taken to your capstone workspace."
-              : "Your capstone workspace, assigned scenario, and saved project live behind this sign in."}
+              : staffMode
+                ? "For instructors and admins. You'll go straight to the instructor console — no student area."
+                : "Your capstone workspace, assigned scenario, and saved project live behind this sign in."}
           </p>
         </div>
 
@@ -242,6 +274,19 @@ function AuthPage() {
         </form>
         )}
 
+        {mode !== "recovery" ? (
+          <button
+            type="button"
+            onClick={() => {
+              setError(null);
+              setStaffStored(false);
+              void navigate({ to: "/auth", search: { redirect: search.redirect, staff: staffMode ? undefined : "1" }, replace: true });
+            }}
+            className="text-left text-sm text-primary underline"
+          >
+            {staffMode ? "Student? Use the student sign in" : "Instructor or admin? Staff sign in"}
+          </button>
+        ) : null}
         <Link to="/pki" className="text-xs text-muted-foreground hover:text-foreground">
           Back to the PKI Demo Lab
         </Link>
