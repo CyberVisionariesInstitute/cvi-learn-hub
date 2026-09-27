@@ -92,18 +92,18 @@ export function createSeedState(): SimState {
 
 export type Command =
   | { type: "create_account"; person: string; dir: Directory; ou?: string | undefined; ticket: string }
-  | { type: "move_ou"; account: string; ou: string; ticket?: string | undefined; reason?: string }
-  | { type: "add_member" | "remove_member"; group: string; account: string; ticket?: string | undefined; reason?: string }
-  | { type: "assign_role"; group: string; role: string; scope: string; ticket?: string | undefined; reason?: string }
-  | { type: "revoke_role"; assignment: string; ticket?: string | undefined; reason?: string }
-  | { type: "set_status"; account: string; status: "enabled" | "disabled"; ticket?: string | undefined; reason?: string }
+  | { type: "move_ou"; account: string; ou: string; ticket?: string | undefined; reason?: string | undefined }
+  | { type: "add_member" | "remove_member"; group: string; account: string; ticket?: string | undefined; reason?: string | undefined }
+  | { type: "assign_role"; group: string; role: string; scope: string; ticket?: string | undefined; reason?: string | undefined }
+  | { type: "revoke_role"; assignment: string; ticket?: string | undefined; reason?: string | undefined }
+  | { type: "set_status"; account: string; status: "enabled" | "disabled"; ticket?: string | undefined; reason?: string | undefined }
   | { type: "verify"; ticket: string; route: "trusted" | "request_only"; hrId: string }
   | { type: "reset_credential"; account: string; ticket: string }
   | { type: "unlock"; account: string; ticket: string }
   | { type: "signin"; account: string; device: string; credential: "current" | "stale" | "incorrect"; mfa: "pass" | "fail" | "cancel" }
   | { type: "complete_credential_change"; challenge: string }
   | { type: "enroll_mfa"; account: string; ticket: string }
-  | { type: "revoke_sessions"; account: string; ticket?: string | undefined; reason?: string }
+  | { type: "revoke_sessions"; account: string; ticket?: string | undefined; reason?: string | undefined }
   | { type: "transfer_department"; person: string; dept: DeptKey; ticket: string }
   | { type: "ticket_status"; ticket: string; status: "investigating" | "in_progress" | "resolved" | "escalated"; note: string }
   | { type: "test_access"; account: string; session?: string | null | undefined; resource: string; action: string; mode: "current-access" | "preview" | "abac-what-if"; device?: string | undefined; overrides?: Record<string, string> | undefined }
@@ -155,7 +155,7 @@ export function applyCommand(
     return { state: s, result: { ok: true, message, seq, eventIds, ...extra } };
   };
   const text = (v: string | undefined) => (v ?? "").trim().slice(0, MAX_TEXT);
-  const justification = (c: { ticket?: string | undefined; reason?: string }) => {
+  const justification = (c: { ticket?: string | undefined; reason?: string | undefined }) => {
     if (c.ticket && ticketSeed(c.ticket)) return { ok: true, ticket: c.ticket };
     if (c.ticket && s.recoveryTickets.some((r) => r.key === c.ticket)) return { ok: true, ticket: c.ticket };
     if (text(c.reason).length >= 3) return { ok: true, ticket: null };
