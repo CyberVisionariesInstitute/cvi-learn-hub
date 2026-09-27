@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { applyCommand, createSeedState, type Command, type SimState } from "./engine";
 import { computeReadiness } from "./readiness.server";
+import { ticketOutcome } from "./tickets.server";
 import { devices, groups, historicalAudit, historicalSignins, ous, resources, roles } from "./seed";
 
 let rev = 0;
@@ -142,5 +143,97 @@ describe("engine fixtures", () => {
     const r = computeReadiness(createSeedState(), {}, []);
     expect(r).toHaveLength(6);
     expect(r.every((m) => !m.ready)).toBe(true);
+  });
+
+  it("Lab 06 readiness is a case file: no manager-summary requirement, E19 required", () => {
+    const r = computeReadiness(createSeedState(), {}, []).find((m) => m.mission === "M06")!;
+    expect(r.missing.join(" ")).not.toMatch(/manager summary/i);
+    expect(r.missing.some((x) => x.includes("E19"))).toBe(true);
+  });
+});
+
+describe("ticket outcome validation (T201–T505)", () => {
+  it("fresh seed: no ticket can be resolved", () => {
+    const s = createSeedState();
+    for (const k of ["T201", "T301", "T302", "T401", "T402", "T403", "T501", "T502", "T503", "T505"]) {
+      expect(ticketOutcome(s, k, "resolved").ok, k).toBe(false);
+    }
+    expect(ticketOutcome(s, "T504", "resolved").unmet.join(" ")).toMatch(/cannot be resolved/i);
+    expect(ticketOutcome(s, "T504", "escalated").ok).toBe(false);
+  });
+
+  it("T201 passes only with narrow read access", () => {
+    let s = createSeedState();
+    expect(ticketOutcome(s, "T201", "resolved").ok).toBe(false);
+    s = run(s, { type: "add_member", group: "GC-READ", account: "cl-blair", ticket: "T201" }).s;
+    expect(ticketOutcome(s, "T201", "resolved").ok).toBe(true);
+    s = run(s, { type: "add_member", group: "GC-PRIV", account: "cl-blair", reason: "excess test" }).s;
+    const o = ticketOutcome(s, "T201", "resolved");
+    expect(o.ok).toBe(false);
+    expect(o.unmet.join(" ")).toMatch(/beyond the approved read-only scope/);
+  });
+
+  it("T301/T302 require account, placement, memberships, verification and reset", () => {
+    let s = createSeedState();
+    s = run(s, { type: "create_account", person: "P08", dir: "AD", ou: "OU-SUP", ticket: "T301" }).s;
+    expect(ticketOutcome(s, "T301", "resolved").ok).toBe(false); // no groups, disabled
+    s = run(s, { type: "add_member", group: "GA-ALL", account: "ad-jamie", ticket: "T301" }).s;
+    s = run(s, { type: "add_member", group: "GA-SUP", account: "ad-jamie", ticket: "T301" }).s;
+    s = run(s, { type: "set_status", account: "ad-jamie", status: "enabled", ticket: "T301" }).s;
+    expect(ticketOutcome(s, "T301", "resolved").ok).toBe(true);
+    expect(ticketOutcome(s, "T302", "resolved").ok).toBe(false); // not verified
+    s = run(s, { type: "verify", ticket: "T302", route: "trusted", hrId: "CH-008" }).s;
+    expect(ticketOutcome(s, "T302", "resolved").ok).toBe(false); // no reset yet
+    s = run(s, { type: "reset_credential", account: "ad-jamie", ticket: "T302" }).s;
+    expect(ticketOutcome(s, "T302", "resolved").ok).toBe(false); // must-change pending
+    const si = run(s, { type: "signin", account: "ad-jamie", device: "managed-jamie", credential: "current", mfa: "pass" });
+    s = si.s;
+    s = run(s, { type: "complete_credential_change", challenge: si.r.challengeKey! }).s;
+    expect(ticketOutcome(s, "T302", "resolved").ok).toBe(true);
+  });
+
+  it("T402 fails while Casey keeps Privileged-Operators", () => {
+    let s = createSeedState();
+    s = run(s, { type: "add_member", group: "GC-RESP", account: "cl-casey", ticket: "T402" }).s;
+    const o = ticketOutcome(s, "T402", "resolved");
+    expect(o.ok).toBe(false);
+    expect(o.unmet.join(" ")).toMatch(/Privileged-Operators/);
+    s = run(s, { type: "remove_member", group: "GC-PRIV", account: "cl-casey", ticket: "T402" }).s;
+    expect(ticketOutcome(s, "T402", "resolved").ok).toBe(true);
+  });
+
+  it("T503 requires full two-directory offboarding plus denied sign-in", () => {
+    let s = createSeedState();
+    const si = signIn(s, "cl-finley", "managed-finley"); s = si.s;
+    void si;
+    s = run(s, { type: "set_status", account: "cl-finley", status: "disabled", ticket: "T503" }).s;
+    s = run(s, { type: "set_status", account: "ad-finley", status: "disabled", ticket: "T503" }).s;
+    expect(ticketOutcome(s, "T503", "resolved").ok).toBe(false); // memberships + OU + denied sign-in missing
+    s = run(s, { type: "remove_member", group: "GA-ALL", account: "ad-finley", ticket: "T503" }).s;
+    s = run(s, { type: "remove_member", group: "GA-SUP", account: "ad-finley", ticket: "T503" }).s;
+    s = run(s, { type: "remove_member", group: "GC-READ", account: "cl-finley", ticket: "T503" }).s;
+    s = run(s, { type: "move_ou", account: "ad-finley", ou: "OU-DIS", ticket: "T503" }).s;
+    expect(ticketOutcome(s, "T503", "resolved").ok).toBe(false); // denied sign-in not yet recorded
+    s = run(s, { type: "signin", account: "cl-finley", device: "managed-finley", credential: "current", mfa: "pass" }).s;
+    expect(ticketOutcome(s, "T503", "resolved").ok).toBe(true);
+  });
+
+  it("T504 escalation needs failed verification and an unchanged credential", () => {
+    let s = createSeedState();
+    s = run(s, { type: "verify", ticket: "T504", route: "trusted", hrId: "CH-002" }).s;
+    expect(ticketOutcome(s, "T504", "escalated").ok).toBe(true);
+    expect(ticketOutcome(s, "T504", "resolved").ok).toBe(false);
+  });
+
+  it("T505 requires the scoped assignment, membership and three tests", () => {
+    let s = createSeedState();
+    s = run(s, { type: "assign_role", group: "GC-AZ", role: "RL-AZREAD", scope: "RG-LAB", ticket: "T505" }).s;
+    s = run(s, { type: "add_member", group: "GC-AZ", account: "cl-blair", ticket: "T505" }).s;
+    expect(ticketOutcome(s, "T505", "resolved").ok).toBe(false); // tests missing
+    const si = signIn(s, "cl-blair", "managed-blair"); s = si.s;
+    s = test(s, "cl-blair", si.session, "R-VM1", "read_metadata").s;
+    s = test(s, "cl-blair", si.session, "R-VM1", "stop").s;
+    s = test(s, "cl-blair", si.session, "R-VM2", "read_metadata").s;
+    expect(ticketOutcome(s, "T505", "resolved").ok).toBe(true);
   });
 });
