@@ -82,7 +82,7 @@ function AccountDetail({ store, accountKey, onBack, mission, go }: { store: Week
           <div>
             <h3 className="mb-2 text-sm font-medium">Account (identity attributes)</h3>
             <KV rows={[
-              ["Account ID", a.key], [<abbr key="u" title={glossary["UPN"]}>UPN</abbr>, a.upn], ...(a.dir === "AD" ? [["sAMAccountName", a.username] as [string, string], ["OU", a.ou ?? "—"] as [string, string], [<abbr key="d" title={glossary["DN"]}>DN</abbr>, accountDn(s, a) ?? "—"] as [React.ReactNode, string]] : [["OU", "none — OUs are an AD concept in this exercise"] as [string, string]]),
+              ["Account ID", a.key], [<abbr key="u" title={glossary["UPN"]}>UPN</abbr>, a.upn], ...(a.dir === "AD" ? [["sAMAccountName", a.username] as [React.ReactNode, React.ReactNode], ["OU", a.ou ?? "—"] as [React.ReactNode, React.ReactNode], [<abbr key="d" title={glossary["DN"]}>DN</abbr>, accountDn(s, a) ?? "—"] as [React.ReactNode, React.ReactNode]] : [["OU", "none — OUs are an AD concept in this exercise"] as [React.ReactNode, React.ReactNode]]),
               ["Department attr", `${a.dept} (${departments[a.dept]})`], ["Status", a.status], ["Locked", a.locked ? "yes" : "no"],
               [<abbr key="c" title={glossary["Credential version"]}>Credential version</abbr>, String(a.credentialVersion)], ["Must change", a.mustChange ? "yes" : "no"], ["Failed count", String(a.failedCount)],
               ["MFA", a.mfa], [<abbr key="r" title={glossary["Security revision"]}>Security revision</abbr>, String(a.securityRevision)],
