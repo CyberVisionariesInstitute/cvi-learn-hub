@@ -136,6 +136,22 @@ export const cyberfoundations: Program = {
             },
           ],
         },
+        {
+          id: "cf-week-11",
+          label: "Week 11",
+          title: "IAM & Active Directory: Who Gets Access to What?",
+          summary:
+            "Cloud Heights Identity Center: a browser-based simulated AD/IAM environment. Six connected missions, from tracing identities to the IAM Investigation Report (Deliverable 4). Sign-in required; no VM setup.",
+          experienceIds: [],
+          status: "available",
+          links: [
+            {
+              label: "Launch Cloud Heights Identity Center",
+              to: "/cyberfoundations/week-11",
+              detail: "Six missions · saved to your CVI account",
+            },
+          ],
+        },
       ],
     },
   ],
