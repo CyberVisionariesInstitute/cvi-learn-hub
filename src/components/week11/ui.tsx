@@ -61,11 +61,11 @@ export function Decision({ d }: { d: string }) {
   return <Badge tone="warn">◌ PREVIEW</Badge>;
 }
 
-export function KV({ rows }: { rows: [string, ReactNode][] }) {
+export function KV({ rows }: { rows: [ReactNode, ReactNode][] }) {
   return (
     <dl className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-sm">
-      {rows.map(([k, v]) => (
-        <div key={k} className="contents">
+      {rows.map(([k, v], i) => (
+        <div key={i} className="contents">
           <dt className="text-muted-foreground">{k}</dt>
           <dd className="min-w-0 break-words font-mono text-[0.8rem]">{v}</dd>
         </div>

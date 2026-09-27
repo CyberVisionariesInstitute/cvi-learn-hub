@@ -38,7 +38,7 @@ export function LogsView({ store, kind }: { store: Week11Store; kind: "signin" |
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
           <label><span className="mb-1 block text-xs text-muted-foreground">Search (literal, any field)</span><input className={input} value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} /></label>
           <label><span className="mb-1 block text-xs text-muted-foreground">Correlation ID</span><input className={input} value={corr} onChange={(e) => { setCorr(e.target.value.trim()); setPage(0); }} /></label>
-          <label><span className="mb-1 block text-xs text-muted-foreground">{kind === "signin" ? "Outcome" : "Result"}</span><input className={input} value={result} onChange={(e) => { setResult(e.target.value.trim()); setPage(0); }} placeholder={kind === "signin" ? "success / failure" : "success / refused / accepted"} /></label>
+          <label><span className="mb-1 block text-xs text-muted-foreground">{kind === "signin" ? "Outcome" : "Result"}</span><select className={input} value={result} onChange={(e) => { setResult(e.target.value); setPage(0); }}><option value="">any</option>{(kind === "signin" ? ["success", "failure"] : ["success", "refused", "accepted"]).map((o) => <option key={o} value={o}>{o}</option>)}</select></label>
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm"><span aria-live="polite">{rows.length} record(s)</span><button type="button" className={btn} onClick={() => { setQ(""); setCorr(""); setResult(""); setPage(0); }}>Clear filters</button>
           <span className="text-xs text-muted-foreground">Times are UTC. Historical dates are fictional scenario time.</span></div>
@@ -94,9 +94,11 @@ const blankFinding = (n: number): Finding => ({ key: `F${n}`, title: "", refs: [
 const eventIds = [...historicalSignins.map((r) => r.event_id), ...historicalAudit.map((r) => r.event_id)];
 
 function RefPicker({ value, onChange, label }: { value: string[]; onChange: (v: string[]) => void; label: string }) {
+  const [f, setF] = useState("");
   return (
     <fieldset><legend className="text-sm font-medium">{label}</legend>
-      <div className="mt-1 flex flex-wrap gap-1.5">{eventIds.map((id) => (
+      <input aria-label={`Filter event IDs for ${label}`} className={`${input} mt-1 max-w-xs`} placeholder="Filter IDs, e.g. S00 or A" value={f} onChange={(e) => setF(e.target.value.trim().toUpperCase())} />
+      <div className="mt-1 flex flex-wrap gap-1.5">{eventIds.filter((id) => !f || id.includes(f) || value.includes(id)).map((id) => (
         <label key={id} className={`flex min-h-9 cursor-pointer items-center gap-1 rounded border px-2 font-mono text-xs ${value.includes(id) ? "border-primary bg-primary/15" : "border-border"}`}>
           <input type="checkbox" checked={value.includes(id)} onChange={(e) => onChange(e.target.checked ? [...value, id] : value.filter((x) => x !== id))} />{id}
         </label>))}</div>
@@ -144,6 +146,8 @@ export function ReportView({ store }: { store: Week11Store }) {
       </Card>
       <Card title="Live simulator accountability chain">
         <TextArea label="Describe one audit/access chain from your own earlier missions (IDs such as LA-…, AT-…). This is your simulated activity, not historical data." value={rep.liveChain ?? ""} onChange={(x) => setRep({ liveChain: x })} />
+        <p className="mt-2 text-xs text-muted-foreground">Insert one of your live IDs (newest first):</p>
+        <div className="mt-1 flex max-h-32 flex-wrap gap-1.5 overflow-auto">{[...v.state.audits].reverse().slice(0, 30).map((e) => <button key={e.id} type="button" className={`${btn} min-h-9 py-1 font-mono text-xs`} onClick={() => setRep({ liveChain: `${rep.liveChain ?? ""}${rep.liveChain ? " " : ""}${e.id}` })}>{e.id} {e.activity}</button>)}{v.state.audits.length === 0 ? <span className="text-xs text-muted-foreground">No live activity yet — complete earlier missions first.</span> : null}</div>
       </Card>
       <Card title="Case file sections" eyebrow="Technical content only — the polished report and summary come in Week 12">
         <div className="space-y-3">{reportSections.map((t, i) => <TextArea key={t} label={`${i + 1}. ${t}`} value={rep.sections?.[String(i + 1)] ?? ""} onChange={(x) => setRep({ sections: { ...(rep.sections ?? {}), [String(i + 1)]: x } })} />)}</div>
@@ -164,7 +168,7 @@ export function ReportView({ store }: { store: Week11Store }) {
         </ol>
         <p className="mt-2 text-xs text-muted-foreground">Downloading or uploading does not submit for grading — grading submission instructions are provided separately. Incomplete work exports marked DRAFT. Screenshots are optional.</p>
         <button type="button" className={`${btnPrimary} mt-3`} disabled={exporting} onClick={async () => { setExporting(true); try { const r = await store.exportZip(); setExported(`Downloaded ${r.files.length} files${r.draft ? " (DRAFT)" : ""}.`); } catch (e) { setExported(`Export failed: ${(e as Error).message}`); } finally { setExporting(false); } }}>{exporting ? "Preparing…" : "Download portfolio ZIP"}</button>
-        {exported ? <p className="mt-2 text-sm" role="status">{exported}</p> : null}
+        {exported ? <p className="mt-2 text-sm" role="status">{exported} Next: capture E19 from the Current Mission panel or Mission Progress.</p> : null}
       </Card>
     </div>
   );
