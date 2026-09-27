@@ -645,6 +645,251 @@ export type Database = {
         }
         Relationships: []
       }
+      w11_actions: {
+        Row: {
+          action_type: string
+          actor_kind: string
+          actor_user_id: string | null
+          attempt_id: string
+          created_at: string
+          id: string
+          idempotency_key: string
+          request_hash: string
+          result: Json
+          seq: number
+        }
+        Insert: {
+          action_type: string
+          actor_kind?: string
+          actor_user_id?: string | null
+          attempt_id: string
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          request_hash: string
+          result: Json
+          seq: number
+        }
+        Update: {
+          action_type?: string
+          actor_kind?: string
+          actor_user_id?: string | null
+          attempt_id?: string
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          request_hash?: string
+          result?: Json
+          seq?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "w11_actions_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "w11_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      w11_attempts: {
+        Row: {
+          action_seq: number
+          archived_at: string | null
+          cohort_label: string | null
+          created_at: string
+          id: string
+          learner: Json
+          owner_user_id: string
+          reset_reason: string | null
+          seed_version: string
+          state: Json
+          state_revision: number
+          status: string
+          supersedes_attempt_id: string | null
+          text_revision: number
+          updated_at: string
+        }
+        Insert: {
+          action_seq?: number
+          archived_at?: string | null
+          cohort_label?: string | null
+          created_at?: string
+          id?: string
+          learner?: Json
+          owner_user_id: string
+          reset_reason?: string | null
+          seed_version: string
+          state: Json
+          state_revision?: number
+          status?: string
+          supersedes_attempt_id?: string | null
+          text_revision?: number
+          updated_at?: string
+        }
+        Update: {
+          action_seq?: number
+          archived_at?: string | null
+          cohort_label?: string | null
+          created_at?: string
+          id?: string
+          learner?: Json
+          owner_user_id?: string
+          reset_reason?: string | null
+          seed_version?: string
+          state?: Json
+          state_revision?: number
+          status?: string
+          supersedes_attempt_id?: string | null
+          text_revision?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "w11_attempts_supersedes_attempt_id_fkey"
+            columns: ["supersedes_attempt_id"]
+            isOneToOne: false
+            referencedRelation: "w11_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      w11_evidence: {
+        Row: {
+          attempt_id: string
+          captured_revision: number
+          content_hash: string
+          created_at: string
+          evidence_key: string
+          id: string
+          mission: string
+          slot: string
+          snapshot: Json
+          title: string
+        }
+        Insert: {
+          attempt_id: string
+          captured_revision: number
+          content_hash: string
+          created_at?: string
+          evidence_key: string
+          id?: string
+          mission: string
+          slot: string
+          snapshot: Json
+          title: string
+        }
+        Update: {
+          attempt_id?: string
+          captured_revision?: number
+          content_hash?: string
+          created_at?: string
+          evidence_key?: string
+          id?: string
+          mission?: string
+          slot?: string
+          snapshot?: Json
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "w11_evidence_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "w11_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      w11_reset_log: {
+        Row: {
+          actor_kind: string
+          actor_user_id: string
+          created_at: string
+          id: string
+          idempotency_key: string
+          new_attempt_id: string
+          old_attempt_id: string
+          owner_user_id: string
+          reason: string
+        }
+        Insert: {
+          actor_kind: string
+          actor_user_id: string
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          new_attempt_id: string
+          old_attempt_id: string
+          owner_user_id: string
+          reason: string
+        }
+        Update: {
+          actor_kind?: string
+          actor_user_id?: string
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          new_attempt_id?: string
+          old_attempt_id?: string
+          owner_user_id?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "w11_reset_log_new_attempt_id_fkey"
+            columns: ["new_attempt_id"]
+            isOneToOne: false
+            referencedRelation: "w11_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "w11_reset_log_old_attempt_id_fkey"
+            columns: ["old_attempt_id"]
+            isOneToOne: false
+            referencedRelation: "w11_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      w11_reviews: {
+        Row: {
+          attempt_id: string
+          created_at: string
+          feedback: string
+          id: string
+          instructor_id: string
+          scores: Json
+          text_revision: number
+        }
+        Insert: {
+          attempt_id: string
+          created_at?: string
+          feedback?: string
+          id?: string
+          instructor_id: string
+          scores?: Json
+          text_revision: number
+        }
+        Update: {
+          attempt_id?: string
+          created_at?: string
+          feedback?: string
+          id?: string
+          instructor_id?: string
+          scores?: Json
+          text_revision?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "w11_reviews_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "w11_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -661,6 +906,33 @@ export type Database = {
       owns_assignment: {
         Args: { _assignment_id: string; _user_id: string }
         Returns: boolean
+      }
+      w11_commit_command: {
+        Args: {
+          p_action_type: string
+          p_actor: string
+          p_actor_kind: string
+          p_attempt: string
+          p_expected_revision: number
+          p_hash: string
+          p_idem: string
+          p_new_seq: number
+          p_new_state: Json
+          p_result: Json
+        }
+        Returns: Json
+      }
+      w11_reset_attempt: {
+        Args: {
+          p_actor: string
+          p_actor_kind: string
+          p_attempt: string
+          p_expected_revision: number
+          p_idem: string
+          p_reason: string
+          p_seed_state: Json
+        }
+        Returns: Json
       }
     }
     Enums: {
