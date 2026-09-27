@@ -29,7 +29,7 @@ export function UsersView({ store, dir, selected, onSelect, mission, go }: { sto
   const jamie = s.people.find((p) => p.key === "P08")!;
   const [newOu, setNewOu] = useState("OU-SUP");
   return (
-    <div className="grid gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
       <div className={a ? "hidden lg:block" : ""}>
         <Card eyebrow={dir === "AD" ? "Viewing: On-Premises AD" : "Viewing: Cloud (Entra ID)"} title={dir === "AD" ? "AD users" : "Cloud users"}>
           <p className="mb-2 text-xs text-muted-foreground">Looking for a {dir === "AD" ? "cloud (cl-…)" : "AD (ad-…)"} account? Switch the directory above the menu.</p>
@@ -71,7 +71,7 @@ function AccountDetail({ store, accountKey, onBack, mission, go }: { store: Week
   const [dept, setDept] = useState(a.dept);
   const [tkt, setTkt] = useState("");
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 space-y-4">
       <div className="flex flex-wrap gap-2">
         <button type="button" className={`${btn} lg:hidden`} onClick={onBack}>← Back to users</button>
         <a href={`#si-${a.key}`} className={`${btn} text-xs`}>Jump to Sign-in tester</a>
