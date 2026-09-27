@@ -45,19 +45,12 @@ function safePath(value: string | undefined, fallback = "/pki/capstone") {
   return value;
 }
 
-async function landingFor(userId: string, requested: string | undefined, staffPreferred: boolean): Promise<string> {
-  const staff = await isStaffUser(userId);
-  if (requested) return safePath(requested);
-  if (staff && staffPreferred) return "/instructor";
-  if (staff) return "/instructor";
-  return "/pki/capstone";
-}
-
 function AuthPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
   const { session, loading } = useSession();
-  const staffMode = search.staff === "1" || search.staff === "true";
+  const [staffStored, setStaffStored] = useState(false);
+  const staffMode = search.staff === "1" || search.staff === "true" || staffStored;
   const [mode, setMode] = useState<"signin" | "signup" | "recovery">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -69,6 +62,7 @@ function AuthPage() {
   const [stored, setStored] = useState<string | undefined>(undefined);
   useEffect(() => {
     setStored(sessionStorage.getItem("cvi:post-auth") ?? undefined);
+    setStaffStored(sessionStorage.getItem("cvi:post-auth-staff") === "1");
   }, []);
   const target = safePath(search.redirect ?? stored);
 
@@ -83,10 +77,31 @@ function AuthPage() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Single post-sign-in routing point. Staff sign-in sends instructors/admins
+  // to the instructor console; role is read from user_roles (server RLS still
+  // enforces access on every instructor data call).
   useEffect(() => {
-    if (mode !== "recovery" && !loading && session)
-      void navigate({ to: target, replace: true });
-  }, [mode, loading, session, navigate, target]);
+    if (mode === "recovery" || loading || !session) return;
+    let active = true;
+    void (async () => {
+      sessionStorage.removeItem("cvi:post-auth-staff");
+      if (!staffMode) {
+        await navigate({ to: target, replace: true });
+        return;
+      }
+      const staff = await isStaffUser(session.user.id);
+      if (!active) return;
+      if (staff) {
+        await navigate({ to: "/instructor", replace: true });
+      } else {
+        await supabase.auth.signOut();
+        setError("This account is not an instructor or admin account. Use the student sign in instead.");
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [mode, loading, session, navigate, target, staffMode]);
 
   async function handleSetPassword(event: React.FormEvent) {
     event.preventDefault();
