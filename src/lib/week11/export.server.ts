@@ -30,7 +30,7 @@ export function buildExport(p: { attemptLabel: string; revision: number; textRev
       body += `\n## Directory trace\n\n| Concept | Object |\n|---|---|\n${Object.entries(tr).map(([k, v]) => `| ${esc(k)} | ${esc(v)} |`).join("\n")}\n`;
     }
     if (m.key === "M06") {
-      body += `\n## IAM Investigation Report (Deliverable 4)\n\n`;
+      body += `\n## IAM Investigation Case File (Portfolio Deliverable 4)\n\n_This is a technical case file. Week 12 uses it as source material to produce the professional Technical Incident Report and Executive Summary and to finalize and present the portfolio._\n\n`;
       reportSections.forEach((title, i) => {
         body += `### ${i + 1}. ${title}\n\n${block(learner.report?.sections?.[String(i + 1)])}\n\n`;
         if (i === 8) (learner.findings ?? []).forEach((f, n) => {
@@ -38,12 +38,12 @@ export function buildExport(p: { attemptLabel: string; revision: number; textRev
         });
         if (i === 9) body += `**Benign/ambiguous comparison** (${(learner.comparison?.refs ?? []).map(esc).join(", ")}): ${block(learner.comparison?.text)}\n\n**Live simulator chain (current attempt, not historical):** ${block(learner.report?.liveChain)}\n\n`;
       });
-      body += `### Limitations\n\n${block(learner.report?.limitations)}\n\n### Manager summary\n\n${block(learner.report?.managerSummary)}\n\n### Earlier labs\n\n${missions.slice(0, 5).map((x) => `- [${x.lab}](${x.exportPath.split("/").pop()})`).join("\n")}\n`;
+      body += `### Explicit simulation/environment limitations\n\n${block(learner.report?.limitations)}\n\n### Earlier labs\n\n${missions.slice(0, 5).map((x) => `- [${x.lab}](${x.exportPath.split("/").pop()})`).join("\n")}\n`;
     }
     body += `\n## Evidence\n\n${evList(m.key)}\n`;
     files[m.exportPath] = body;
   }
-  files["week-11/README-week11-root.md"] = header("Week 11 — IAM & Active Directory: Who Gets Access to What?") + `Browser-based simulated AD/IAM administration in Cloud Heights Identity Center. No real domain, tenant or Azure subscription was configured.\n\n${missions.map((m) => `- [${m.lab}: ${m.title}](labs/${m.exportPath.split("/").pop()})`).join("\n")}\n\nStatus: ${allReady ? "all six missions evidence-ready" : "**DRAFT** — some missions incomplete"}.\n`;
+  files["week-11/README-week11-root.md"] = header("Week 11 — IAM & Active Directory: Who Gets Access to What?") + `Browser-based simulated AD/IAM administration in Cloud Heights Identity Center. No real domain, tenant or Azure subscription was configured.\n\nLab 06 is the **IAM Investigation Case File (Portfolio Deliverable 4)** — a technical case file. Week 12 uses it as source material for the professional Technical Incident Report and Executive Summary and the final portfolio presentation.\n\n${missions.map((m) => `- [${m.lab}: ${m.title}](labs/${m.exportPath.split("/").pop()})`).join("\n")}\n\nStatus: ${allReady ? "all six missions evidence-ready" : "**DRAFT** — some missions incomplete"}.\n`;
   files["week-11/labs/README-week11-submissions.md"] = `# Week 11 submission guide\n\n1. Unzip this export. Keep the folder structure.\n2. Open **your own** CyberFoundations portfolio repository on GitHub (not the template).\n3. Go into (or create) \`week-11/labs/\`. Use **Add file → Upload files**, drag in the six lab files and the \`evidence/\` folder, preview the changes, write a descriptive commit message and choose **Commit changes**.\n4. Upload \`week-11/README-week11-root.md\` to \`week-11/\`.\n5. Open the committed files and check your name and latest answers appear.\n\nDownloading or uploading does not submit anything for grading. Grading submission instructions are provided separately. Screenshots are optional (\`assets/screenshots/week-11/\`). Don't delete other weeks' work.\n`;
   const evJson = evidence.map((e) => ({ id: e.evidence_key, slot: e.slot, mission: e.mission, title: e.title, captured_revision: e.captured_revision, content_hash: e.content_hash, origin: "simulator_capture", caption: learner.captions?.[e.evidence_key] ?? "", snapshot: e.snapshot }));
   files["week-11/labs/evidence/week11-evidence.json"] = JSON.stringify(evJson, null, 2);
