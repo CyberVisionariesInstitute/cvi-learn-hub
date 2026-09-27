@@ -5,6 +5,7 @@ import type { Week11Store } from "@/lib/week11/useWeek11";
 import { GroupsView, OUsView, ResourcesView, RolesView, TicketsView, UsersView } from "./DirectoryViews";
 import { EvidenceView, LogsView, ReportView } from "./InvestigationViews";
 import { Badge, btn, btnPrimary, Card, input, Select, TextArea } from "./ui";
+import { ConceptGuides, MissionArt, Week11Hero } from "./Visuals";
 
 export const VIEWS = ["dashboard", "missions", "users", "groups", "ous", "roles", "resources", "tickets", "signins", "audit", "evidence", "report"] as const;
 export type View = (typeof VIEWS)[number];
