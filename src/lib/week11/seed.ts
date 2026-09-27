@@ -562,9 +562,9 @@ export const missions: MissionSeed[] = [
     tickets: ["T501", "T502", "T503", "T504", "T505"], exportPath: "week-11/labs/lab-05-joiner-mover-leaver.md",
   },
   {
-    key: "M06", lab: "Lab 06", title: "Identity Investigation + Deliverable 4", time: "45–60 min",
-    objective: "Correlate historical logs and produce the consolidated IAM Investigation Report.",
-    situation: "The September 21 historical records are yours to investigate. No row is labelled for you.",
+    key: "M06", lab: "Lab 06", title: "Identity Investigation + Case File (Deliverable 4)", time: "45–60 min",
+    objective: "Correlate historical logs and assemble the Cloud Heights IAM Investigation Case File — Portfolio Deliverable 4.",
+    situation: "The September 21 historical records are yours to investigate. No row is labelled for you. This mission produces a technical case file — Week 12 turns it into the professional Technical Incident Report and Executive Summary.",
     steps: [
       "Open Sign-in Logs (Historical). Read the fields and context, then write a starting hypothesis.",
       "Filter accounts, outcomes and devices. Open details and View Raw Log. Pin exact event IDs for at least two distinct findings.",
@@ -572,16 +572,16 @@ export const missions: MissionSeed[] = [
       "Record one benign or ambiguous comparison (for example a documented typo or VPN context) with its source records.",
       "For each finding fill observation, hypothesis, supported conclusion, uncertainty, next action, priority and why.",
       "Add one live simulator audit/access chain from your earlier missions, labelled separately from historical records.",
-      "Assemble the report and write a 5–7 sentence manager summary and limitations.",
-      "Preview the export, fix missing pieces, download the ZIP and upload the files to your GitHub portfolio repository.",
+      "Assemble the case file sections, preliminary response recommendations and explicit simulation limitations.",
+      "Preview the export, fix missing pieces, download the ZIP and upload the files to your GitHub portfolio repository. Week 12 uses this case file as source material for the final report and presentation.",
     ],
     evidence: [
       { slot: "E17", label: "Two distinct findings with raw-event references and correlation" },
       { slot: "E18", label: "Benign/ambiguous comparison" },
-      { slot: "E19", label: "Completed report / versioned export" },
+      { slot: "E19", label: "Completed case file / versioned export" },
     ],
     questions: [{ id: "hypothesis", label: "Starting hypothesis before filtering" }],
-    tickets: [], exportPath: "week-11/labs/lab-06-identity-investigation-and-report.md",
+    tickets: [], exportPath: "week-11/labs/lab-06-identity-investigation-case-file.md",
   },
 ];
 
@@ -605,8 +605,8 @@ export const reportSections = [
   "ABAC current-policy and what-if findings",
   "Joiner/mover/leaver and unverified-reset decisions",
   "Historical identity findings (see findings below)",
-  "Sign-in/audit correlation and one benign/ambiguous comparison",
-  "Response recommendations, priority, uncertainty and limitations",
+  "Sign-in/audit correlation (including C009) and one benign/ambiguous comparison",
+  "Preliminary response/remediation recommendations, priority and uncertainty",
   "Evidence index notes",
 ];
 
