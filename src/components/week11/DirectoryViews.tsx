@@ -2,6 +2,7 @@ import { useState } from "react";
 import { accountDn, effectiveAccess } from "@/lib/week11/engine";
 import { adAcl, departments, devices, employmentLabel, groups, ous, resourceGroups, resources, roles, tickets, type Directory } from "@/lib/week11/seed";
 import type { Week11Store } from "@/lib/week11/useWeek11";
+import { changeMissions, glossary, type Nav } from "@/lib/week11/guidance";
 import { AccessTester, SignInTester } from "./Testers";
 import { Badge, btn, btnPrimary, Card, input, KV, Select, TableWrap } from "./ui";
 
@@ -20,7 +21,7 @@ function Justify({ store, onChange }: { store: Week11Store; onChange: (j: { tick
   );
 }
 
-export function UsersView({ store, dir, selected, onSelect }: { store: Week11Store; dir: Directory; selected: string | null; onSelect: (k: string | null) => void }) {
+export function UsersView({ store, dir, selected, onSelect, mission, go }: { store: Week11Store; dir: Directory; selected: string | null; onSelect: (k: string | null) => void; mission?: string; go?: (n: Nav) => void }) {
   const s = store.view!.state;
   const [q, setQ] = useState("");
   const list = s.accounts.filter((a) => a.dir === dir && (a.upn + (s.people.find((p) => p.key === a.person)?.name ?? "")).toLowerCase().includes(q.toLowerCase()));
@@ -30,7 +31,8 @@ export function UsersView({ store, dir, selected, onSelect }: { store: Week11Sto
   return (
     <div className="grid gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
       <div className={a ? "hidden lg:block" : ""}>
-        <Card title={dir === "AD" ? "AD users" : "Cloud users"}>
+        <Card eyebrow={dir === "AD" ? "Viewing: On-Premises AD" : "Viewing: Cloud (Entra ID)"} title={dir === "AD" ? "AD users" : "Cloud users"}>
+          <p className="mb-2 text-xs text-muted-foreground">Looking for a {dir === "AD" ? "cloud (cl-…)" : "AD (ad-…)"} account? Switch the directory above the menu.</p>
           <label className="block"><span className="sr-only">Search users</span><input className={input} placeholder="Search name or UPN" value={q} onChange={(e) => setQ(e.target.value)} /></label>
           <ul className="mt-3 space-y-1.5">
             {list.map((x) => (
@@ -51,12 +53,12 @@ export function UsersView({ store, dir, selected, onSelect }: { store: Week11Sto
           ) : null}
         </Card>
       </div>
-      {a ? <AccountDetail store={store} accountKey={a.key} onBack={() => onSelect(null)} /> : <Card><p className="text-sm text-muted-foreground">Select an account to see its person record, groups, effective access and actions.</p></Card>}
+      {a ? <AccountDetail store={store} accountKey={a.key} onBack={() => onSelect(null)} mission={mission} go={go} /> : <Card><p className="text-sm text-muted-foreground">Select an account to see its person record, groups and effective access, administrative actions, and the Sign-in and Test Access testers.</p></Card>}
     </div>
   );
 }
 
-function AccountDetail({ store, accountKey, onBack }: { store: Week11Store; accountKey: string; onBack: () => void }) {
+function AccountDetail({ store, accountKey, onBack, mission, go }: { store: Week11Store; accountKey: string; onBack: () => void; mission?: string | undefined; go?: ((n: Nav) => void) | undefined }) {
   const s = store.view!.state;
   const a = s.accounts.find((x) => x.key === accountKey)!;
   const p = s.people.find((x) => x.key === a.person)!;
@@ -70,21 +72,25 @@ function AccountDetail({ store, accountKey, onBack }: { store: Week11Store; acco
   const [tkt, setTkt] = useState("");
   return (
     <div className="space-y-4">
-      <button type="button" className={`${btn} lg:hidden`} onClick={onBack}>← Back to users</button>
+      <div className="flex flex-wrap gap-2">
+        <button type="button" className={`${btn} lg:hidden`} onClick={onBack}>← Back to users</button>
+        <a href={`#si-${a.key}`} className={`${btn} text-xs`}>Jump to Sign-in tester</a>
+        <a href={`#at-${a.key}`} className={`${btn} text-xs`}>Jump to Test Access</a>
+      </div>
       <Card eyebrow={a.dir === "AD" ? "On-Premises Directory — Active Directory (simulated AD DS)" : "Cloud Identity — Microsoft Entra ID (simulation)"} title={`${p.name} · ${a.key}`}>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <h3 className="mb-2 text-sm font-medium">Account (identity attributes)</h3>
             <KV rows={[
-              ["Account ID", a.key], ["UPN", a.upn], ...(a.dir === "AD" ? [["sAMAccountName", a.username] as [string, string], ["OU", a.ou ?? "—"] as [string, string], ["DN", accountDn(s, a) ?? "—"] as [string, string]] : [["OU", "none — OUs are an AD concept in this exercise"] as [string, string]]),
+              ["Account ID", a.key], [<abbr key="u" title={glossary["UPN"]}>UPN</abbr>, a.upn], ...(a.dir === "AD" ? [["sAMAccountName", a.username] as [string, string], ["OU", a.ou ?? "—"] as [string, string], [<abbr key="d" title={glossary["DN"]}>DN</abbr>, accountDn(s, a) ?? "—"] as [React.ReactNode, string]] : [["OU", "none — OUs are an AD concept in this exercise"] as [string, string]]),
               ["Department attr", `${a.dept} (${departments[a.dept]})`], ["Status", a.status], ["Locked", a.locked ? "yes" : "no"],
-              ["Credential version", String(a.credentialVersion)], ["Must change", a.mustChange ? "yes" : "no"], ["Failed count", String(a.failedCount)],
-              ["MFA", a.mfa], ["Security revision", String(a.securityRevision)],
+              [<abbr key="c" title={glossary["Credential version"]}>Credential version</abbr>, String(a.credentialVersion)], ["Must change", a.mustChange ? "yes" : "no"], ["Failed count", String(a.failedCount)],
+              ["MFA", a.mfa], [<abbr key="r" title={glossary["Security revision"]}>Security revision</abbr>, String(a.securityRevision)],
             ]} />
           </div>
           <div>
             <h3 className="mb-2 text-sm font-medium">Person record (HR)</h3>
-            <KV rows={[["Person", `${p.key} ${p.name}`], ["HR ID", p.hrId], ["Department", departments[p.dept]], ["Employment", employmentLabel[p.status]], ["AD account", p.ad ?? "none"], ["Cloud account", p.cloud ?? "none"]]} />
+            <KV rows={[["Person", `${p.key} ${p.name}`], ["HR ID", p.hrId], ["Department", departments[p.dept]], ["Employment", employmentLabel[p.status]], ["AD account", p.ad ? (go ? <button type="button" className="underline" onClick={() => go({ label: p.ad!, view: "users", account: p.ad! })}>{p.ad} (open)</button> : p.ad) : "none"], ["Cloud account", p.cloud ? (go ? <button type="button" className="underline" onClick={() => go({ label: p.cloud!, view: "users", account: p.cloud! })}>{p.cloud} (open)</button> : p.cloud) : "none"]]} />
             <p className="mt-2 text-xs text-muted-foreground">No automatic synchronization: the two accounts have separate status, credentials, memberships and sessions.</p>
           </div>
         </div>
@@ -98,29 +104,36 @@ function AccountDetail({ store, accountKey, onBack }: { store: Week11Store; acco
         <p className="mt-2 text-xs text-muted-foreground">Calculated from current memberships and assignments (not a sign-in). ABAC conditions for the Internal Response Note are checked only during a test.</p>
       </Card>
       <Card title="Administrative actions" eyebrow="Changes are recorded in Audit Logs">
+        {mission && changeMissions[a.key] && !changeMissions[a.key]!.includes(mission) ? <p className="mb-3 rounded-md border border-amber/60 bg-amber/10 p-2 text-sm" role="note">Heads-up: changes to {a.key} belong to {changeMissions[a.key]!.join("/")}. Looking is fine; changing it now alters that mission's starting point.</p> : null}
+        <p className="mb-2 text-xs text-muted-foreground">Choose a linked ticket or write a reason first — actions without one are refused.</p>
         <Justify store={store} onChange={setJ} />
         <div className="mt-3 grid gap-3 md:grid-cols-2">
+          <h3 className="text-sm font-medium md:col-span-2">Membership</h3>
           <div className="flex items-end gap-2"><div className="flex-1"><Select label="Group (same directory)" value={grp} onChange={setGrp} options={groups.filter((g) => g.dir === a.dir).map((g) => ({ value: g.key, label: `${g.name} (${g.key})` }))} /></div></div>
           <div className="flex flex-wrap items-end gap-2">
             <button type="button" className={btn} disabled={store.busy} onClick={() => store.run({ type: "add_member", group: grp, account: a.key, ...j })}>Add to group</button>
             <button type="button" className={btn} disabled={store.busy} onClick={() => store.run({ type: "remove_member", group: grp, account: a.key, ...j })}>Remove from group</button>
           </div>
           {a.dir === "AD" ? <>
+            <h3 className="text-sm font-medium md:col-span-2">Placement (organization only)</h3>
             <Select label="Move to OU" value={ou} onChange={setOu} options={ous.map((o) => ({ value: o.key, label: `${o.name} (${o.key})` }))} />
             <div className="flex items-end"><button type="button" className={btn} disabled={store.busy} onClick={() => store.run({ type: "move_ou", account: a.key, ou, ...j })}>Move OU (organization only)</button></div>
           </> : null}
-          <div className="flex flex-wrap items-end gap-2">
+          <h3 className="text-sm font-medium md:col-span-2">Status and sessions</h3>
+          <div className="flex flex-wrap items-end gap-2 md:col-span-2">
             <button type="button" className={btn} disabled={store.busy} onClick={() => store.run({ type: "set_status", account: a.key, status: "enabled", ...j })}>Enable</button>
             <button type="button" className={btn} disabled={store.busy} onClick={() => store.run({ type: "set_status", account: a.key, status: "disabled", ...j })}>Disable</button>
             <button type="button" className={btn} disabled={store.busy} onClick={() => store.run({ type: "revoke_sessions", account: a.key, ...j })}>Revoke sessions</button>
           </div>
-          <div className="flex flex-wrap items-end gap-2">
+          <h3 className="text-sm font-medium md:col-span-2">Credentials (need a verified sensitive-action ticket)</h3>
+          <div className="flex flex-wrap items-end gap-2 md:col-span-2">
             <Select label="Sensitive-action ticket" value={tkt} onChange={setTkt} options={[{ value: "", label: "choose" }, ...tickets.filter((t) => t.permitsReset || t.permitsMfa).map((t) => ({ value: t.key, label: t.key })), ...s.recoveryTickets.filter((r) => r.account === a.key).map((r) => ({ value: r.key, label: r.key }))]} />
             <button type="button" className={btn} disabled={store.busy || !tkt} onClick={() => store.run({ type: "reset_credential", account: a.key, ticket: tkt })}>Reset credential</button>
             <button type="button" className={btn} disabled={store.busy || !tkt} onClick={() => store.run({ type: "unlock", account: a.key, ticket: tkt })}>Unlock</button>
             {a.dir === "CLOUD" && a.mfa !== "enrolled" ? <button type="button" className={btn} disabled={store.busy || !tkt} onClick={() => store.run({ type: "enroll_mfa", account: a.key, ticket: tkt })}>Complete simulated MFA enrollment</button> : null}
           </div>
-          <div className="flex flex-wrap items-end gap-2">
+          <h3 className="text-sm font-medium md:col-span-2">Department transfer</h3>
+          <div className="flex flex-wrap items-end gap-2 md:col-span-2">
             <Select label="Department transfer (person + both accounts)" value={dept} onChange={(x) => setDept(x as typeof dept)} options={Object.entries(departments).map(([k, n]) => ({ value: k, label: `${n} (${k})` }))} />
             <button type="button" className={btn} disabled={store.busy} onClick={() => store.run({ type: "transfer_department", person: p.key, dept, ticket: j.ticket ?? "" })}>Apply transfer</button>
           </div>
@@ -128,18 +141,22 @@ function AccountDetail({ store, accountKey, onBack }: { store: Week11Store; acco
         </div>
         <p className="mt-2 text-xs text-muted-foreground">Sessions: {sessions.length ? sessions.map((x) => `${x.key} (${x.status})`).join(", ") : "none"}</p>
       </Card>
-      <SignInTester key={`si-${a.key}`} store={store} account={a.key} />
-      <AccessTester key={`at-${a.key}`} store={store} account={a.key} />
+      <div id={`si-${a.key}`} className="scroll-mt-24"><SignInTester key={`si-${a.key}`} store={store} account={a.key} /></div>
+      <div id={`at-${a.key}`} className="scroll-mt-24"><AccessTester key={`at-${a.key}`} store={store} account={a.key} /></div>
     </div>
   );
 }
 
-export function GroupsView({ store }: { store: Week11Store }) {
+export function GroupsView({ store, dir }: { store: Week11Store; dir?: Directory }) {
   const s = store.view!.state;
   const [note, setNote] = useState("");
+  const [both, setBoth] = useState(false);
+  const shown = groups.filter((g) => both || !dir || g.dir === dir);
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {groups.map((g) => {
+      <div className="flex flex-wrap items-center gap-2 text-sm md:col-span-2"><Badge tone="info">{both || !dir ? "Showing both directories" : dir === "AD" ? "Showing On-Premises AD groups" : "Showing Cloud groups"}</Badge>
+        {dir ? <button type="button" className={btn} aria-pressed={both} onClick={() => setBoth(!both)}>{both ? "Show only the current directory" : "Show both directories"}</button> : null}</div>
+      {shown.map((g) => {
         const members = s.memberships.filter((m) => m.group === g.key).map((m) => m.account);
         const asg = s.assignments.filter((a) => a.group === g.key);
         const acl = adAcl.filter((a) => a.group === g.key);
@@ -243,9 +260,9 @@ export function ResourcesView() {
   );
 }
 
-export function TicketsView({ store }: { store: Week11Store }) {
+export function TicketsView({ store, initial }: { store: Week11Store; initial?: string | undefined }) {
   const s = store.view!.state;
-  const [open, setOpen] = useState(tickets[0]!.key);
+  const [open, setOpen] = useState(initial && tickets.some((x) => x.key === initial) ? initial : tickets[0]!.key);
   const t = tickets.find((x) => x.key === open)!;
   const ts = s.tickets.find((x) => x.key === open)!;
   const [route, setRoute] = useState<"trusted" | "request_only">("trusted");

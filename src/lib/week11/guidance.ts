@@ -125,7 +125,8 @@ export const changeMissions: Record<string, string[]> = {
 /** Map a student-safe readiness message to a navigation target (heuristic, no predicates). */
 export function navForMissing(mission: string, text: string): Nav | null {
   const t = text;
-  if (/^Capture E\d+|evidence slot|E\d\d/.test(t)) return { label: "Capture evidence", view: "missions" };
+  if (/caption/.test(t)) return { label: "Evidence Tray", view: "evidence" };
+  if (/^Capture evidence/.test(t)) return { label: "Capture evidence", view: "missions" };
   if (/^Answer:/.test(t)) return { label: "Explanations", view: "missions" };
   if (/concept/.test(t)) return { label: "Directory trace", view: "missions" };
   const tkt = t.match(/\bT\d{3}\b/)?.[0];
