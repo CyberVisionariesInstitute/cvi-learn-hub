@@ -39,7 +39,7 @@ export function useWeek11() {
   }, []);
 
   useEffect(() => {
-    start().then((v) => adopt(v, true)).catch((e: Error) => setLoadError(e.message || "Could not load your attempt."));
+    (start() as Promise<AttemptView>).then((v) => adopt(v, true)).catch((e: Error) => setLoadError(e.message || "Could not load your attempt."));
   }, [start, adopt]);
 
   const flush = useCallback(async () => {
@@ -81,7 +81,7 @@ export function useWeek11() {
   }, [flush]);
 
   const reloadAfterConflict = useCallback(async () => {
-    const v = await start();
+    const v = (await start()) as AttemptView;
     textRev.current = v.textRevision;
     setView(v);
     setTextSave({ kind: "idle" });
@@ -92,7 +92,7 @@ export function useWeek11() {
     if (!view) return null;
     setBusy(true);
     try {
-      const r = await exec({ data: { expectedRevision: view.revision, idempotencyKey: key(), command: command as never } });
+      const r = (await exec({ data: { expectedRevision: view.revision, idempotencyKey: key(), command: command as never } })) as { view: AttemptView; conflict?: string; result?: unknown };
       adopt(r.view);
       if ("conflict" in r && r.conflict) {
         const msg = r.conflict === "STATE_CHANGED" ? "The simulator changed in another tab. Review the current values and try again." : "That action could not be applied.";
@@ -111,7 +111,7 @@ export function useWeek11() {
   const captureEvidence = useCallback(async (input: Parameters<typeof capture>[0]["data"]) => {
     await flush();
     setBusy(true);
-    try { const v = await capture({ data: input }); adopt(v, true); setLastResult({ ok: true, message: `Captured ${input.slot}.` }); }
+    try { const v = (await capture({ data: input })) as AttemptView; adopt(v, true); setLastResult({ ok: true, message: `Captured ${input.slot}.` }); }
     catch (e) { setLastResult({ ok: false, message: (e as Error).message }); }
     finally { setBusy(false); }
   }, [capture, adopt, flush]);
@@ -130,7 +130,7 @@ export function useWeek11() {
   const reset = useCallback(async (reason: string) => {
     if (!view) return;
     await flush();
-    const r = await doReset({ data: { expectedRevision: view.revision, idempotencyKey: key(), confirm: "RESET", reason } });
+    const r = (await doReset({ data: { expectedRevision: view.revision, idempotencyKey: key(), confirm: "RESET", reason } })) as { view?: AttemptView; conflict?: string };
     if ("view" in r && r.view) { dirty.current = false; adopt(r.view, true); setLastResult({ ok: true, message: "New attempt started. Your previous attempt is archived and read-only." }); }
     else setLastResult({ ok: false, message: "Reset did not happen; your attempt is unchanged." });
   }, [view, doReset, adopt, flush]);

@@ -24,7 +24,7 @@ const slot = (ev: EvidenceRow[], learner: Learner, id: string) => {
 export function computeReadiness(s: SimState, learner: Learner, ev: EvidenceRow[]): MissionReadiness[] {
   const out: MissionReadiness[] = [];
   const q = (m: string, id: string) => learner.missions?.[m]?.answers?.[id];
-  const push = (mission: string, missing: (string | null | false)[]) => {
+  const push = (mission: string, missing: (string | null | false | undefined)[]) => {
     const list = missing.filter((x): x is string => typeof x === "string");
     out.push({ mission, ready: list.length === 0, missing: list });
   };
