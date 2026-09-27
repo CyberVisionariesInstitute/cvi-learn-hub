@@ -17,9 +17,9 @@ Required before student release:
 - Instructor visibility limited to their assigned cohorts, in both the server functions and the RLS staff-read policies.
 - July and September cohort data must remain isolated once integration is wired.
 
-## 2. Approved Module 4 Ivy artwork (content blocker, not security)
+## 2. Approved Module 4 Ivy artwork — RESOLVED 2026-09-27
 
-The approved Module 4 Ivy (Black woman, braided updo, navy tailored suit, teal blouse, Security & Identity Analyst presentation) is **not in the project**. Available character art is the Week 6 "Grid Technician" look (`src/assets/characters/ivy/*.webp`, `src/assets/characters/ivy-vault/*.jpg`), which must not be substituted. Week 11 keeps the neutral text fallback until approved assets are attached.
+Hero + six mission illustrations attached at `src/assets/week11/week11-{hero,m01..m06}.webp.asset.json` from the reviewed Module 4 visual set (navy suit, teal blouse, Security & Identity Analyst). Rendered via `src/components/week11/Visuals.tsx`. Concept teaching cards (A–J) are real accessible UI, not baked into images. Week 6 Grid Technician art remains unused in Week 11.
 
 ## 3. Pre-release QA still owed
 
