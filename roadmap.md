@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] W11-UX-01: persistent collapsible current-mission companion across all Week 11 simulator views; focused accessibility, mobile, Week 11, and Week 10 checks; preview only
+- [x] W11-UX-01: persistent collapsible current-mission companion across all Week 11 simulator views; focused accessibility, mobile, Week 11, and Week 10 checks; preview only
 - [ ] Week 11 refinement: Lab 06 becomes "Cloud Heights IAM Investigation Case File — Portfolio Deliverable 4" (editor, readiness, export, wording; Week 12 owns final report/comms)
 - [ ] Week 11 refinement: approved Ivy/Module 4 visuals if assets available; else keep neutral fallback and report missing assets
 - [ ] Week 11 refinement: server-side ticket outcome validation T201–T505

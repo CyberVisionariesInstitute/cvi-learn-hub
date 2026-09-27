@@ -31,7 +31,7 @@ export function CurrentMissionPanel({ store, mission, open, onOpenChange, onView
     : currentMission.steps[0] ?? currentMission.objective;
 
   return (
-    <Collapsible open={open} onOpenChange={onOpenChange} className="sticky top-2 z-20 min-w-0 rounded-md border border-primary/50 bg-surface-raised shadow-lg">
+    <Collapsible open={open} onOpenChange={onOpenChange} className="sticky top-2 z-20 min-w-0 rounded-md border border-primary/50 bg-surface-raised shadow-lg lg:col-start-2">
       <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 p-3">
         <div className="min-w-0">
           <p className="font-display text-xs tracking-[0.2em] text-primary uppercase">Current Mission</p>
