@@ -6,6 +6,7 @@ import { GroupsView, OUsView, ResourcesView, RolesView, TicketsView, UsersView }
 import { EvidenceView, LogsView, ReportView } from "./InvestigationViews";
 import { Badge, btn, btnPrimary, Card, input, Select, TextArea } from "./ui";
 import { ConceptGuides, MissionArt, Week11Hero } from "./Visuals";
+import { CurrentMissionPanel } from "./CurrentMissionPanel";
 
 export const VIEWS = ["dashboard", "missions", "users", "groups", "ous", "roles", "resources", "tickets", "signins", "audit", "evidence", "report"] as const;
 export type View = (typeof VIEWS)[number];
@@ -15,6 +16,7 @@ export function Simulator({ store, view, onView, mission, onMission }: { store: 
   const v = store.view!;
   const [dir, setDir] = useState<Directory>("AD");
   const [selected, setSelected] = useState<string | null>(null);
+  const [missionPanelOpen, setMissionPanelOpen] = useState(true);
   const archived = v.status === "archived";
   const save = store.textSave;
   return (
@@ -32,8 +34,15 @@ export function Simulator({ store, view, onView, mission, onMission }: { store: 
         </div>
       </div>
       {archived ? <p className="mt-2 rounded-md border border-border p-2 text-sm">Archived attempt — read-only.</p> : null}
-      <div className="mt-4 grid gap-4 lg:grid-cols-[14rem_minmax(0,1fr)]">
-        <nav aria-label="Simulator" className="lg:sticky lg:top-4 lg:self-start">
+      <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-[14rem_minmax(0,1fr)]">
+        <CurrentMissionPanel
+          store={store}
+          mission={mission}
+          open={missionPanelOpen}
+          onOpenChange={setMissionPanelOpen}
+          onView={onView}
+        />
+        <nav aria-label="Simulator" className="min-w-0 lg:sticky lg:top-4 lg:row-span-2 lg:row-start-1 lg:self-start">
           <div className="mb-3 grid grid-cols-2 gap-1 lg:grid-cols-1" role="group" aria-label="Directory context">
             <button type="button" aria-pressed={dir === "AD"} className={`${btn} text-xs ${dir === "AD" ? "border-primary bg-primary/10" : ""}`} onClick={() => { setDir("AD"); setSelected(null); }}>On-Premises Directory — Active Directory (simulated AD DS)</button>
             <button type="button" aria-pressed={dir === "CLOUD"} className={`${btn} text-xs ${dir === "CLOUD" ? "border-primary bg-primary/10" : ""}`} onClick={() => { setDir("CLOUD"); setSelected(null); }}>Cloud Identity — Microsoft Entra ID (simulation)</button>
@@ -42,7 +51,7 @@ export function Simulator({ store, view, onView, mission, onMission }: { store: 
             {VIEWS.map((x) => <li key={x}><button type="button" aria-current={view === x ? "page" : undefined} onClick={() => onView(x)} className={`${btn} w-full text-left text-xs ${view === x ? "border-primary bg-primary/10" : ""}`}>{labels[x]}</button></li>)}
           </ul>
         </nav>
-        <main className="min-w-0 space-y-4">
+        <main className="min-w-0 space-y-4 lg:col-start-2">
           {store.lastResult ? (
             <div role="status" className={`flex items-start justify-between gap-2 rounded-md border p-3 text-sm ${store.lastResult.ok ? "border-primary/50 bg-primary/10" : "border-destructive/50 bg-destructive/10"}`}>
               <span>{store.lastResult.message}</span>
