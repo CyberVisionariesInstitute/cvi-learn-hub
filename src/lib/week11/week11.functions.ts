@@ -76,7 +76,7 @@ export const executeWeek11Command = createServerFn({ method: "POST" })
     // Replays with the same key return the stored result.
     const { data: prior } = await db.from("w11_actions" as never).select("request_hash,result").eq("attempt_id", row.id).eq("idempotency_key", data.idempotencyKey).maybeSingle();
     if (prior) {
-      const p = prior as { request_hash: string; result: unknown };
+      const p = prior as { request_hash: string; result: import("./engine").CommandResult };
       if (p.request_hash !== hash) return { conflict: "IDEMPOTENCY_CONFLICT" as const, view: await view(db, row) };
       return { result: p.result, view: await view(db, row) };
     }

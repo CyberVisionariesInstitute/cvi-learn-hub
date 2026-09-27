@@ -108,7 +108,7 @@ export function useWeek11() {
     } finally { setBusy(false); }
   }, [exec, view, adopt]);
 
-  const captureEvidence = useCallback(async (input: Parameters<typeof capture>[0]["data"]) => {
+  const captureEvidence = useCallback(async (input: { mission: string; slot: string; title: string; refs: { accounts: string[]; groups: string[]; tests: string[]; signins: string[]; audits: string[]; tickets: string[]; historical: string[] }; caption: string }) => {
     await flush();
     setBusy(true);
     try { const v = (await capture({ data: input })) as AttemptView; adopt(v, true); setLastResult({ ok: true, message: `Captured ${input.slot}.` }); }

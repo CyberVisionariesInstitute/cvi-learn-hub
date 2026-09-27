@@ -16,7 +16,8 @@ export interface Learner {
 
 export interface EvidenceRow {
   evidence_key: string; slot: string; mission: string; title: string;
-  snapshot: unknown; content_hash: string; captured_revision: number; created_at: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  snapshot: any; content_hash: string; captured_revision: number; created_at: string;
 }
 
 export interface AttemptView {

@@ -32,7 +32,8 @@ export interface LiveSignin {
 }
 export interface LiveAudit {
   id: string; seq: number; activity: string; actorKind: "learner" | "instructor"; target: string;
-  targetType: string; changed: string[]; before: unknown; after: unknown; result: "accepted" | "refused" | "no_op";
+  targetType: string; // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  changed: string[]; before: any; after: any; result: "accepted" | "refused" | "no_op";
   ticket: string | null; correlation: string; reason?: string | undefined; time: string;
 }
 export interface AccessPath { kind: "acl" | "role"; group: string; role?: string | undefined; scope?: string | undefined; assignment?: string }
