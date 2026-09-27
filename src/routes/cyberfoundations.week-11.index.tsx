@@ -5,7 +5,7 @@ import { Simulator, VIEWS, type View } from "@/components/week11/Simulator";
 import { useWeek11 } from "@/lib/week11/useWeek11";
 import { supabase } from "@/integrations/supabase/client";
 
-interface Search { view?: View; mission?: string }
+interface Search { view?: View | undefined; mission?: string | undefined }
 const description = "Week 11 browser-based simulated AD/IAM administration: six connected missions in the fictional Cloud Heights Identity Center, ending in the IAM Investigation Report (Deliverable 4).";
 
 export const Route = createFileRoute("/cyberfoundations/week-11/")({
