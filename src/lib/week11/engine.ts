@@ -24,7 +24,7 @@ export interface Session { key: string; account: string; credV: number; secRev: 
 export interface Challenge { key: string; account: string; credV: number; used: boolean }
 export interface TicketState {
   key: string; status: "open" | "investigating" | "in_progress" | "resolved" | "escalated";
-  verification: "not_started" | "passed" | "failed"; verifiedAtCredV?: number;
+  verification: "not_started" | "passed" | "failed"; verifiedAtCredV?: number | undefined;
   notes: { seq: number; text: string }[]; linkedSeq: number[];
 }
 export interface LiveSignin {
@@ -33,14 +33,14 @@ export interface LiveSignin {
 export interface LiveAudit {
   id: string; seq: number; activity: string; actorKind: "learner" | "instructor"; target: string;
   targetType: string; changed: string[]; before: unknown; after: unknown; result: "accepted" | "refused" | "no_op";
-  ticket: string | null; correlation: string; reason?: string; time: string;
+  ticket: string | null; correlation: string; reason?: string | undefined; time: string;
 }
-export interface AccessPath { kind: "acl" | "role"; group: string; role?: string; scope?: string; assignment?: string }
+export interface AccessPath { kind: "acl" | "role"; group: string; role?: string | undefined; scope?: string | undefined; assignment?: string }
 export interface AccessTest {
   id: string; seq: number; revision: number; account: string; session: string | null; device: string | null;
   resource: string; action: string; mode: "current-access" | "preview" | "abac-what-if";
   decision: "allow" | "deny" | "preview"; reasons: string[]; paths: AccessPath[];
-  memberships: string[]; attributes?: Record<string, string>; overrides?: Record<string, string>;
+  memberships: string[]; attributes?: Record<string, string> | undefined; overrides?: Record<string, string> | undefined;
 }
 export interface SimState {
   seed: string; seq: number; people: Person[]; accounts: Account[]; memberships: Membership[];
@@ -91,22 +91,22 @@ export function createSeedState(): SimState {
 /* ------------------------------------------------------------------ */
 
 export type Command =
-  | { type: "create_account"; person: string; dir: Directory; ou?: string; ticket: string }
-  | { type: "move_ou"; account: string; ou: string; ticket?: string; reason?: string }
-  | { type: "add_member" | "remove_member"; group: string; account: string; ticket?: string; reason?: string }
-  | { type: "assign_role"; group: string; role: string; scope: string; ticket?: string; reason?: string }
-  | { type: "revoke_role"; assignment: string; ticket?: string; reason?: string }
-  | { type: "set_status"; account: string; status: "enabled" | "disabled"; ticket?: string; reason?: string }
+  | { type: "create_account"; person: string; dir: Directory; ou?: string | undefined; ticket: string }
+  | { type: "move_ou"; account: string; ou: string; ticket?: string | undefined; reason?: string }
+  | { type: "add_member" | "remove_member"; group: string; account: string; ticket?: string | undefined; reason?: string }
+  | { type: "assign_role"; group: string; role: string; scope: string; ticket?: string | undefined; reason?: string }
+  | { type: "revoke_role"; assignment: string; ticket?: string | undefined; reason?: string }
+  | { type: "set_status"; account: string; status: "enabled" | "disabled"; ticket?: string | undefined; reason?: string }
   | { type: "verify"; ticket: string; route: "trusted" | "request_only"; hrId: string }
   | { type: "reset_credential"; account: string; ticket: string }
   | { type: "unlock"; account: string; ticket: string }
   | { type: "signin"; account: string; device: string; credential: "current" | "stale" | "incorrect"; mfa: "pass" | "fail" | "cancel" }
   | { type: "complete_credential_change"; challenge: string }
   | { type: "enroll_mfa"; account: string; ticket: string }
-  | { type: "revoke_sessions"; account: string; ticket?: string; reason?: string }
+  | { type: "revoke_sessions"; account: string; ticket?: string | undefined; reason?: string }
   | { type: "transfer_department"; person: string; dept: DeptKey; ticket: string }
   | { type: "ticket_status"; ticket: string; status: "investigating" | "in_progress" | "resolved" | "escalated"; note: string }
-  | { type: "test_access"; account: string; session?: string | null; resource: string; action: string; mode: "current-access" | "preview" | "abac-what-if"; device?: string; overrides?: Record<string, string> }
+  | { type: "test_access"; account: string; session?: string | null | undefined; resource: string; action: string; mode: "current-access" | "preview" | "abac-what-if"; device?: string | undefined; overrides?: Record<string, string> }
   | { type: "review_config"; group: string; note: string }
   | { type: "open_recovery"; account: string };
 
@@ -114,13 +114,13 @@ export interface CommandResult {
   ok: boolean;
   /** Input/validation error: no mutation, no sequence advance. */
   error?: { code: string; message: string };
-  outcome?: string;
+  outcome?: string | undefined;
   message: string;
-  seq?: number;
-  eventIds?: string[];
-  testId?: string;
-  sessionKey?: string;
-  challengeKey?: string;
+  seq?: number | undefined;
+  eventIds?: string[] | undefined;
+  testId?: string | undefined;
+  sessionKey?: string | undefined;
+  challengeKey?: string | undefined;
 }
 
 const fail = (code: string, message: string): { state: null; result: CommandResult } => ({
@@ -155,7 +155,7 @@ export function applyCommand(
     return { state: s, result: { ok: true, message, seq, eventIds, ...extra } };
   };
   const text = (v: string | undefined) => (v ?? "").trim().slice(0, MAX_TEXT);
-  const justification = (c: { ticket?: string; reason?: string }) => {
+  const justification = (c: { ticket?: string | undefined; reason?: string }) => {
     if (c.ticket && ticketSeed(c.ticket)) return { ok: true, ticket: c.ticket };
     if (c.ticket && s.recoveryTickets.some((r) => r.key === c.ticket)) return { ok: true, ticket: c.ticket };
     if (text(c.reason).length >= 3) return { ok: true, ticket: null };
@@ -487,7 +487,7 @@ export const reasonText = (r: string[]) => r.map((x) => reasonCopy[x] ?? x).join
 /** Authoritative decision order (spec 6.2). Pure; used by the command above. */
 export function evaluateAccess(
   s: SimState,
-  cmd: { account: string; session?: string | null; resource: string; action: string; mode: AccessTest["mode"]; device?: string; overrides?: Record<string, string> },
+  cmd: { account: string; session?: string | null | undefined; resource: string; action: string; mode: AccessTest["mode"]; device?: string | undefined; overrides?: Record<string, string> },
 ): Omit<AccessTest, "id" | "seq" | "revision"> {
   const a = s.accounts.find((x) => x.key === cmd.account)!;
   const res = resources.find((r) => r.key === cmd.resource)!;

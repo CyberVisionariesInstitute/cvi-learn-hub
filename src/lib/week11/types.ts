@@ -6,12 +6,12 @@ export interface Finding {
 }
 
 export interface Learner {
-  displayName?: string;
-  missions?: Record<string, { answers?: Record<string, string>; trace?: Record<string, string> }>;
-  captions?: Record<string, string>;
-  findings?: Finding[];
+  displayName?: string | undefined;
+  missions?: Record<string, { answers?: Record<string, string> | undefined; trace?: Record<string, string> }>;
+  captions?: Record<string, string> | undefined;
+  findings?: Finding[] | undefined;
   comparison?: { refs: string[]; text: string };
-  report?: { sections?: Record<string, string>; managerSummary?: string; limitations?: string; liveChain?: string };
+  report?: { sections?: Record<string, string> | undefined; managerSummary?: string | undefined; limitations?: string | undefined; liveChain?: string };
 }
 
 export interface EvidenceRow {
