@@ -9,7 +9,13 @@ import { pki } from "@/lib/demo-lab/programs";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
+  staff: z.union([z.literal("1"), z.literal("true")]).optional(),
 });
+
+async function isStaffUser(userId: string): Promise<boolean> {
+  const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+  return (data ?? []).some((r) => r.role === "instructor" || r.role === "admin");
+}
 
 export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
@@ -34,15 +40,24 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-function safePath(value: string | undefined) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/pki/capstone";
+function safePath(value: string | undefined, fallback = "/pki/capstone") {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return fallback;
   return value;
+}
+
+async function landingFor(userId: string, requested: string | undefined, staffPreferred: boolean): Promise<string> {
+  const staff = await isStaffUser(userId);
+  if (requested) return safePath(requested);
+  if (staff && staffPreferred) return "/instructor";
+  if (staff) return "/instructor";
+  return "/pki/capstone";
 }
 
 function AuthPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
   const { session, loading } = useSession();
+  const staffMode = search.staff === "1" || search.staff === "true";
   const [mode, setMode] = useState<"signin" | "signup" | "recovery">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
