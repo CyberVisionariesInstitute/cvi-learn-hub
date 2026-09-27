@@ -115,8 +115,9 @@ export function ReportView({ store }: { store: Week11Store }) {
   const [exported, setExported] = useState<string | null>(null);
   return (
     <div className="space-y-4">
-      <Card eyebrow="Lab 06 · Deliverable 4" title="IAM Investigation Report">
-        <p className="text-sm">One report, inside Lab 06. It may reference earlier lab files instead of repeating them. Nothing here is graded automatically; readiness only checks that required pieces are present.</p>
+      <Card eyebrow="Lab 06 · Portfolio Deliverable 4" title="Cloud Heights IAM Investigation Case File">
+        <p className="text-sm">A technical case file, inside Lab 06 — the sixth and final Week 11 submission. It may reference earlier lab files instead of repeating them. Nothing here is graded automatically; readiness only checks that required pieces are present.</p>
+        <p className="mt-2 rounded-md border border-primary/40 bg-primary/10 p-3 text-sm"><strong>Week 12 handoff:</strong> Week 12 uses this case file as source material to create the professional Technical Incident Report and Executive Summary, and to finalize and present your portfolio. You do not write those here.</p>
       </Card>
       {findings.map((f, i) => (
         <Card key={f.key} title={`Finding ${i + 1}`}>
@@ -144,11 +145,10 @@ export function ReportView({ store }: { store: Week11Store }) {
       <Card title="Live simulator accountability chain">
         <TextArea label="Describe one audit/access chain from your own earlier missions (IDs such as LA-…, AT-…). This is your simulated activity, not historical data." value={rep.liveChain ?? ""} onChange={(x) => setRep({ liveChain: x })} />
       </Card>
-      <Card title="Report sections">
+      <Card title="Case file sections" eyebrow="Technical content only — the polished report and summary come in Week 12">
         <div className="space-y-3">{reportSections.map((t, i) => <TextArea key={t} label={`${i + 1}. ${t}`} value={rep.sections?.[String(i + 1)] ?? ""} onChange={(x) => setRep({ sections: { ...(rep.sections ?? {}), [String(i + 1)]: x } })} />)}</div>
         <div className="mt-3 space-y-3">
-          <TextArea label="Limitations" value={rep.limitations ?? ""} onChange={(x) => setRep({ limitations: x })} />
-          <TextArea label="Manager summary (5–7 plain-language sentences)" rows={5} value={rep.managerSummary ?? ""} onChange={(x) => setRep({ managerSummary: x })} />
+          <TextArea label="Explicit simulation/environment limitations" value={rep.limitations ?? ""} onChange={(x) => setRep({ limitations: x })} />
         </div>
       </Card>
       <Card title="Portfolio export (GitHub)" eyebrow="Download is not submission">

@@ -81,6 +81,16 @@ export const executeWeek11Command = createServerFn({ method: "POST" })
       return { result: p.result, view: await view(db, row) };
     }
     if (row.state_revision !== data.expectedRevision) return { conflict: "STATE_CHANGED" as const, view: await view(db, row) };
+    // Ticket resolution requires the approved outcome in current state.
+    const cmd = data.command as unknown as Command;
+    if (cmd.type === "ticket_status" && (cmd.status === "resolved" || cmd.status === "escalated")) {
+      const { ticketOutcome } = await import("./tickets.server");
+      const o = ticketOutcome(row.state, cmd.ticket, cmd.status);
+      if (!o.ok) {
+        const message = `${cmd.ticket} can't be marked ${cmd.status} yet. Still missing: ${o.unmet.join(" ")} Correct the state and try again — nothing was changed.`;
+        return { result: { ok: false, message, error: { code: "OUTCOME_UNMET", message } }, view: await view(db, row) };
+      }
+    }
     let out;
     try {
       out = applyCommand(row.state, data.command as unknown as Command, { attemptShort: short(row.id), revision: row.state_revision });

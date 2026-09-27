@@ -136,10 +136,10 @@ export function computeReadiness(s: SimState, learner: Learner, ev: EvidenceRow[
     slot(ev, learner, "E12"), slot(ev, learner, "E13"), slot(ev, learner, "E14"), slot(ev, learner, "E15"), slot(ev, learner, "E16"), ...questions("M05"),
   ]);
 
-  // M06
+  // M06 — technical case file (Deliverable 4). The polished Technical Incident
+  // Report and Executive Summary are Week 12 deliverables, not Week 11.
   const fs = (learner.findings ?? []).filter((f) => ["observation", "hypothesis", "conclusion", "uncertainty", "nextAction", "rationale"].every((k) => filled((f as unknown as Record<string, string>)[k], 10)) && f.refs.length > 0 && f.priority);
   const sig = new Set(fs.map((f) => [...f.refs].sort().join(",")));
-  const sentences = (learner.report?.managerSummary ?? "").split(/[.!?]+\s/).filter((x) => x.trim().length > 3).length;
   const allRefs = fs.flatMap((f) => f.refs);
   push("M06", [
     fs.length < 2 && "Complete at least two findings with every reasoning field, a priority and raw-event references.",
@@ -147,9 +147,8 @@ export function computeReadiness(s: SimState, learner: Learner, ev: EvidenceRow[
     !allRefs.includes("S009") && !allRefs.includes("A002") && "Reference the correlated sign-in/audit records you investigated.",
     !filled(learner.comparison?.text) || !(learner.comparison?.refs?.length) ? "Record one benign/ambiguous comparison with its source records." : null,
     !filled(learner.report?.liveChain) && "Describe one live simulator audit/access chain from your earlier missions.",
-    (sentences < 5 || sentences > 7) && `Manager summary should be 5–7 sentences (currently ${sentences}).`,
-    !filled(learner.report?.limitations) && "Write the limitations section.",
-    slot(ev, learner, "E17"), slot(ev, learner, "E18"), ...questions("M06"),
+    !filled(learner.report?.limitations) && "Write the explicit simulation/environment limitations section.",
+    slot(ev, learner, "E17"), slot(ev, learner, "E18"), slot(ev, learner, "E19"), ...questions("M06"),
   ]);
   return out;
 }

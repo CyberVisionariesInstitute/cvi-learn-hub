@@ -8,7 +8,7 @@ import { Badge, btn, btnPrimary, Card, input, Select, TextArea } from "./ui";
 
 export const VIEWS = ["dashboard", "missions", "users", "groups", "ous", "roles", "resources", "tickets", "signins", "audit", "evidence", "report"] as const;
 export type View = (typeof VIEWS)[number];
-const labels: Record<View, string> = { dashboard: "Dashboard", missions: "Mission Progress", users: "Users", groups: "Groups", ous: "Organizational Units", roles: "Roles & Access", resources: "Resources", tickets: "Help Desk / IAM Tickets", signins: "Sign-in Logs", audit: "Audit Logs", evidence: "Evidence Tray", report: "Report (Lab 06)" };
+const labels: Record<View, string> = { dashboard: "Dashboard", missions: "Mission Progress", users: "Users", groups: "Groups", ous: "Organizational Units", roles: "Roles & Access", resources: "Resources", tickets: "Help Desk / IAM Tickets", signins: "Sign-in Logs", audit: "Audit Logs", evidence: "Evidence Tray", report: "Case File (Lab 06)" };
 
 export function Simulator({ store, view, onView, mission, onMission }: { store: Week11Store; view: View; onView: (v: View) => void; mission: string; onMission: (m: string) => void }) {
   const v = store.view!;
@@ -141,7 +141,7 @@ function MissionView({ store, mission, onMission, onView }: { store: Week11Store
       ) : null}
       <Card title="Your explanations" eyebrow="Saved automatically">
         <div className="space-y-3">{m.questions.map((qq) => <TextArea key={qq.id} label={qq.label} value={ans[qq.id] ?? ""} onChange={(x) => setAns(qq.id, x)} />)}</div>
-        {m.key === "M06" ? <button type="button" className={`${btn} mt-3`} onClick={() => onView("report")}>Open the report editor</button> : null}
+        {m.key === "M06" ? <button type="button" className={`${btn} mt-3`} onClick={() => onView("report")}>Open the case file editor</button> : null}
       </Card>
       <CaptureEvidence store={store} mission={m.key} slots={m.evidence} />
       <Card title="Readiness" eyebrow="Presence of required work — not a grade">
