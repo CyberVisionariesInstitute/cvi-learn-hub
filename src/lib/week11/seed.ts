@@ -461,7 +461,7 @@ export const missions: MissionSeed[] = [
     situation: "Ticket T201: Blair signs in to the cloud app but cannot read the case summaries she needs.",
     steps: [
       "Inspect cl-blair: status, MFA and credential state, groups, what those groups are assigned, and Case Summaries' rights. Write a prediction.",
-      "Sign-in tester: sign in as cl-blair using managed-blair, current credential, MFA pass. Capture the success.",
+      "Sign-in tester: sign in as cl-blair using managed-blair, current credential, MFA pass. You'll capture this sign-in with the next test as E03.",
       "Test Access with that session: Case Summaries / read. Capture the result and its trace.",
       "Read APP-201 and make the narrow access correction. Do not change passwords to solve an authorization problem.",
       "Retest Case Summaries read and update. Explain why both results match the business request.",
@@ -513,9 +513,9 @@ export const missions: MissionSeed[] = [
     steps: [
       "For Blair, Casey and Emi, write the job and the required/forbidden actions before configuring.",
       "Inspect each relevant group → role → scope configuration. Keep correct grants, change what's needed, then mark each configuration reviewed.",
-      "For Casey, inspect every granting path in Effective access. Find broad rights, capture them, and narrow them. Don't delete role definitions.",
+      "For Casey, inspect every granting path in the 'Groups and effective access' table. Find broad rights, capture them, and narrow them by changing membership or assignments (role definitions are read-only).",
       "After cloud sign-ins, run the nine required tests: Blair case read/update; Casey queue read/update, audit delete, directory manage_sensitive_groups; Emi audit read/export/delete.",
-      "Sandbox experiment: give cl-blair temporary Audit-Reviewers membership, test audit read, remove it, retest. Don't leave it.",
+      "Sandbox experiment: give cl-blair temporary Audit-Reviewers (GC-AUD) membership, test Audit Evidence read, remove it, retest. Don't leave it.",
       "Casey's Internal Response Note read with managed-casey (current state). Then in What-if, change one attribute at a time: unmanaged device, Audit department, Confidential classification.",
       "Explain RBAC, assignment scope, least privilege, why sign-in didn't settle authorization, and how ABAC adds conditions.",
     ],
@@ -542,7 +542,7 @@ export const missions: MissionSeed[] = [
       "Joiner T501: create the cloud account for the same Jamie (P08), verify, enroll MFA, enable, complete credential setup, add approved groups; test case read/update.",
       "Mover T502: capture Alex's before access; change department, move the AD OU, adjust memberships in both directories; retest both.",
       "Leaver T503: sign in as Finley first and test case read. Then disable both accounts, revoke sessions, remove memberships, move to Disabled Accounts; retest old session and a new sign-in.",
-      "Unverified reset T504: compare requester details with Blair's record, run verification, try the reset if you like, then escalate.",
+      "Unverified reset T504: compare requester details with Blair's HR record and run verification. If verification fails, do not reset — set the ticket to escalated with a decision note.",
       "Comparison T505: give cl-blair Training-VM metadata access at RG-LAB; test metadata, stop, and Other-Team-VM metadata.",
     ],
     evidence: [
