@@ -10,7 +10,36 @@ const esc = (v: unknown) => String(v ?? "").replace(/[<>]/g, (c) => (c === "<" ?
 const block = (v: string | undefined) => (v && v.trim() ? esc(v.trim()) : "_Not written yet._");
 const sha = (s: string) => createHash("sha256").update(s).digest("hex");
 
-export function buildExport(p: { attemptLabel: string; revision: number; textRevision: number; state: SimState; learner: Learner; evidence: EvidenceRow[]; readiness: MissionReadiness[] }) {
+type ExportInput = { attemptLabel: string; revision: number; textRevision: number; state: SimState; learner: Learner; evidence: EvidenceRow[]; readiness: MissionReadiness[] };
+
+/** Exact ZIP paths, in order (deterministic, beginner-friendly). */
+export const WEEK11_EXPORT_PATHS = [
+  ...missions.map((m) => m.exportPath),
+  "week-11/README.md", "week-11/labs/README.md",
+  "week-11/labs/evidence/week11-evidence.json", "week-11/labs/evidence/week11-evidence-index.md",
+  "week-11/labs/evidence/historical-signins.tsv", "week-11/labs/evidence/historical-audit.tsv",
+  "week-11/labs/evidence/simulator-activity.json", "week-11/labs/evidence/export-manifest.json",
+];
+
+export const zipName = (draft: boolean) => `week-11-portfolio${draft ? "-DRAFT" : ""}.zip`;
+
+/** One lab's Markdown — byte-identical to the same file in the ZIP. */
+export function buildLabExport(p: ExportInput, mission: string) {
+  const m = missions.find((x) => x.key === mission);
+  if (!m) throw new Error("Unknown mission.");
+  const files = buildFiles(p);
+  const r = p.readiness.find((x) => x.mission === mission);
+  return { filename: m.exportPath.split("/").pop()!, path: m.exportPath, content: files[m.exportPath]!, draft: !r?.ready };
+}
+
+export function buildExport(p: ExportInput) {
+  const files = buildFiles(p);
+  const draft = !p.readiness.every((r) => r.ready);
+  const zip = zipSync(Object.fromEntries(Object.entries(files).map(([k, v]) => [k, strToU8(v)])));
+  return { zipBase64: Buffer.from(zip).toString("base64"), files: Object.keys(files), draft, filename: zipName(draft) };
+}
+
+export function buildFiles(p: ExportInput): Record<string, string> {
   const { learner, evidence, readiness, state } = p;
   const name = esc(learner.displayName?.trim() || "(name not entered)");
   const allReady = readiness.every((r) => r.ready);
@@ -43,8 +72,8 @@ export function buildExport(p: { attemptLabel: string; revision: number; textRev
     body += `\n## Evidence\n\n${evList(m.key)}\n`;
     files[m.exportPath] = body;
   }
-  files["week-11/README-week11-root.md"] = header("Week 11 — IAM & Active Directory: Who Gets Access to What?") + `Browser-based simulated AD/IAM administration in Cloud Heights Identity Center. No real domain, tenant or Azure subscription was configured.\n\nLab 06 is the **IAM Investigation Case File (Portfolio Deliverable 4)** — a technical case file. Week 12 uses it as source material for the professional Technical Incident Report and Executive Summary and the final portfolio presentation.\n\n${missions.map((m) => `- [${m.lab}: ${m.title}](labs/${m.exportPath.split("/").pop()})`).join("\n")}\n\nStatus: ${allReady ? "all six missions evidence-ready" : "**DRAFT** — some missions incomplete"}.\n`;
-  files["week-11/labs/README-week11-submissions.md"] = `# Week 11 submission guide\n\n1. Unzip this export. Keep the folder structure.\n2. Open **your own** CyberFoundations portfolio repository on GitHub (not the template).\n3. Go into (or create) \`week-11/labs/\`. Use **Add file → Upload files**, drag in the six lab files and the \`evidence/\` folder, preview the changes, write a descriptive commit message and choose **Commit changes**.\n4. Upload \`week-11/README-week11-root.md\` to \`week-11/\`.\n5. Open the committed files and check your name and latest answers appear.\n\nDownloading or uploading does not submit anything for grading. Grading submission instructions are provided separately. Screenshots are optional (\`assets/screenshots/week-11/\`). Don't delete other weeks' work.\n`;
+  files["week-11/README.md"] = header("Week 11 — IAM & Active Directory: Who Gets Access to What?") + `Browser-based simulated AD/IAM administration in Cloud Heights Identity Center. No real domain, tenant or Azure subscription was configured.\n\nLab 06 is the **IAM Investigation Case File (Portfolio Deliverable 4)** — a technical case file. Week 12 uses it as source material for the professional Technical Incident Report and Executive Summary and the final portfolio presentation.\n\n${missions.map((m) => `- [${m.lab}: ${m.title}](labs/${m.exportPath.split("/").pop()})`).join("\n")}\n\nStatus: ${allReady ? "all six missions evidence-ready" : "**DRAFT** — some missions incomplete"}.\n`;
+  files["week-11/labs/README.md"] = `# Week 11 submission guide\n\n1. Unzip this export. Keep the folder structure.\n2. Open **your own** CyberFoundations portfolio repository on GitHub (not the template).\n3. Go into (or create) \`week-11/labs/\`. Use **Add file → Upload files**, drag in the six lab files, this README and the \`evidence/\` folder, preview the changes, write a descriptive commit message and choose **Commit changes**.\n4. Upload \`week-11/README.md\` to \`week-11/\`. If a README already exists there, replace it only on purpose.\n5. Open the committed files and check your name and latest answers appear.\n\nDownloading or uploading does not submit anything for grading. Grading submission instructions are provided separately. Screenshots are optional (\`assets/screenshots/week-11/\`). Don't delete other weeks' work.\n`;
   const evJson = evidence.map((e) => ({ id: e.evidence_key, slot: e.slot, mission: e.mission, title: e.title, captured_revision: e.captured_revision, content_hash: e.content_hash, origin: "simulator_capture", caption: learner.captions?.[e.evidence_key] ?? "", snapshot: e.snapshot }));
   files["week-11/labs/evidence/week11-evidence.json"] = JSON.stringify(evJson, null, 2);
   files["week-11/labs/evidence/week11-evidence-index.md"] = `# Week 11 evidence index\n\nSimulator captures from ${p.attemptLabel}. Hash detects content changes; it is not proof of live AD administration.\n\n${evJson.map((e) => `## ${e.id}\n\n- Slot ${e.slot} · ${e.mission} · revision ${e.captured_revision}\n- ${esc(e.title)}\n- SHA-256 ${e.content_hash}\n- Caption: ${block(e.caption)}\n`).join("\n")}`;
@@ -56,6 +85,5 @@ export function buildExport(p: { attemptLabel: string; revision: number; textRev
   files["week-11/labs/evidence/simulator-activity.json"] = JSON.stringify({ source: "LIVE — your simulated activity (fictional)", signins: state.signins, audits: state.audits, accessTests: state.tests }, null, 2);
   const manifest = { seed: SEED_VERSION, attempt: p.attemptLabel, state_revision: p.revision, text_revision: p.textRevision, exported_at: new Date().toISOString(), draft: !allReady, provenance: "Fictional Cloud Heights simulation. Historical records are fabricated; live records were produced by this attempt.", files: Object.entries(files).map(([path, c]) => ({ path, sha256: sha(c) })) };
   files["week-11/labs/evidence/export-manifest.json"] = JSON.stringify(manifest, null, 2);
-  const zip = zipSync(Object.fromEntries(Object.entries(files).map(([k, v]) => [k, strToU8(v)])));
-  return { zipBase64: Buffer.from(zip).toString("base64"), files: Object.keys(files), draft: !allReady };
+  return files;
 }

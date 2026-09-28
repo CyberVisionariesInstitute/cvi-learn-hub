@@ -206,6 +206,18 @@ export const exportWeek11 = createServerFn({ method: "POST" })
     return buildExport({ attemptLabel: `attempt ${v.shortId}`, revision: v.revision, textRevision: v.textRevision, state: v.state, learner: v.learner, evidence: v.evidence, readiness: v.readiness });
   });
 
+export const exportWeek11Lab = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ mission: z.enum(["M01", "M02", "M03", "M04", "M05", "M06"]) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const db = await admin();
+    const row = await loadActive(db, context.userId);
+    if (!row) throw new Error("No active attempt.");
+    const v = await view(db, row);
+    const { buildLabExport } = await import("./export.server");
+    return buildLabExport({ attemptLabel: `attempt ${v.shortId}`, revision: v.revision, textRevision: v.textRevision, state: v.state, learner: v.learner, evidence: v.evidence, readiness: v.readiness }, data.mission);
+  });
+
 const resetSchema = z.object({ expectedRevision: z.number().int(), idempotencyKey: z.string().min(8).max(80), confirm: z.literal("RESET"), reason: z.string().min(3).max(500) });
 
 export const resetWeek11 = createServerFn({ method: "POST" })

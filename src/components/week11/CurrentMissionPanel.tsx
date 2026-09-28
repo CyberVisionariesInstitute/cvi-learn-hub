@@ -23,6 +23,8 @@ interface CurrentMissionPanelProps {
 export function CurrentMissionPanel({ store, mission, open, onOpenChange, onView, go, step, onStep }: CurrentMissionPanelProps) {
   const contentId = useId();
   const [capturing, setCapturing] = useState(false);
+  const [dl, setDl] = useState(false);
+  const [dlMsg, setDlMsg] = useState<string | null>(null);
   const currentMission = missions.find((item) => item.key === mission) ?? missions[0];
   if (!currentMission || !store.view) return null;
 
@@ -106,8 +108,11 @@ export function CurrentMissionPanel({ store, mission, open, onOpenChange, onView
             <div className="mt-4 flex flex-wrap gap-2" aria-label="Mission shortcuts">
               <Button type="button" variant="outline" className="min-h-11" onClick={() => onView("missions")}>Mission overview</Button>
               <Button type="button" variant="outline" className="min-h-11" onClick={() => onView("evidence")}>Evidence Tray (captions)</Button>
+              <Button type="button" variant="outline" className="min-h-11" disabled={dl} onClick={async () => { setDl(true); try { const r = await store.exportLab(currentMission.key); setDlMsg(`Downloaded ${r.filename}${r.draft ? " (DRAFT)" : ""}.`); } catch (e) { setDlMsg(`Download failed: ${(e as Error).message}`); } finally { setDl(false); } }}>{dl ? "Preparing…" : "Download this lab"}</Button>
+              <Button type="button" variant="outline" className="min-h-11" onClick={() => onView("downloads")}>Download & GitHub</Button>
               {currentMission.tickets.length ? <Button type="button" variant="outline" className="min-h-11" onClick={() => onView("tickets")}>Tickets</Button> : null}
             </div>
+            <p className="mt-2 text-xs" role="status" aria-live="polite">{dlMsg}</p>
             <p className="mt-3 text-xs text-muted-foreground">Return to Mission overview to answer explanations and check readiness when a step's evidence is captured.</p>
           </aside>
         </div>

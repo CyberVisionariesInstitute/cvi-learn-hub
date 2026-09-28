@@ -3,6 +3,7 @@ import { AUDIT_FIELDS, historicalAudit, historicalAuditTsv, historicalContext, h
 import type { Finding } from "@/lib/week11/types";
 import type { Week11Store } from "@/lib/week11/useWeek11";
 import { Badge, btn, btnPrimary, Card, input, TableWrap, TextArea } from "./ui";
+import { DownloadsView } from "./DownloadsView";
 
 type Row = Record<string, string> & { __source: string };
 
@@ -113,8 +114,6 @@ export function ReportView({ store }: { store: Week11Store }) {
   const setF = (i: number, patch: Partial<Finding>) => setLearner((l) => { const list = [...(l.findings?.length ? l.findings : [blankFinding(1), blankFinding(2)])]; list[i] = { ...list[i]!, ...patch }; return { ...l, findings: list }; });
   const rep = learner.report ?? {};
   const setRep = (patch: Partial<NonNullable<typeof learner.report>>) => setLearner((l) => ({ ...l, report: { ...(l.report ?? {}), ...patch } }));
-  const [exporting, setExporting] = useState(false);
-  const [exported, setExported] = useState<string | null>(null);
   return (
     <div className="space-y-4">
       <Card eyebrow="Lab 06 · Portfolio Deliverable 4" title="Cloud Heights IAM Investigation Case File">
@@ -155,21 +154,7 @@ export function ReportView({ store }: { store: Week11Store }) {
           <TextArea label="Explicit simulation/environment limitations" value={rep.limitations ?? ""} onChange={(x) => setRep({ limitations: x })} />
         </div>
       </Card>
-      <Card title="Portfolio export (GitHub)" eyebrow="Download is not submission">
-        <ul className="list-disc space-y-1 pl-5 text-sm">
-          {missions.map((m) => { const r = v.readiness.find((x) => x.mission === m.key); return <li key={m.key}><span className="font-mono text-xs">{m.exportPath}</span> — {r?.ready ? "evidence-ready" : `DRAFT (${r?.missing.length ?? 0} item(s) missing)`}</li>; })}
-          <li><span className="font-mono text-xs">week-11/README-week11-root.md</span>, <span className="font-mono text-xs">week-11/labs/README-week11-submissions.md</span>, and <span className="font-mono text-xs">week-11/labs/evidence/</span> (index, JSON, historical TSV, simulator activity, manifest)</li>
-        </ul>
-        <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm">
-          <li>Download the ZIP and unzip it — keep the <span className="font-mono">week-11/</span> folder structure.</li>
-          <li>Open <strong>your own</strong> CyberFoundations portfolio repository on GitHub (not the template).</li>
-          <li>In <span className="font-mono">week-11/labs/</span> use <strong>Add file → Upload files</strong>, add the six lab files and the <span className="font-mono">evidence</span> folder, preview, write a descriptive commit message, and <strong>Commit changes</strong>. Put the root README in <span className="font-mono">week-11/</span>.</li>
-          <li>Open the committed files and confirm your name and latest answers. Don't delete other weeks' work.</li>
-        </ol>
-        <p className="mt-2 text-xs text-muted-foreground">Downloading or uploading does not submit for grading — grading submission instructions are provided separately. Incomplete work exports marked DRAFT. Screenshots are optional.</p>
-        <button type="button" className={`${btnPrimary} mt-3`} disabled={exporting} onClick={async () => { setExporting(true); try { const r = await store.exportZip(); setExported(`Downloaded ${r.files.length} files${r.draft ? " (DRAFT)" : ""}.`); } catch (e) { setExported(`Export failed: ${(e as Error).message}`); } finally { setExporting(false); } }}>{exporting ? "Preparing…" : "Download portfolio ZIP"}</button>
-        {exported ? <p className="mt-2 text-sm" role="status">{exported} Next: capture E19 from the Current Mission panel or Mission Progress.</p> : null}
-      </Card>
+      <DownloadsView store={store} afterZip="Next: capture E19 from the Current Mission panel or Mission Progress." />
     </div>
   );
 }

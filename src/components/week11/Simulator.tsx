@@ -10,10 +10,11 @@ import { Badge, btn, btnPrimary, Card, input, Select, TextArea } from "./ui";
 export type { Nav };
 import { ConceptGuides, MissionArt, Week11Hero } from "./Visuals";
 import { CurrentMissionPanel } from "./CurrentMissionPanel";
+import { DownloadsView } from "./DownloadsView";
 
-export const VIEWS = ["dashboard", "missions", "users", "groups", "ous", "roles", "resources", "tickets", "signins", "audit", "evidence", "report"] as const;
+export const VIEWS = ["dashboard", "missions", "users", "groups", "ous", "roles", "resources", "tickets", "signins", "audit", "evidence", "report", "downloads"] as const;
 export type View = (typeof VIEWS)[number];
-const labels: Record<View, string> = { dashboard: "Dashboard", missions: "Mission Progress", users: "Users", groups: "Groups", ous: "Organizational Units", roles: "Roles & Access", resources: "Resources", tickets: "Help Desk / IAM Tickets", signins: "Sign-in Logs", audit: "Audit Logs", evidence: "Evidence Tray", report: "Case File (Lab 06)" };
+const labels: Record<View, string> = { dashboard: "Dashboard", missions: "Mission Progress", users: "Users", groups: "Groups", ous: "Organizational Units", roles: "Roles & Access", resources: "Resources", tickets: "Help Desk / IAM Tickets", signins: "Sign-in Logs", audit: "Audit Logs", evidence: "Evidence Tray", report: "Case File (Lab 06)", downloads: "Download & GitHub" };
 
 export function Simulator({ store, view, onView, mission, onMission }: { store: Week11Store; view: View; onView: (v: View) => void; mission: string; onMission: (m: string) => void }) {
   const v = store.view!;
@@ -91,6 +92,7 @@ export function Simulator({ store, view, onView, mission, onMission }: { store: 
           {view === "audit" ? <LogsView key="a" store={store} kind="audit" /> : null}
           {view === "evidence" ? <EvidenceView store={store} /> : null}
           {view === "report" ? <ReportView store={store} /> : null}
+          {view === "downloads" ? <DownloadsView store={store} /> : null}
         </main>
       </div>
     </div>
@@ -123,6 +125,10 @@ function Dashboard({ store, onView, onMission }: { store: Week11Store; onView: (
             <span className="font-mono text-xs">{m.lab} · {m.time}</span><span className="block font-medium">{m.title}</span>
             <span className="mt-1 block">{r.ready ? <Badge tone="allow">✓ Evidence-ready</Badge> : <Badge>{r.missing.length} item(s) remaining</Badge>}</span>
           </button></li>); })}</ul>
+      </Card>
+      <Card title="Your portfolio files" eyebrow="Download your Week 11 work for GitHub">
+        <p className="text-sm">{v.readiness.filter((r) => r.ready).length} of {missions.length} labs evidence-ready. Unfinished labs download marked DRAFT.</p>
+        <button type="button" className={`${btnPrimary} mt-3`} onClick={() => onView("downloads")}>Download & GitHub</button>
       </Card>
       <Card title="Recent actions">
         <ul className="space-y-1 text-sm">{s.audits.slice(-6).reverse().map((a) => <li key={a.id}><span className="font-mono text-xs">{a.id}</span> {a.activity} → {a.target} <Badge tone={a.result === "refused" ? "deny" : "neutral"}>{a.result}</Badge></li>)}{s.audits.length === 0 ? <li>No actions yet.</li> : null}</ul>
@@ -186,8 +192,21 @@ function MissionView({ store, mission, onMission, onView, go }: { store: Week11S
         {r.ready ? <p className="text-sm"><Badge tone="allow">✓ Evidence-ready</Badge> Everything required is present. Your instructor reviews the reasoning.</p> : (
           <ul className="list-disc space-y-1 pl-5 text-sm">{r.missing.map((x) => { const n = navForMissing(m.key, x); return <li key={x}>{x} {n && n.view !== "missions" ? <button type="button" className="text-xs underline" onClick={() => go(n)}>Go there: {n.label}</button> : null}</li>; })}</ul>
         )}
+        <DownloadLabButton store={store} mission={m.key} lab={m.lab} onView={onView} />
         <p className="mt-3 text-xs text-muted-foreground">Made a mistake? Correct it with the opposite action (Remove from group, Move OU, Enable/Disable, remove an assignment), then retest and recapture. Earlier captures stay as history. A full reset is rarely needed.</p>
       </Card>
+    </div>
+  );
+}
+
+function DownloadLabButton({ store, mission, lab, onView }: { store: Week11Store; mission: string; lab: string; onView: (v: View) => void }) {
+  const [msg, setMsg] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2">
+      <button type="button" className={btn} disabled={busy} onClick={async () => { setBusy(true); try { const r = await store.exportLab(mission); setMsg(`Downloaded ${r.filename}${r.draft ? " (DRAFT)" : ""}.`); } catch (e) { setMsg(`Download failed: ${(e as Error).message}`); } finally { setBusy(false); } }}>{busy ? "Preparing…" : `Download ${lab} (Markdown)`}</button>
+      <button type="button" className="text-xs underline" onClick={() => onView("downloads")}>All downloads & GitHub steps</button>
+      <span className="text-xs" role="status" aria-live="polite">{msg}</span>
     </div>
   );
 }

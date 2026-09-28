@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import type { Command } from "./engine";
 import type { AttemptView, Learner } from "./types";
 import {
-  captureWeek11Evidence, executeWeek11Command, exportWeek11, resetWeek11, saveWeek11Text, startOrResumeWeek11,
+  captureWeek11Evidence, executeWeek11Command, exportWeek11, exportWeek11Lab, resetWeek11, saveWeek11Text, startOrResumeWeek11,
 } from "./week11.functions";
 
 export type TextSave = { kind: "idle" } | { kind: "saving" } | { kind: "saved"; at: string } | { kind: "failed"; message: string } | { kind: "conflict" };
@@ -17,6 +17,7 @@ export function useWeek11() {
   const saveText = useServerFn(saveWeek11Text);
   const doExport = useServerFn(exportWeek11);
   const doReset = useServerFn(resetWeek11);
+  const doExportLab = useServerFn(exportWeek11Lab);
 
   const [view, setView] = useState<AttemptView | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -122,10 +123,20 @@ export function useWeek11() {
     const bin = Uint8Array.from(atob(r.zipBase64), (c) => c.charCodeAt(0));
     const url = URL.createObjectURL(new Blob([bin], { type: "application/zip" }));
     const a = document.createElement("a");
-    a.href = url; a.download = `week-11-portfolio${r.draft ? "-DRAFT" : ""}.zip`; a.click();
+    a.href = url; a.download = r.filename; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
     return r;
   }, [doExport, flush]);
+
+  const exportLab = useCallback(async (mission: string) => {
+    await flush();
+    const r = await doExportLab({ data: { mission: mission as "M01" } });
+    const url = URL.createObjectURL(new Blob([r.content], { type: "text/markdown;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = r.filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    return r;
+  }, [doExportLab, flush]);
 
   const reset = useCallback(async (reason: string) => {
     if (!view) return;
@@ -135,7 +146,7 @@ export function useWeek11() {
     else setLastResult({ ok: false, message: "Reset did not happen; your attempt is unchanged." });
   }, [view, doReset, adopt, flush]);
 
-  return { view, loadError, busy, lastResult, setLastResult, run, learner, setLearner, textSave, flush, reloadAfterConflict, captureEvidence, exportZip, reset };
+  return { view, loadError, busy, lastResult, setLastResult, run, learner, setLearner, textSave, flush, reloadAfterConflict, captureEvidence, exportZip, exportLab, reset };
 }
 
 export type Week11Store = ReturnType<typeof useWeek11>;
