@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { navForMissing, stepGuides, type Nav } from "@/lib/week11/guidance";
 import { CaptureEvidence } from "./CaptureEvidence";
-import { missions, SIMULATION_BANNER, tickets, traceConcepts, type Directory } from "@/lib/week11/seed";
+import { missions, SIMULATION_BANNER, tickets, traceConcepts, type Directory, type MissionId } from "@/lib/week11/seed";
 import { scenarioTime } from "@/lib/week11/engine";
 import type { Week11Store } from "@/lib/week11/useWeek11";
 import { GroupsView, OUsView, ResourcesView, RolesView, TicketsView, UsersView } from "./DirectoryViews";
@@ -199,7 +199,7 @@ function MissionView({ store, mission, onMission, onView, go }: { store: Week11S
   );
 }
 
-function DownloadLabButton({ store, mission, lab, onView }: { store: Week11Store; mission: string; lab: string; onView: (v: View) => void }) {
+function DownloadLabButton({ store, mission, lab, onView }: { store: Week11Store; mission: MissionId; lab: string; onView: (v: View) => void }) {
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   return (

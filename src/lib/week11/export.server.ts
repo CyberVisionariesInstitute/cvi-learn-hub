@@ -1,7 +1,7 @@
 /** SERVER-ONLY GitHub portfolio export (spec 10.4). No answer keys, no platform IDs. */
 import { createHash } from "node:crypto";
 import { zipSync, strToU8 } from "fflate";
-import { historicalAudit, historicalAuditTsv, historicalSignins, historicalSigninsTsv, missions, reportSections, SEED_VERSION, SIMULATION_BANNER, AUDIT_FIELDS, SIGNIN_FIELDS } from "./seed";
+import { historicalAudit, historicalAuditTsv, historicalSignins, historicalSigninsTsv, missions, reportSections, SEED_VERSION, SIMULATION_BANNER, AUDIT_FIELDS, SIGNIN_FIELDS, type MissionId } from "./seed";
 import type { SimState } from "./engine";
 import type { EvidenceRow, Learner } from "./types";
 import type { MissionReadiness } from "./readiness.server";
@@ -24,7 +24,7 @@ export const WEEK11_EXPORT_PATHS = [
 export const zipName = (draft: boolean) => `week-11-portfolio${draft ? "-DRAFT" : ""}.zip`;
 
 /** One lab's Markdown — byte-identical to the same file in the ZIP. */
-export function buildLabExport(p: ExportInput, mission: string) {
+export function buildLabExport(p: ExportInput, mission: MissionId) {
   const m = missions.find((x) => x.key === mission);
   if (!m) throw new Error("Unknown mission.");
   const files = buildFiles(p);

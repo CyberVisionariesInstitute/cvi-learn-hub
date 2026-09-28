@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import type { Command } from "./engine";
 import type { AttemptView, Learner } from "./types";
+import type { MissionId } from "./seed";
 import {
   captureWeek11Evidence, executeWeek11Command, exportWeek11, exportWeek11Lab, resetWeek11, saveWeek11Text, startOrResumeWeek11,
 } from "./week11.functions";
@@ -128,9 +129,9 @@ export function useWeek11() {
     return r;
   }, [doExport, flush]);
 
-  const exportLab = useCallback(async (mission: string) => {
+  const exportLab = useCallback(async (mission: MissionId) => {
     await flush();
-    const r = await doExportLab({ data: { mission: mission as "M01" | "M02" | "M03" | "M04" | "M05" | "M06" } });
+    const r = await doExportLab({ data: { mission } });
     const url = URL.createObjectURL(new Blob([r.content], { type: "text/markdown;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url; a.download = r.filename; a.click();
