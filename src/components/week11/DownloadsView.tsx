@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { missions } from "@/lib/week11/seed";
+import { missions, type MissionId } from "@/lib/week11/seed";
 import type { Week11Store } from "@/lib/week11/useWeek11";
 import { Badge, btn, btnPrimary, Card } from "./ui";
 
@@ -13,7 +13,7 @@ export function DownloadsView({ store, afterZip }: { store: Week11Store; afterZi
   const name = store.learner.displayName?.trim();
   const allReady = v.readiness.every((r) => r.ready);
 
-  const lab = async (key: string) => {
+  const lab = async (key: MissionId) => {
     setBusy(key);
     try { const r = await store.exportLab(key); setStatus(`Downloaded ${r.filename}${r.draft ? " (DRAFT)" : ""}.`); }
     catch (e) { setStatus(`Download failed: ${(e as Error).message}`); }

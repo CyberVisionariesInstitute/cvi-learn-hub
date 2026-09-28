@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { AttemptView, EvidenceRow, Learner } from "./types";
 import type { Command, SimState } from "./engine";
+import { MISSION_IDS } from "./seed";
 
 /**
  * Week 11 server operations. Every call re-derives the owner from the
@@ -208,7 +209,7 @@ export const exportWeek11 = createServerFn({ method: "POST" })
 
 export const exportWeek11Lab = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ mission: z.enum(["M01", "M02", "M03", "M04", "M05", "M06"]) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ mission: z.enum(MISSION_IDS) }).parse(d))
   .handler(async ({ data, context }) => {
     const db = await admin();
     const row = await loadActive(db, context.userId);
