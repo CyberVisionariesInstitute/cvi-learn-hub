@@ -130,7 +130,7 @@ export function useWeek11() {
 
   const exportLab = useCallback(async (mission: string) => {
     await flush();
-    const r = await doExportLab({ data: { mission: mission as "M01" } });
+    const r = await doExportLab({ data: { mission: mission as "M01" | "M02" | "M03" | "M04" | "M05" | "M06" } });
     const url = URL.createObjectURL(new Blob([r.content], { type: "text/markdown;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url; a.download = r.filename; a.click();

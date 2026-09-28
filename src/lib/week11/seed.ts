@@ -567,13 +567,13 @@ export const missions: MissionSeed[] = [
     situation: "The September 21 historical records are yours to investigate. No row is labelled for you. This mission produces a technical case file — Week 12 turns it into the professional Technical Incident Report and Executive Summary.",
     steps: [
       "Open Sign-in Logs (Historical). Read the fields and context, then write a starting hypothesis.",
-      "Filter accounts, outcomes and devices. Open details and View Raw Log. Pin exact event IDs for at least two distinct findings.",
+      "Filter accounts, outcomes and devices. Open details and View Raw Log. Note the exact event IDs for at least two distinct findings and add them to your Case File.",
       "Correlate sign-ins with audit changes. Explain what a shared correlation ID supports — and does not prove.",
       "Record one benign or ambiguous comparison (for example a documented typo or VPN context) with its source records.",
       "For each finding fill observation, hypothesis, supported conclusion, uncertainty, next action, priority and why.",
       "Add one live simulator audit/access chain from your earlier missions, labelled separately from historical records.",
       "Assemble the case file sections, preliminary response recommendations and explicit simulation limitations.",
-      "Preview the export, fix missing pieces, download the ZIP and upload the files to your GitHub portfolio repository. Week 12 uses this case file as source material for the final report and presentation.",
+      "Open Download & GitHub, review the missing-items list for Lab 06, fix anything missing, then download the complete ZIP and upload it to your GitHub portfolio. Week 12 uses this case file as source material for the final report and presentation.",
     ],
     evidence: [
       { slot: "E17", label: "Two distinct findings with raw-event references and correlation" },
