@@ -10,7 +10,36 @@ const esc = (v: unknown) => String(v ?? "").replace(/[<>]/g, (c) => (c === "<" ?
 const block = (v: string | undefined) => (v && v.trim() ? esc(v.trim()) : "_Not written yet._");
 const sha = (s: string) => createHash("sha256").update(s).digest("hex");
 
-export function buildExport(p: { attemptLabel: string; revision: number; textRevision: number; state: SimState; learner: Learner; evidence: EvidenceRow[]; readiness: MissionReadiness[] }) {
+type ExportInput = { attemptLabel: string; revision: number; textRevision: number; state: SimState; learner: Learner; evidence: EvidenceRow[]; readiness: MissionReadiness[] };
+
+/** Exact ZIP paths, in order (deterministic, beginner-friendly). */
+export const WEEK11_EXPORT_PATHS = [
+  ...missions.map((m) => m.exportPath),
+  "week-11/README.md", "week-11/labs/README.md",
+  "week-11/labs/evidence/week11-evidence.json", "week-11/labs/evidence/week11-evidence-index.md",
+  "week-11/labs/evidence/historical-signins.tsv", "week-11/labs/evidence/historical-audit.tsv",
+  "week-11/labs/evidence/simulator-activity.json", "week-11/labs/evidence/export-manifest.json",
+];
+
+export const zipName = (draft: boolean) => `week-11-portfolio${draft ? "-DRAFT" : ""}.zip`;
+
+/** One lab's Markdown — byte-identical to the same file in the ZIP. */
+export function buildLabExport(p: ExportInput, mission: string) {
+  const m = missions.find((x) => x.key === mission);
+  if (!m) throw new Error("Unknown mission.");
+  const files = buildFiles(p);
+  const r = p.readiness.find((x) => x.mission === mission);
+  return { filename: m.exportPath.split("/").pop()!, path: m.exportPath, content: files[m.exportPath]!, draft: !r?.ready };
+}
+
+export function buildExport(p: ExportInput) {
+  const files = buildFiles(p);
+  const draft = !p.readiness.every((r) => r.ready);
+  const zip = zipSync(Object.fromEntries(Object.entries(files).map(([k, v]) => [k, strToU8(v)])));
+  return { zipBase64: Buffer.from(zip).toString("base64"), files: Object.keys(files), draft, filename: zipName(draft) };
+}
+
+export function buildFiles(p: ExportInput): Record<string, string> {
   const { learner, evidence, readiness, state } = p;
   const name = esc(learner.displayName?.trim() || "(name not entered)");
   const allReady = readiness.every((r) => r.ready);
