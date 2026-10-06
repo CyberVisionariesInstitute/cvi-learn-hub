@@ -12,3 +12,4 @@
 - Week 11 simulator state is server-authoritative (`w11_*` tables); all writes go through `src/lib/week11/week11.functions.ts` using the atomic `w11_commit_command`/`w11_reset_attempt` DB functions — why: students must not forge directory state, evidence or readiness.
 - Week 11 readiness predicates and the answer key live only in `*.server.ts` files — why: expected-state rules must never reach student bundles.
 - Week 11 mission-working guidance renders from `seed.ts` mission definitions through one persistent simulator-shell companion — why: task wording stays consistent without exposing server-only expected-state rules.
+- Week 12 reads each student's Week 11 case file server-side (session owner only) into a frozen, student-safe snapshot in `w12_attempts`; it never writes `w11_*`, and refresh is student-triggered only — why: Week 12 writing must never be silently overwritten and answer keys must stay server-side.

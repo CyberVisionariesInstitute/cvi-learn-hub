@@ -32,6 +32,8 @@ import { Route as CyberfoundationsWeek10Lab1RouteImport } from './routes/cyberfo
 import { Route as CyberfoundationsWeek10Lab2RouteImport } from './routes/cyberfoundations.week-10.lab-2'
 import { Route as CyberfoundationsWeek11IndexRouteImport } from './routes/cyberfoundations.week-11.index'
 import { Route as CyberfoundationsWeek11InstructorRouteImport } from './routes/cyberfoundations.week-11.instructor'
+import { Route as CyberfoundationsWeek12IndexRouteImport } from './routes/cyberfoundations.week-12.index'
+import { Route as CyberfoundationsWeek12InstructorRouteImport } from './routes/cyberfoundations.week-12.instructor'
 import { Route as PkiCapstoneIndexRouteImport } from './routes/pki.capstone.index'
 import { Route as PkiCapstoneStageRouteImport } from './routes/pki.capstone.$stage'
 import { Route as PkiCapstoneEvidenceRouteImport } from './routes/pki.capstone.evidence'
@@ -162,6 +164,18 @@ const CyberfoundationsWeek11InstructorRoute =
     path: '/cyberfoundations/week-11/instructor',
     getParentRoute: () => rootRouteImport,
   } as any)
+const CyberfoundationsWeek12IndexRoute =
+  CyberfoundationsWeek12IndexRouteImport.update({
+    id: '/cyberfoundations/week-12/',
+    path: '/cyberfoundations/week-12/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const CyberfoundationsWeek12InstructorRoute =
+  CyberfoundationsWeek12InstructorRouteImport.update({
+    id: '/cyberfoundations/week-12/instructor',
+    path: '/cyberfoundations/week-12/instructor',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const PkiCapstoneIndexRoute = PkiCapstoneIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -205,11 +219,13 @@ export interface FileRoutesByFullPath {
   '/cyberfoundations/week-10/lab-1': typeof CyberfoundationsWeek10Lab1Route
   '/cyberfoundations/week-10/lab-2': typeof CyberfoundationsWeek10Lab2Route
   '/cyberfoundations/week-11/instructor': typeof CyberfoundationsWeek11InstructorRoute
+  '/cyberfoundations/week-12/instructor': typeof CyberfoundationsWeek12InstructorRoute
   '/pki/capstone/$stage': typeof PkiCapstoneStageRoute
   '/pki/capstone/evidence': typeof PkiCapstoneEvidenceRoute
   '/pki/capstone/guide': typeof PkiCapstoneGuideRoute
   '/cyberfoundations/week-10/': typeof CyberfoundationsWeek10IndexRoute
   '/cyberfoundations/week-11/': typeof CyberfoundationsWeek11IndexRoute
+  '/cyberfoundations/week-12/': typeof CyberfoundationsWeek12IndexRoute
   '/pki/capstone/': typeof PkiCapstoneIndexRoute
 }
 export interface FileRoutesByTo {
@@ -232,11 +248,13 @@ export interface FileRoutesByTo {
   '/cyberfoundations/week-10/lab-1': typeof CyberfoundationsWeek10Lab1Route
   '/cyberfoundations/week-10/lab-2': typeof CyberfoundationsWeek10Lab2Route
   '/cyberfoundations/week-11/instructor': typeof CyberfoundationsWeek11InstructorRoute
+  '/cyberfoundations/week-12/instructor': typeof CyberfoundationsWeek12InstructorRoute
   '/pki/capstone/$stage': typeof PkiCapstoneStageRoute
   '/pki/capstone/evidence': typeof PkiCapstoneEvidenceRoute
   '/pki/capstone/guide': typeof PkiCapstoneGuideRoute
   '/cyberfoundations/week-10': typeof CyberfoundationsWeek10IndexRoute
   '/cyberfoundations/week-11': typeof CyberfoundationsWeek11IndexRoute
+  '/cyberfoundations/week-12': typeof CyberfoundationsWeek12IndexRoute
   '/pki/capstone': typeof PkiCapstoneIndexRoute
 }
 export interface FileRoutesById {
@@ -262,11 +280,13 @@ export interface FileRoutesById {
   '/cyberfoundations/week-10/lab-1': typeof CyberfoundationsWeek10Lab1Route
   '/cyberfoundations/week-10/lab-2': typeof CyberfoundationsWeek10Lab2Route
   '/cyberfoundations/week-11/instructor': typeof CyberfoundationsWeek11InstructorRoute
+  '/cyberfoundations/week-12/instructor': typeof CyberfoundationsWeek12InstructorRoute
   '/pki/capstone/$stage': typeof PkiCapstoneStageRoute
   '/pki/capstone/evidence': typeof PkiCapstoneEvidenceRoute
   '/pki/capstone/guide': typeof PkiCapstoneGuideRoute
   '/cyberfoundations/week-10/': typeof CyberfoundationsWeek10IndexRoute
   '/cyberfoundations/week-11/': typeof CyberfoundationsWeek11IndexRoute
+  '/cyberfoundations/week-12/': typeof CyberfoundationsWeek12IndexRoute
   '/pki/capstone/': typeof PkiCapstoneIndexRoute
 }
 export interface FileRouteTypes {
@@ -293,11 +313,13 @@ export interface FileRouteTypes {
     | '/cyberfoundations/week-10/lab-1'
     | '/cyberfoundations/week-10/lab-2'
     | '/cyberfoundations/week-11/instructor'
+    | '/cyberfoundations/week-12/instructor'
     | '/pki/capstone/$stage'
     | '/pki/capstone/evidence'
     | '/pki/capstone/guide'
     | '/cyberfoundations/week-10/'
     | '/cyberfoundations/week-11/'
+    | '/cyberfoundations/week-12/'
     | '/pki/capstone/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -320,11 +342,13 @@ export interface FileRouteTypes {
     | '/cyberfoundations/week-10/lab-1'
     | '/cyberfoundations/week-10/lab-2'
     | '/cyberfoundations/week-11/instructor'
+    | '/cyberfoundations/week-12/instructor'
     | '/pki/capstone/$stage'
     | '/pki/capstone/evidence'
     | '/pki/capstone/guide'
     | '/cyberfoundations/week-10'
     | '/cyberfoundations/week-11'
+    | '/cyberfoundations/week-12'
     | '/pki/capstone'
   id:
     | '__root__'
@@ -349,11 +373,13 @@ export interface FileRouteTypes {
     | '/cyberfoundations/week-10/lab-1'
     | '/cyberfoundations/week-10/lab-2'
     | '/cyberfoundations/week-11/instructor'
+    | '/cyberfoundations/week-12/instructor'
     | '/pki/capstone/$stage'
     | '/pki/capstone/evidence'
     | '/pki/capstone/guide'
     | '/cyberfoundations/week-10/'
     | '/cyberfoundations/week-11/'
+    | '/cyberfoundations/week-12/'
     | '/pki/capstone/'
   fileRoutesById: FileRoutesById
 }
@@ -376,8 +402,10 @@ export interface RootRouteChildren {
   CyberfoundationsWeek10Lab1Route: typeof CyberfoundationsWeek10Lab1Route
   CyberfoundationsWeek10Lab2Route: typeof CyberfoundationsWeek10Lab2Route
   CyberfoundationsWeek11InstructorRoute: typeof CyberfoundationsWeek11InstructorRoute
+  CyberfoundationsWeek12InstructorRoute: typeof CyberfoundationsWeek12InstructorRoute
   CyberfoundationsWeek10IndexRoute: typeof CyberfoundationsWeek10IndexRoute
   CyberfoundationsWeek11IndexRoute: typeof CyberfoundationsWeek11IndexRoute
+  CyberfoundationsWeek12IndexRoute: typeof CyberfoundationsWeek12IndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -543,6 +571,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CyberfoundationsWeek11InstructorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cyberfoundations/week-12/': {
+      id: '/cyberfoundations/week-12/'
+      path: '/cyberfoundations/week-12'
+      fullPath: '/cyberfoundations/week-12/'
+      preLoaderRoute: typeof CyberfoundationsWeek12IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cyberfoundations/week-12/instructor': {
+      id: '/cyberfoundations/week-12/instructor'
+      path: '/cyberfoundations/week-12/instructor'
+      fullPath: '/cyberfoundations/week-12/instructor'
+      preLoaderRoute: typeof CyberfoundationsWeek12InstructorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pki/capstone/': {
       id: '/pki/capstone/'
       path: '/'
@@ -629,8 +671,10 @@ const rootRouteChildren: RootRouteChildren = {
   CyberfoundationsWeek10Lab1Route: CyberfoundationsWeek10Lab1Route,
   CyberfoundationsWeek10Lab2Route: CyberfoundationsWeek10Lab2Route,
   CyberfoundationsWeek11InstructorRoute: CyberfoundationsWeek11InstructorRoute,
+  CyberfoundationsWeek12InstructorRoute: CyberfoundationsWeek12InstructorRoute,
   CyberfoundationsWeek10IndexRoute: CyberfoundationsWeek10IndexRoute,
   CyberfoundationsWeek11IndexRoute: CyberfoundationsWeek11IndexRoute,
+  CyberfoundationsWeek12IndexRoute: CyberfoundationsWeek12IndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

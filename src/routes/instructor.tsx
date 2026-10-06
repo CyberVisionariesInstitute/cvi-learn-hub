@@ -144,6 +144,18 @@ function InstructorConsoleInner() {
             </p>
             <div className="mt-2 flex flex-col gap-2">
               <Link
+                to="/cyberfoundations/week-12"
+                className="inline-flex min-h-11 items-center rounded-md border border-border px-4 text-sm text-foreground hover:border-primary/60"
+              >
+                Week 12 — Communications Capstone
+              </Link>
+              <Link
+                to="/cyberfoundations/week-12/instructor"
+                className="inline-flex min-h-11 items-center rounded-md border border-border px-4 text-sm text-foreground hover:border-primary/60"
+              >
+                Week 12 review console (staff)
+              </Link>
+              <Link
                 to="/cyberfoundations/week-11"
                 className="inline-flex min-h-11 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
               >

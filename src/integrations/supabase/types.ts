@@ -890,6 +890,115 @@ export type Database = {
           },
         ]
       }
+      w12_attempts: {
+        Row: {
+          content: Json
+          created_at: string
+          exec_option: string
+          id: string
+          owner_user_id: string
+          presenter_selected: boolean
+          presenter_selected_at: string | null
+          presenter_selected_by: string | null
+          source_captured_at: string
+          source_snapshot: Json
+          source_snapshot_hash: string
+          source_state_revision: number
+          source_text_revision: number
+          source_w11_attempt_id: string | null
+          status: string
+          text_revision: number
+          updated_at: string
+          volunteer_status: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          exec_option?: string
+          id?: string
+          owner_user_id: string
+          presenter_selected?: boolean
+          presenter_selected_at?: string | null
+          presenter_selected_by?: string | null
+          source_captured_at?: string
+          source_snapshot?: Json
+          source_snapshot_hash?: string
+          source_state_revision?: number
+          source_text_revision?: number
+          source_w11_attempt_id?: string | null
+          status?: string
+          text_revision?: number
+          updated_at?: string
+          volunteer_status?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          exec_option?: string
+          id?: string
+          owner_user_id?: string
+          presenter_selected?: boolean
+          presenter_selected_at?: string | null
+          presenter_selected_by?: string | null
+          source_captured_at?: string
+          source_snapshot?: Json
+          source_snapshot_hash?: string
+          source_state_revision?: number
+          source_text_revision?: number
+          source_w11_attempt_id?: string | null
+          status?: string
+          text_revision?: number
+          updated_at?: string
+          volunteer_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "w12_attempts_source_w11_attempt_id_fkey"
+            columns: ["source_w11_attempt_id"]
+            isOneToOne: false
+            referencedRelation: "w11_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      w12_reviews: {
+        Row: {
+          attempt_id: string
+          created_at: string
+          feedback: string
+          id: string
+          instructor_id: string
+          scores: Json
+          text_revision: number
+        }
+        Insert: {
+          attempt_id: string
+          created_at?: string
+          feedback?: string
+          id?: string
+          instructor_id: string
+          scores?: Json
+          text_revision?: number
+        }
+        Update: {
+          attempt_id?: string
+          created_at?: string
+          feedback?: string
+          id?: string
+          instructor_id?: string
+          scores?: Json
+          text_revision?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "w12_reviews_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "w12_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
