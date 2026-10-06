@@ -152,6 +152,22 @@ export const cyberfoundations: Program = {
             },
           ],
         },
+        {
+          id: "cf-week-12",
+          label: "Week 12",
+          title: "Communications Capstone",
+          summary:
+            "The final CyberFoundations week. Turn your own Week 11 IAM Investigation Case File into a Technical Incident Report plus a written Executive Summary or a 2–3 minute video Executive Briefing (Portfolio Deliverable 5).",
+          experienceIds: [],
+          status: "available",
+          links: [
+            {
+              label: "Open the Communications Capstone",
+              to: "/cyberfoundations/week-12",
+              detail: "Six stages · builds from your Week 11 case file",
+            },
+          ],
+        },
       ],
     },
   ],
