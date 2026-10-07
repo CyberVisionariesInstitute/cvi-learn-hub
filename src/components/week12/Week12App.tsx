@@ -166,7 +166,18 @@ function StageReview({ store }: { store: Week12Store }) {
     <div className="grid gap-4 lg:grid-cols-2">
       <SourcePanel store={store} />
       <Card eyebrow={`${done} of ${items.length} labelled`} title="Classify your source statements">
-        <details className="mb-2 text-xs"><summary className="cursor-pointer">What do the labels mean?</summary><ul className="mt-1 space-y-0.5">{CLASS_LABELS.map((l) => <li key={l.value}><strong>{l.label}:</strong> {l.help}</li>)}</ul></details>
+        <details className="mb-2 text-xs"><summary className="cursor-pointer">What do the labels mean?</summary>
+          <ul className="mt-1 space-y-0.5">{CLASS_LABELS.map((l) => <li key={l.value}><strong>{l.label}:</strong> {l.help}</li>)}</ul>
+          <p className="mt-2 font-medium">Fictional teaching example (not your case answer):</p>
+          <ul className="mt-1 space-y-0.5">
+            <li><strong>Fact:</strong> "A successful sign-in occurred at 8:46."</li>
+            <li><strong>Evidence:</strong> "Sign-in event S009."</li>
+            <li><strong>Finding:</strong> "The sign-in pattern warrants further review."</li>
+            <li><strong>Interpretation:</strong> "The account may have been misused."</li>
+            <li><strong>Unknown:</strong> "Who controlled the account?"</li>
+            <li><strong>Recommendation:</strong> "Review the related privileged access change."</li>
+          </ul>
+        </details>
         {items.length === 0 ? <p className="text-sm text-muted-foreground">Nothing to classify yet — write findings in Week 11 Lab 06, then refresh the source.</p> : null}
         <ul className="space-y-2">{items.map((i) => (
           <li key={i.id} className="rounded-md border border-border p-2">
@@ -191,6 +202,10 @@ function RefsInput({ value, onChange, valid }: { value: string[]; onChange: (v: 
     <div>
       <label htmlFor={id} className="block text-sm font-medium">Evidence / event references</label>
       <span className="block text-xs text-muted-foreground">Comma-separated, e.g. EV-ABC123-004, S009, A002, C009</span>
+      <p className="mt-1 text-xs text-muted-foreground">Use the evidence/event IDs from your Week 11 Case File shown in Stage 1. Do not invent new IDs.</p>
+      <details className="mt-1 text-xs"><summary className="cursor-pointer">Where do I find these IDs?</summary>
+        <p className="mt-1 text-muted-foreground">Valid references come from your Week 11 source and evidence list, already displayed in Stage 1 of this capstone. Copy the IDs exactly as they appear there.</p>
+      </details>
       <input id={id} className={`${input} mt-1 font-mono`} value={text} onChange={(e) => setText(e.target.value)} onBlur={() => onChange(parseRefs(text))} />
       <div className="mt-1 flex flex-wrap gap-1">{value.map((r) => <Badge key={r} tone={valid.has(r) ? "allow" : "deny"}>{valid.has(r) ? "✓" : "✕ not in source"} {r}</Badge>)}</div>
     </div>
@@ -244,7 +259,8 @@ function StageFindings({ store }: { store: Week12Store }) {
           </div>
         </Card>
       ))}
-      <button type="button" className={btn} onClick={add} disabled={c.findings.length >= 12}>+ Add finding</button>
+      <button type="button" className={btn} onClick={add} disabled={c.findings.length >= 12}>+ Add another evidence-supported finding</button>
+      <p className="text-xs text-muted-foreground">Only add another finding if it is supported by evidence already captured in your Week 11 Case File. Week 12 is not a new investigation.</p>
       <CoachList store={store} flags={flags} />
     </div>
   );
@@ -270,9 +286,13 @@ function StageReport({ store }: { store: Week12Store }) {
           <TextArea label="2. Scope" help="Which accounts, systems and time window — and what was out of scope." value={r.scope} onChange={set("scope")} />
           <TextArea label="3. Evidence reviewed" help="Sign-in logs, audit logs, directory state, captured evidence (EV-…)." value={r.evidenceReviewed} onChange={set("evidenceReviewed")} />
           <TextArea label="4. Timeline" help="One line per event: time — event ID — what the record shows." value={r.timeline} onChange={set("timeline")} rows={5} max={6000} />
-          <div className="rounded-md border border-border p-2 text-sm"><strong>5. Findings</strong> — pulled in from Stage 2 ({store.content!.findings.length} written).</div>
+          <div className="rounded-md border border-border p-2 text-sm"><strong>5. Findings</strong> — pulled in from Stage 2 ({store.content!.findings.length} written).
+            <p className="mt-1 text-xs text-muted-foreground">You do not need to copy and paste these sections. Findings from Stage 2 and recommendations from Stage 5 are inserted automatically into your exported Technical Incident Report.</p>
+          </div>
           <TextArea label="6. Impact / risk" help="What could this access allow? Who is affected? How serious, and why?" value={r.impact} onChange={set("impact")} />
-          <div className="rounded-md border border-border p-2 text-sm"><strong>7. Recommendations / next actions</strong> — built in Stage 5 ({store.content!.recommendations.length} written).</div>
+          <div className="rounded-md border border-border p-2 text-sm"><strong>7. Recommendations / next actions</strong> — built in Stage 5 ({store.content!.recommendations.length} written).
+            <p className="mt-1 text-xs text-muted-foreground">You do not need to copy and paste these sections. Findings from Stage 2 and recommendations from Stage 5 are inserted automatically into your exported Technical Incident Report.</p>
+          </div>
           <TextArea label="8. Limitations / unknowns" help="What the evidence cannot tell you; data you didn't have." value={r.limitations} onChange={set("limitations")} />
           <TextArea label="9. Conclusion" help="Two or three sentences a technical lead could act on." value={r.conclusion} onChange={set("conclusion")} />
         </div>
@@ -334,6 +354,7 @@ function StageExec({ store }: { store: Week12Store }) {
             <label className="flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1" checked={vid.accessChecked} onChange={(e) => setV({ accessChecked: e.target.checked })} /> I opened the link in a private/signed-out window and it plays for anyone with the link.</label>
             <TextArea label="Outline / speaker notes" help="Bullet lines — one per point you make." value={vid.outline} onChange={(x) => setV({ outline: x })} rows={5} max={4000} />
             <TextArea label="Reflection — how did you adapt this for leadership?" help="About 2–4 sentences." value={vid.reflection} onChange={(x) => setV({ reflection: x })} rows={3} max={2000} />
+            <p className="text-xs text-muted-foreground">The outline and short reflection are submission notes, not an additional essay. They do not need to be included in your recorded briefing.</p>
           </div>
         </Card>
       ) : null}
@@ -357,7 +378,8 @@ function StageRecs({ store }: { store: Week12Store }) {
   return (
     <div className="space-y-4">
       <Card title="From vague to actionable" eyebrow="These go inside your technical report">
-        <p className="text-sm">"Improve security" or "monitor logs" can't be acted on. Try: <em>"Remove Blair's self-granted Privileged-Operators membership and require a ticket-approved change for that group — IAM team, high priority, within 24 hours; success = group audit shows no unapproved members."</em></p>
+        <p className="text-sm">"Improve security" or "monitor logs" can't be acted on. Try a format like this (example only — don't copy it into your case): <em>"Review privileged group memberships within 7 days and remove access that does not have a current approved business need. Owner: IAM team. Priority: High. Success measure: all privileged memberships have documented approval."</em></p>
+        <p className="mt-2 text-sm">You do not need to return to Stage 3. Recommendations you complete here will automatically appear in Section 7 of your exported Technical Incident Report.</p>
       </Card>
       {c.recommendations.map((r, i) => {
         const issues = recommendationIssues(r, keys);
@@ -418,7 +440,17 @@ function StageQA({ store, qa, onStage }: { store: Week12Store; qa: ReturnType<ty
       </Card>
 
       <Card title="Download & GitHub" eyebrow="Downloading is not submitting">
-        <p className="text-sm">These files are built from your saved Week 12 work. Downloading doesn't submit anything — you upload them to your own GitHub portfolio.</p>
+        <p className="text-sm">These files are built from your saved Week 12 work. Your work is not submitted when you download the ZIP. You must upload the Week 12 files to your GitHub portfolio and complete the course submission process.</p>
+        <div className="mt-2 rounded-md border border-border p-2 text-sm">
+          <p className="font-medium">Your final package includes</p>
+          <ul className="mt-1 list-disc pl-5 text-xs">
+            <li>Technical Incident Report — required for everyone</li>
+            <li>Written Executive Summary OR Video Executive Briefing</li>
+            <li>Week 12 README</li>
+            <li>Source manifest</li>
+            <li>GitHub upload</li>
+          </ul>
+        </div>
         <ul className="mt-3 grid gap-2">{paths.map((p) => (
           <li key={p} className="grid min-w-0 gap-2 rounded-md border border-border p-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
             <span className="break-all font-mono text-xs">{p}</span>
