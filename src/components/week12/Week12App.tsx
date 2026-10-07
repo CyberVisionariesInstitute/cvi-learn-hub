@@ -378,7 +378,8 @@ function StageRecs({ store }: { store: Week12Store }) {
   return (
     <div className="space-y-4">
       <Card title="From vague to actionable" eyebrow="These go inside your technical report">
-        <p className="text-sm">"Improve security" or "monitor logs" can't be acted on. Try: <em>"Remove Blair's self-granted Privileged-Operators membership and require a ticket-approved change for that group — IAM team, high priority, within 24 hours; success = group audit shows no unapproved members."</em></p>
+        <p className="text-sm">"Improve security" or "monitor logs" can't be acted on. Try a format like this (example only — don't copy it into your case): <em>"Review privileged group memberships within 7 days and remove access that does not have a current approved business need. Owner: IAM team. Priority: High. Success measure: all privileged memberships have documented approval."</em></p>
+        <p className="mt-2 text-sm">You do not need to return to Stage 3. Recommendations you complete here will automatically appear in Section 7 of your exported Technical Incident Report.</p>
       </Card>
       {c.recommendations.map((r, i) => {
         const issues = recommendationIssues(r, keys);
