@@ -354,6 +354,7 @@ function StageExec({ store }: { store: Week12Store }) {
             <label className="flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1" checked={vid.accessChecked} onChange={(e) => setV({ accessChecked: e.target.checked })} /> I opened the link in a private/signed-out window and it plays for anyone with the link.</label>
             <TextArea label="Outline / speaker notes" help="Bullet lines — one per point you make." value={vid.outline} onChange={(x) => setV({ outline: x })} rows={5} max={4000} />
             <TextArea label="Reflection — how did you adapt this for leadership?" help="About 2–4 sentences." value={vid.reflection} onChange={(x) => setV({ reflection: x })} rows={3} max={2000} />
+            <p className="text-xs text-muted-foreground">The outline and short reflection are submission notes, not an additional essay. They do not need to be included in your recorded briefing.</p>
           </div>
         </Card>
       ) : null}
