@@ -286,9 +286,13 @@ function StageReport({ store }: { store: Week12Store }) {
           <TextArea label="2. Scope" help="Which accounts, systems and time window — and what was out of scope." value={r.scope} onChange={set("scope")} />
           <TextArea label="3. Evidence reviewed" help="Sign-in logs, audit logs, directory state, captured evidence (EV-…)." value={r.evidenceReviewed} onChange={set("evidenceReviewed")} />
           <TextArea label="4. Timeline" help="One line per event: time — event ID — what the record shows." value={r.timeline} onChange={set("timeline")} rows={5} max={6000} />
-          <div className="rounded-md border border-border p-2 text-sm"><strong>5. Findings</strong> — pulled in from Stage 2 ({store.content!.findings.length} written).</div>
+          <div className="rounded-md border border-border p-2 text-sm"><strong>5. Findings</strong> — pulled in from Stage 2 ({store.content!.findings.length} written).
+            <p className="mt-1 text-xs text-muted-foreground">You do not need to copy and paste these sections. Findings from Stage 2 and recommendations from Stage 5 are inserted automatically into your exported Technical Incident Report.</p>
+          </div>
           <TextArea label="6. Impact / risk" help="What could this access allow? Who is affected? How serious, and why?" value={r.impact} onChange={set("impact")} />
-          <div className="rounded-md border border-border p-2 text-sm"><strong>7. Recommendations / next actions</strong> — built in Stage 5 ({store.content!.recommendations.length} written).</div>
+          <div className="rounded-md border border-border p-2 text-sm"><strong>7. Recommendations / next actions</strong> — built in Stage 5 ({store.content!.recommendations.length} written).
+            <p className="mt-1 text-xs text-muted-foreground">You do not need to copy and paste these sections. Findings from Stage 2 and recommendations from Stage 5 are inserted automatically into your exported Technical Incident Report.</p>
+          </div>
           <TextArea label="8. Limitations / unknowns" help="What the evidence cannot tell you; data you didn't have." value={r.limitations} onChange={set("limitations")} />
           <TextArea label="9. Conclusion" help="Two or three sentences a technical lead could act on." value={r.conclusion} onChange={set("conclusion")} />
         </div>
