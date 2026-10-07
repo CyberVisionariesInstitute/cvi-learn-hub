@@ -140,9 +140,22 @@ function RootComponent() {
       if (!active) return;
       const {
         data: { subscription },
-      } = supabase.auth.onAuthStateChange((event) => {
+      } = supabase.auth.onAuthStateChange((event, session) => {
         if (event === "PASSWORD_RECOVERY" && window.location.pathname !== "/auth") {
           void router.navigate({ to: "/auth" });
+          return;
+        }
+        // Google sign-in returns to the home page; send the user on to the
+        // page they were trying to reach (or back to /auth for staff routing).
+        if (session && window.location.pathname === "/") {
+          const staff = sessionStorage.getItem("cvi:post-auth-staff") === "1";
+          const saved = sessionStorage.getItem("cvi:post-auth");
+          if (staff) {
+            void router.navigate({ to: "/auth", search: { staff: "1" } as never });
+          } else if (saved && saved.startsWith("/") && !saved.startsWith("//")) {
+            sessionStorage.removeItem("cvi:post-auth");
+            void router.navigate({ href: saved, replace: true });
+          }
         }
       });
       if (!active) subscription.unsubscribe();

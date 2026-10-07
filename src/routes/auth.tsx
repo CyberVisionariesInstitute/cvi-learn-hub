@@ -85,8 +85,9 @@ function AuthPage() {
     let active = true;
     void (async () => {
       sessionStorage.removeItem("cvi:post-auth-staff");
+      sessionStorage.removeItem("cvi:post-auth");
       if (!staffMode) {
-        await navigate({ to: target, replace: true });
+        await navigate({ href: target, replace: true });
         return;
       }
       const staff = await isStaffUser(session.user.id);
@@ -155,7 +156,7 @@ function AuthPage() {
       sessionStorage.setItem("cvi:post-auth", target);
       if (staffMode) sessionStorage.setItem("cvi:post-auth-staff", "1");
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/auth`,
+        redirect_uri: window.location.origin,
       });
       if (result.error) {
         setError("Google sign-in failed. Try email and password.");
