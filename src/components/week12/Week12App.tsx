@@ -440,7 +440,17 @@ function StageQA({ store, qa, onStage }: { store: Week12Store; qa: ReturnType<ty
       </Card>
 
       <Card title="Download & GitHub" eyebrow="Downloading is not submitting">
-        <p className="text-sm">These files are built from your saved Week 12 work. Downloading doesn't submit anything — you upload them to your own GitHub portfolio.</p>
+        <p className="text-sm">These files are built from your saved Week 12 work. Your work is not submitted when you download the ZIP. You must upload the Week 12 files to your GitHub portfolio and complete the course submission process.</p>
+        <div className="mt-2 rounded-md border border-border p-2 text-sm">
+          <p className="font-medium">Your final package includes</p>
+          <ul className="mt-1 list-disc pl-5 text-xs">
+            <li>Technical Incident Report — required for everyone</li>
+            <li>Written Executive Summary OR Video Executive Briefing</li>
+            <li>Week 12 README</li>
+            <li>Source manifest</li>
+            <li>GitHub upload</li>
+          </ul>
+        </div>
         <ul className="mt-3 grid gap-2">{paths.map((p) => (
           <li key={p} className="grid min-w-0 gap-2 rounded-md border border-border p-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
             <span className="break-all font-mono text-xs">{p}</span>
