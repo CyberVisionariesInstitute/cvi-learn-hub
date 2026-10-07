@@ -13,3 +13,4 @@
 - Week 11 readiness predicates and the answer key live only in `*.server.ts` files — why: expected-state rules must never reach student bundles.
 - Week 11 mission-working guidance renders from `seed.ts` mission definitions through one persistent simulator-shell companion — why: task wording stays consistent without exposing server-only expected-state rules.
 - Week 12 reads each student's Week 11 case file server-side (session owner only) into a frozen, student-safe snapshot in `w12_attempts`; it never writes `w11_*`, and refresh is student-triggered only — why: Week 12 writing must never be silently overwritten and answer keys must stay server-side.
+- Week 12 teaching imagery and diagrams live in a presentation-only reusable visual component with stage variants, without store access — why: visual changes must not affect source snapshots, readiness, exports or student content.

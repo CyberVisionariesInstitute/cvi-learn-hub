@@ -5,6 +5,7 @@ import {
   week12Paths, week12ZipName, writtenWords, WEEK11_CASE_FILE_PATH, type ClassLabel, type CoachFlag, type W12Content, type Week12File,
 } from "@/lib/week12/model";
 import type { Week12Store } from "@/lib/week12/useWeek12";
+import { Week12Visual } from "./Week12Visual";
 
 export const STAGES = [
   { n: 1, title: "Review your case file", doing: "Read your own Week 11 Lab 06 case file and sort each statement: is it a fact, evidence, a finding, an interpretation, an unknown, or a recommendation?", proves: "Every source statement has a label. There are no right-answer marks — this is to sharpen your thinking." },
@@ -36,6 +37,7 @@ export function Week12App({ store, stage, onStage }: { store: Week12Store; stage
           <Badge tone="info">Week 11 attempt {v.snapshot.sourceShortId}</Badge>
           <SaveStatus store={store} />
         </div>
+        <Week12Visual stage="hero" />
       </Card>
 
       <SourceBanner store={store} />
@@ -57,6 +59,8 @@ export function Week12App({ store, stage, onStage }: { store: Week12Store; stage
           })}
         </ol>
       </nav>
+
+      <Week12Visual stage={st.n} />
 
       <section className="rounded-xl border border-primary/40 bg-primary/5 p-3 text-sm" aria-label="Current stage guide">
         <div className="flex items-start justify-between gap-2">
