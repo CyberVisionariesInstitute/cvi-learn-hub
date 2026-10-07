@@ -166,7 +166,18 @@ function StageReview({ store }: { store: Week12Store }) {
     <div className="grid gap-4 lg:grid-cols-2">
       <SourcePanel store={store} />
       <Card eyebrow={`${done} of ${items.length} labelled`} title="Classify your source statements">
-        <details className="mb-2 text-xs"><summary className="cursor-pointer">What do the labels mean?</summary><ul className="mt-1 space-y-0.5">{CLASS_LABELS.map((l) => <li key={l.value}><strong>{l.label}:</strong> {l.help}</li>)}</ul></details>
+        <details className="mb-2 text-xs"><summary className="cursor-pointer">What do the labels mean?</summary>
+          <ul className="mt-1 space-y-0.5">{CLASS_LABELS.map((l) => <li key={l.value}><strong>{l.label}:</strong> {l.help}</li>)}</ul>
+          <p className="mt-2 font-medium">Fictional teaching example (not your case answer):</p>
+          <ul className="mt-1 space-y-0.5">
+            <li><strong>Fact:</strong> "A successful sign-in occurred at 8:46."</li>
+            <li><strong>Evidence:</strong> "Sign-in event S009."</li>
+            <li><strong>Finding:</strong> "The sign-in pattern warrants further review."</li>
+            <li><strong>Interpretation:</strong> "The account may have been misused."</li>
+            <li><strong>Unknown:</strong> "Who controlled the account?"</li>
+            <li><strong>Recommendation:</strong> "Review the related privileged access change."</li>
+          </ul>
+        </details>
         {items.length === 0 ? <p className="text-sm text-muted-foreground">Nothing to classify yet — write findings in Week 11 Lab 06, then refresh the source.</p> : null}
         <ul className="space-y-2">{items.map((i) => (
           <li key={i.id} className="rounded-md border border-border p-2">
