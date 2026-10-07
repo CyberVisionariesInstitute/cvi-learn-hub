@@ -259,7 +259,8 @@ function StageFindings({ store }: { store: Week12Store }) {
           </div>
         </Card>
       ))}
-      <button type="button" className={btn} onClick={add} disabled={c.findings.length >= 12}>+ Add finding</button>
+      <button type="button" className={btn} onClick={add} disabled={c.findings.length >= 12}>+ Add another evidence-supported finding</button>
+      <p className="text-xs text-muted-foreground">Only add another finding if it is supported by evidence already captured in your Week 11 Case File. Week 12 is not a new investigation.</p>
       <CoachList store={store} flags={flags} />
     </div>
   );
