@@ -42,7 +42,7 @@ const lessons: Record<TeachingStage, { title: string; steps: Step[]; caption: st
 export function Week12Visual({ stage }: { stage: TeachingStage | "hero" }) {
   if (stage === "hero") return (
     <figure data-week12-visual="hero" className="mt-4 overflow-hidden rounded-lg border border-primary/30 bg-background">
-      <img src={ivyHero} alt="Ivy overlooking the city at dusk from a tower balcony" className="block h-44 w-full object-cover object-[64%_32%] sm:h-56 sm:object-[50%_32%]" fetchPriority="high" />
+      <img src={ivyHero} alt="Ivy overlooking the city at dusk from a tower balcony" className="block h-44 w-full object-cover object-[64%_0%] sm:h-56 sm:object-[50%_0%]" fetchPriority="high" />
       <figcaption className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-t border-primary/30 px-4 py-3">
         <RadioTower aria-hidden="true" className="size-7 shrink-0 text-amber" />
         <div className="min-w-0"><span className="block font-display text-lg font-semibold text-foreground">Broadcast Tower</span><span className="block text-xs text-muted-foreground">Week 12 · From investigation to professional communication</span></div>
