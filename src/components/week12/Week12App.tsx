@@ -202,6 +202,10 @@ function RefsInput({ value, onChange, valid }: { value: string[]; onChange: (v: 
     <div>
       <label htmlFor={id} className="block text-sm font-medium">Evidence / event references</label>
       <span className="block text-xs text-muted-foreground">Comma-separated, e.g. EV-ABC123-004, S009, A002, C009</span>
+      <p className="mt-1 text-xs text-muted-foreground">Use the evidence/event IDs from your Week 11 Case File shown in Stage 1. Do not invent new IDs.</p>
+      <details className="mt-1 text-xs"><summary className="cursor-pointer">Where do I find these IDs?</summary>
+        <p className="mt-1 text-muted-foreground">Valid references come from your Week 11 source and evidence list, already displayed in Stage 1 of this capstone. Copy the IDs exactly as they appear there.</p>
+      </details>
       <input id={id} className={`${input} mt-1 font-mono`} value={text} onChange={(e) => setText(e.target.value)} onBlur={() => onChange(parseRefs(text))} />
       <div className="mt-1 flex flex-wrap gap-1">{value.map((r) => <Badge key={r} tone={valid.has(r) ? "allow" : "deny"}>{valid.has(r) ? "✓" : "✕ not in source"} {r}</Badge>)}</div>
     </div>
