@@ -1,5 +1,6 @@
 # Roadmap
 
+- [x] Week 11 remaining-section clarity: Evidence Tray, Help Desk / IAM Tickets, Sign-in Logs, Audit Logs, Case File and Resources; protected contracts unchanged, 197 tests and isolated desktop/390px checks passed; preview only
 - [x] Week 11 guided evidence capture: all 19 slots, optional refs, empty-state navigation, unchanged payload; isolated capture checks, Week 10–12 regressions, desktop/390px; preview only
 
 - [ ] Week 11 instruction clarity: single-action guidance for all six labs, local-only resume checklist, explicit evidence/context, Lab 06 handoff; regression and desktop/390px checks; no publish

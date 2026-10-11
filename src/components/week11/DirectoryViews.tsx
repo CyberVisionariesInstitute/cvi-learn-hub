@@ -248,7 +248,19 @@ export function RolesView({ store }: { store: Week11Store }) {
 
 export function ResourcesView() {
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="min-w-0 grid gap-4 md:grid-cols-2">
+      <div className="max-w-prose space-y-2 md:col-span-2">
+        <h2 className="font-display text-lg">Resources</h2>
+        <p className="text-sm">Resources are the things accounts can access.</p>
+        <p className="text-xs text-muted-foreground">Look at the resource named in your task and its available Actions. Next: follow Current Mission to test access.</p>
+        <details><summary className="min-h-11 cursor-pointer content-center text-xs">What does this mean?</summary>
+          <dl className="space-y-2 text-xs text-muted-foreground">{[
+            ["Resource", "What is being accessed."], ["Action", "What someone is trying to do."],
+            ["Classification", "The sensitivity level."], ["Owner", "The responsible department."],
+            ["Scope parent", "The parent resource group or context, where shown."],
+          ].map(([term, meaning]) => <div key={term}><dt className="font-medium">{term}</dt><dd>{meaning}</dd></div>)}</dl>
+        </details>
+      </div>
       {resources.map((r) => (
         <Card key={r.key} eyebrow={`${r.key} · ${r.authority}`} title={r.name}>
           <KV rows={[["Type", r.type], ["Classification", r.classification], ["Owner", departments[r.owner]], ["Actions", r.actions.join(", ")], ...(r.parent ? [["Scope parent", r.parent] as [string, string]] : [])]} />
@@ -269,7 +281,7 @@ export function TicketsView({ store, initial }: { store: Week11Store; initial?: 
   const [hr, setHr] = useState("");
   const [note, setNote] = useState("");
   return (
-    <div className="grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]">
+    <div className="min-w-0 grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]">
       <Card title="Help Desk / IAM Tickets">
         <ul className="space-y-1.5">{s.tickets.map((x) => { const seed = tickets.find((y) => y.key === x.key)!; return (
           <li key={x.key}><button type="button" aria-pressed={x.key === open} onClick={() => setOpen(x.key)} className={`${btn} w-full text-left ${x.key === open ? "border-primary bg-primary/10" : ""}`}>
@@ -278,25 +290,37 @@ export function TicketsView({ store, initial }: { store: Week11Store; initial?: 
           {s.recoveryTickets.map((r) => <li key={r.key} className="text-xs text-muted-foreground">{r.key} — training recovery for {r.account} (verify & act from the ticket's account page)</li>)}
         </ul>
       </Card>
-      <div className="space-y-4">
+      <div className="min-w-0 space-y-4 [overflow-wrap:anywhere]">
         <Card eyebrow={`${t.key} · ${t.mission}`} title={t.title}>
+          <div className="mb-4 max-w-prose space-y-3 text-xs">
+            <div><h3 className="font-semibold text-primary">WHAT IS THIS TICKET ASKING FOR?</h3><p className="mt-1">{t.title}. Read the full request below before making changes.</p></div>
+            <div><h3 className="font-semibold text-primary">WHAT IS APPROVED?</h3><p className="mt-1"><strong>Approved scope:</strong> {t.approvedScope}</p></div>
+            <details><summary className="min-h-11 cursor-pointer content-center font-semibold">WHAT SHOULD I CHECK?</summary>
+              <ul className="list-disc space-y-1 pl-5 text-muted-foreground"><li>Requester and Approver: who asked and who approved?</li><li>Targets: which account or person is named?</li><li>Attached documents: what evidence is supplied?</li>{t.verification ? <li>Identity verification: compare the identity evidence before a sensitive action.</li> : null}</ul>
+            </details>
+            <div><h3 className="font-semibold text-primary">WHAT DO I DO NEXT?</h3><p className="mt-1">Follow the next step for {t.key} in Current Mission (Lab {Number(t.mission.slice(1))}). {t.verification && ts.verification === "not_started" ? "Read the attached documents, then use Identity verification below." : "Compare the request with Approved scope before acting."}</p></div>
+            <details><summary className="min-h-11 cursor-pointer content-center font-semibold">WHEN IS THIS TICKET DONE?</summary><p className="text-muted-foreground">Resolve the ticket only after the approved action is completed and validated, and your decision note is recorded. If you cannot safely complete it, follow Current Mission for the next decision.</p></details>
+          </div>
           <KV rows={[["Requester", t.requester], ["Approver", t.approver], ["Targets", t.targets.join(", ")], ["Status", ts.status]]} />
           <p className="mt-3 text-sm">{t.request}</p>
-          <p className="mt-2 rounded-md border border-border bg-surface p-3 text-sm"><strong>Approved scope:</strong> {t.approvedScope}</p>
+
           <h3 className="mt-3 text-sm font-medium">Attached documents (fictional)</h3>
           <ul className="mt-1 space-y-2">{t.documents.map((d) => <li key={d.id} className="rounded-md border border-border p-2 text-sm"><span className="font-mono text-xs">{d.id}</span> <strong>{d.title}</strong><p>{d.body}</p></li>)}</ul>
           <p className="mt-2 text-xs text-muted-foreground">An approval authorizes a business action — it does not configure anything. Resolving a ticket never grants access by itself.</p>
         </Card>
         {t.verification ? (
           <Card title="Identity verification" eyebrow="The system decides pass/fail from the evidence route">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Select label="Evidence route" value={route} onChange={(x) => setRoute(x as typeof route)} options={[{ value: "trusted", label: "Directory-confirmed callback + HR ID" }, { value: "request_only", label: "Requester-supplied details only" }]} />
-              <label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">HR ID to compare</span><input className={input} value={hr} onChange={(e) => setHr(e.target.value)} placeholder="CH-000" /></label>
-            </div>
-            <button type="button" className={`${btnPrimary} mt-3`} disabled={store.busy} onClick={() => store.run({ type: "verify", ticket: t.key, route, hrId: hr })}>Run verification</button>
+            <ol className="space-y-4 text-sm">
+              <li><h3 className="font-medium">Step 1 — Read the attached evidence</h3><p className="mt-1 text-xs text-muted-foreground">Review Attached documents above. Compare the named person with the Person record (HR) in Users.</p></li>
+              <li className="border-t border-border pt-3"><h3 className="mb-2 font-medium">Step 2 — Enter the HR ID to compare</h3><label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">HR ID to compare</span><input className={input} value={hr} onChange={(e) => setHr(e.target.value)} placeholder="CH-000" /></label></li>
+              <li className="border-t border-border pt-3"><h3 className="mb-2 font-medium">Step 3 — Select the evidence route</h3><label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">Evidence route</span><select aria-label="Evidence route" className={input} value={route} onChange={(e) => setRoute(e.target.value as typeof route)}><option value="trusted">Directory-confirmed callback + HR ID</option><option value="request_only">Requester-supplied details only</option></select></label></li>
+              <li className="border-t border-border pt-3"><h3 className="font-medium">Step 4 — Run verification</h3><button type="button" className={`${btnPrimary} mt-2`} disabled={store.busy} onClick={() => store.run({ type: "verify", ticket: t.key, route, hrId: hr })}>Run verification</button></li>
+              <li className="border-t border-border pt-3"><h3 className="font-medium">Step 5 — Read the recorded result</h3><p className="mt-2" aria-live="polite">Verification: <Badge tone={ts.verification === "passed" ? "allow" : ts.verification === "failed" ? "deny" : "neutral"}>{ts.verification}</Badge></p><p className="mt-1 text-xs text-muted-foreground">Read the simulator response and recorded result before continuing in Current Mission. Verification does not perform the requested action.</p></li>
+            </ol>
           </Card>
         ) : null}
         <Card title="Work notes and status">
+          <p className="mb-3 text-xs text-muted-foreground">Decision note = what you did, what you checked, and why.</p>
           <ul className="mb-2 space-y-1 text-sm">{ts.notes.map((n) => <li key={n.seq}>#{n.seq}: {n.text}</li>)}</ul>
           <textarea className={input} rows={3} value={note} maxLength={2000} onChange={(e) => setNote(e.target.value)} aria-label="Decision note" placeholder="Decision note: what you did, what you checked, and why" />
           <div className="mt-2 flex flex-wrap gap-2">
