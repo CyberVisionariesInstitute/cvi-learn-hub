@@ -106,7 +106,7 @@ export function Simulator({ store, view, onView, mission, onMission }: { store: 
           {view === "signins" ? <LogsView key="s" store={store} kind="signin" /> : null}
           {view === "audit" ? <LogsView key="a" store={store} kind="audit" /> : null}
           {view === "evidence" ? <EvidenceView store={store} /> : null}
-          {view === "report" ? <ReportView store={store} /> : null}
+          {view === "report" ? <ReportView store={store} onView={onView} /> : null}
           {view === "downloads" ? <DownloadsView store={store} /> : null}
         </main>
       </div>

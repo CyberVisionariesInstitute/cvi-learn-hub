@@ -1,10 +1,9 @@
 import { useMemo, useRef, useState } from "react";
-import { AUDIT_FIELDS, historicalAudit, historicalAuditTsv, historicalContext, historicalSignins, historicalSigninsTsv, missions, reportSections, SIGNIN_FIELDS } from "@/lib/week11/seed";
-import type { Finding } from "@/lib/week11/types";
+import { AUDIT_FIELDS, historicalAudit, historicalAuditTsv, historicalContext, historicalSignins, historicalSigninsTsv, SIGNIN_FIELDS } from "@/lib/week11/seed";
 import type { Week11Store } from "@/lib/week11/useWeek11";
 import { Badge, btn, btnPrimary, Card, input, TableWrap, TextArea } from "./ui";
 import { summarizeSnapshot } from "@/lib/week11/snapshot-summary";
-import { DownloadsView } from "./DownloadsView";
+import { CaseFileBuilder } from "./CaseFileBuilder";
 
 type Row = Record<string, string> & { __source: string };
 
@@ -127,91 +126,6 @@ export function EvidenceView({ store }: { store: Week11Store }) {
   );
 }
 
-const blankFinding = (n: number): Finding => ({ key: `F${n}`, title: "", refs: [], observation: "", hypothesis: "", conclusion: "", uncertainty: "", nextAction: "", priority: "", rationale: "" });
-const eventIds = [...historicalSignins.map((r) => r.event_id), ...historicalAudit.map((r) => r.event_id)];
-
-function RefPicker({ value, onChange, label, help }: { value: string[]; onChange: (v: string[]) => void; label: string; help?: string }) {
-  const [f, setF] = useState("");
-  return (
-    <fieldset><legend className="text-sm font-medium">{label}</legend>
-      {help ? <p className="text-xs text-muted-foreground">{help}</p> : null}
-      <input aria-label={`Filter event IDs for ${label}`} className={`${input} mt-1 max-w-xs`} placeholder="Filter IDs, e.g. S00 or A" value={f} onChange={(e) => setF(e.target.value.trim().toUpperCase())} />
-      <div className="mt-1 flex flex-wrap gap-1.5">{eventIds.filter((id) => !f || id.includes(f) || value.includes(id)).map((id) => (
-        <label key={id} className={`flex min-h-9 cursor-pointer items-center gap-1 rounded border px-2 font-mono text-xs ${value.includes(id) ? "border-primary bg-primary/15" : "border-border"}`}>
-          <input type="checkbox" checked={value.includes(id)} onChange={(e) => onChange(e.target.checked ? [...value, id] : value.filter((x) => x !== id))} />{id}
-        </label>))}</div>
-    </fieldset>
-  );
-}
-
-export function ReportView({ store }: { store: Week11Store }) {
-  const v = store.view!;
-  const { learner, setLearner } = store;
-  const findings = learner.findings?.length ? learner.findings : [blankFinding(1), blankFinding(2)];
-  const setF = (i: number, patch: Partial<Finding>) => setLearner((l) => { const list = [...(l.findings?.length ? l.findings : [blankFinding(1), blankFinding(2)])]; list[i] = { ...list[i]!, ...patch }; return { ...l, findings: list }; });
-  const rep = learner.report ?? {};
-  const setRep = (patch: Partial<NonNullable<typeof learner.report>>) => setLearner((l) => ({ ...l, report: { ...(l.report ?? {}), ...patch } }));
-  return (
-    <div className="min-w-0 space-y-4">
-      <Card eyebrow="Lab 06 · Portfolio Deliverable 4" title="Cloud Heights IAM Investigation Case File">
-        <p className="max-w-prose text-sm">Labs 1–5: administer, test, and collect evidence.</p>
-        <p className="mt-1 max-w-prose text-sm"><strong>Lab 6:</strong> investigate the records and assemble Portfolio Deliverable 4. Follow one field at a time in Current Mission.</p>
-        <details className="mt-3"><summary className="cursor-pointer text-xs">Case File help</summary><div className="mt-2 max-w-prose space-y-2 text-xs text-muted-foreground"><p>Select historical event IDs using the checkboxes in each finding. They come from Sign-in Logs and Audit Logs → Historical.</p><p>Your own audit records live in Audit Logs → Your simulated activity. Describe them separately in Live simulator accountability chain.</p><p>Put each finding’s unknowns in Uncertainty / missing information. Put overall limits in Explicit simulation/environment limitations.</p><p>Earlier lab files can be referenced rather than repeated. Readiness checks presence, not a grade. The final download is in Download &amp; GitHub below.</p></div></details>
-        <p className="mt-3 border-l-2 border-primary pl-3 text-xs"><strong>Week 12 handoff:</strong> Your completed Week 11 Case File becomes the source for Week 12. Use the same signed-in account for Week 12 so your Case File can be found.</p>
-      </Card>
-      {findings.map((f, i) => (
-        <Card key={f.key} title={`Finding ${i + 1}`}>
-          <label className="block"><span className="text-sm font-medium">Title</span><span className="block text-xs text-muted-foreground">What are you calling this finding?</span><input className={input} value={f.title} maxLength={200} onChange={(e) => setF(i, { title: e.target.value })} /></label>
-          <div className="mt-3"><RefPicker label="Exact historical events this finding rests on" help="Select only the event IDs this finding actually relies on." value={f.refs} onChange={(refs) => setF(i, { refs })} /></div>
-          <div className="mt-3 grid gap-3 md:grid-cols-2">
-            <TextArea label="Observation (what the records show)" help="What do the records literally show?" value={f.observation} onChange={(x) => setF(i, { observation: x })} />
-            <TextArea label="Hypothesis (possible explanation)" help="What might explain what you saw?" value={f.hypothesis} onChange={(x) => setF(i, { hypothesis: x })} />
-            <TextArea label="Supported conclusion" help="What can you actually support with the selected evidence?" value={f.conclusion} onChange={(x) => setF(i, { conclusion: x })} />
-            <TextArea label="Uncertainty / missing information" help="What can the evidence not tell you yet?" value={f.uncertainty} onChange={(x) => setF(i, { uncertainty: x })} />
-            <TextArea label="Next action" help="What should be checked or done next?" value={f.nextAction} onChange={(x) => setF(i, { nextAction: x })} />
-            <div>
-              <label className="block"><span className="text-sm font-medium">Priority</span><span className="block text-xs text-muted-foreground">How urgent is the next action?</span>
-                <select className={input} value={f.priority} onChange={(e) => setF(i, { priority: e.target.value as Finding["priority"] })}><option value="">choose</option><option value="high">high</option><option value="medium">medium</option><option value="low">low</option></select></label>
-              <div className="mt-2"><TextArea label="Why this priority?" help="What risk or impact makes this priority reasonable?" value={f.rationale} onChange={(x) => setF(i, { rationale: x })} /></div>
-            </div>
-          </div>
-        </Card>
-      ))}
-      {findings.length < 6 ? <button type="button" className={btn} onClick={() => setLearner((l) => ({ ...l, findings: [...findings, blankFinding(findings.length + 1)] }))}>Add another finding</button> : null}
-      <Card title="Benign or ambiguous comparison">
-        <p className="mb-3 max-w-prose text-xs text-muted-foreground">Use this to show that not every unusual-looking record is evidence of compromise.</p>
-        <RefPicker label="Source records" value={learner.comparison?.refs ?? []} onChange={(refs) => setLearner((l) => ({ ...l, comparison: { text: l.comparison?.text ?? "", refs } }))} />
-        <div className="mt-3"><TextArea label="Why these records should not be over-claimed" value={learner.comparison?.text ?? ""} onChange={(text) => setLearner((l) => ({ ...l, comparison: { refs: l.comparison?.refs ?? [], text } }))} /></div>
-      </Card>
-      <Card title="Live simulator accountability chain">
-        <p className="mb-3 max-w-prose text-xs text-muted-foreground">Use IDs from your own Week 11 simulated activity here, not historical S/A records.</p>
-        <TextArea label="Describe one audit/access chain from your own earlier missions (IDs such as LA-…, AT-…). This is your simulated activity, not historical data." value={rep.liveChain ?? ""} onChange={(x) => setRep({ liveChain: x })} />
-        <p className="mt-2 text-xs text-muted-foreground">Insert one of your live IDs (newest first):</p>
-        <div className="mt-1 flex max-h-32 flex-wrap gap-1.5 overflow-auto">{[...v.state.audits].reverse().slice(0, 30).map((e) => <button key={e.id} type="button" className={`${btn} min-h-9 py-1 font-mono text-xs`} onClick={() => setRep({ liveChain: `${rep.liveChain ?? ""}${rep.liveChain ? " " : ""}${e.id}` })}>{e.id} {e.activity}</button>)}{v.state.audits.length === 0 ? <span className="text-xs text-muted-foreground">No live activity yet — complete earlier missions first.</span> : null}</div>
-      </Card>
-      <Card title="Case file sections" eyebrow="Technical content only — the polished report and summary come in Week 12">
-        <details className="mb-3"><summary className="min-h-11 cursor-pointer content-center text-sm">What belongs in each section?</summary>
-          <ol className="list-decimal space-y-3 pl-5 text-xs text-muted-foreground">{reportSections.map((title, i) => <li key={title}><strong>{title}</strong><p>{[
-            "State what you investigated, which simulated systems you used, and what the simulation cannot show.",
-            "Describe how a person, identity, account, group, role and permission connect. Compare the directory and resource contexts.",
-            "Use your recorded tests to distinguish signing in from accessing a resource.",
-            "Describe your directory changes, approvals and recorded identity checks.",
-            "Describe the three job-role configurations, their scopes and the business reasons for them.",
-            "Summarize your access tests and cite records of the temporary grant and its removal.",
-            "Describe the current-policy and what-if tests; distinguish a prediction from a saved policy change.",
-            "Record the joiner, mover, leaver and reset-request decisions and the evidence you checked.",
-            "Refer to your historical findings above and their selected event IDs.",
-            "Explain record links, including C009, without treating a shared ID as proof of cause. Include your comparison.",
-            "Propose next checks or actions, their priority, and what remains uncertain.",
-            "List the evidence keys or event IDs your Case File relies on and where each is used.",
-          ][i]}</p></li>)}</ol>
-        </details>
-        <div className="space-y-3">{reportSections.map((t, i) => <TextArea key={t} label={`${i + 1}. ${t}`} value={rep.sections?.[String(i + 1)] ?? ""} onChange={(x) => setRep({ sections: { ...(rep.sections ?? {}), [String(i + 1)]: x } })} />)}</div>
-        <div className="mt-3 space-y-3">
-          <TextArea label="Explicit simulation/environment limitations" value={rep.limitations ?? ""} onChange={(x) => setRep({ limitations: x })} />
-        </div>
-      </Card>
-      <DownloadsView store={store} afterZip="Next: capture E19 from the Current Mission panel or Mission Progress." />
-    </div>
-  );
+export function ReportView({ store, onView }: { store: Week11Store; onView?: (view: "signins" | "audit" | "evidence") => void }) {
+  return <CaseFileBuilder store={store} onView={onView} />;
 }
