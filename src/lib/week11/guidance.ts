@@ -6,7 +6,7 @@
  */
 import type { Directory } from "./seed";
 
-export type NavView = "dashboard" | "missions" | "users" | "groups" | "ous" | "roles" | "resources" | "tickets" | "signins" | "audit" | "evidence" | "report";
+export type NavView = "dashboard" | "missions" | "users" | "groups" | "ous" | "roles" | "resources" | "tickets" | "signins" | "audit" | "evidence" | "report" | "downloads";
 export interface Nav { label: string; view: NavView; dir?: Directory; account?: string; ticket?: string }
 export interface StepGuide { doing: string; where: string; lookFor: string; proves: string; mode: "explore" | "assessed"; links: Nav[]; capture?: string }
 

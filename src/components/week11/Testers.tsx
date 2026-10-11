@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { devices, groups, resources, roles } from "@/lib/week11/seed";
 import { reasonText, type AccessTest } from "@/lib/week11/engine";
-import { expectedDenyNote } from "@/lib/week11/guidance";
+import { denyCoaching } from "@/lib/week11/instructions";
 import type { Week11Store } from "@/lib/week11/useWeek11";
 import { Badge, btnPrimary, Card, Decision, KV, Select } from "./ui";
 
@@ -12,13 +12,15 @@ export function TestTrace({ t }: { t: AccessTest }) {
   return (
     <div className="rounded-md border border-border bg-surface p-3 text-sm">
       <div className="flex flex-wrap items-center gap-2">
+        <Badge tone="info">Test recorded</Badge>
+        <span className="text-xs">Security decision:</span>
         <Decision d={t.decision} />
         <span className="font-mono text-xs">{t.id}</span>
         <span>{t.account} → {r?.name} / <span className="font-mono">{t.action}</span></span>
         {t.mode !== "current-access" ? <Badge tone="warn">{t.mode === "preview" ? "Preview — not access evidence" : "What-if branch — policy simulation"}</Badge> : null}
       </div>
       <p className="mt-2">{reasonText(t.reasons)}</p>
-      {expectedDenyNote(t) ? <p className="mt-2 rounded-md border border-primary/40 bg-primary/10 p-2 text-xs"><strong>Expected learning result:</strong> {expectedDenyNote(t)} A denial here is not a mistake.</p> : null}
+      {t.decision === "deny" ? <p className="mt-2 border-l-2 border-primary pl-3 text-xs">{denyCoaching}</p> : null}
       <div className="mt-2">
         <KV rows={[
           ["Session", t.session ?? "none"],
@@ -46,6 +48,7 @@ export function SignInTester({ store, account }: { store: Week11Store; account: 
   const challenge = v.state.challenges.filter((c) => c.account === account && !c.used).at(-1);
   return (
     <Card eyebrow="Sign-in tester" title={`Simulate sign-in as ${account}`}>
+      <p className="mb-2 text-xs"><strong>Authentication:</strong> this checks whether the account can sign in. It does not grant access to a resource.</p>
       <p className="mb-3 text-xs text-muted-foreground">No real password is entered. “Current” means the account's current simulated credential version. {a?.dir === "AD" ? "The AD tester does not emulate MFA, Kerberos or LDAP." : "Simulated MFA is a deliberate choice here — it does not train accepting unexpected real prompts."}</p>
       <div className="grid gap-3 sm:grid-cols-3">
         <Select label="Device / context" value={device} onChange={setDevice} options={devices.map((d) => ({ value: d.key, label: `${d.key} (${d.trust}, ${d.ip})` }))} />
@@ -77,6 +80,8 @@ export function AccessTester({ store, account: initial }: { store: Week11Store; 
   const run = () => store.run({ type: "test_access", account, session: sess || null, resource: res!.key, action: res!.actions.includes(action) ? action : res!.actions[0]!, mode, overrides: mode === "abac-what-if" ? Object.fromEntries(Object.entries(ov).filter(([, x]) => x)) : undefined });
   return (
     <Card eyebrow="Test Access" title="Run a deterministic access check">
+      <p className="mb-2 text-xs"><strong>Authorization:</strong> this checks one action on one resource.</p>
+      <p className="mb-3 text-xs text-muted-foreground">Current test target: {account} · {res?.name} · {action}. {denyCoaching}</p>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {initial ? null : <Select label="Fictional account" value={account} onChange={(x) => { setAccount(x); setSession(""); }} options={v.state.accounts.map((a) => ({ value: a.key, label: `${a.key} (${a.status})` }))} />}
         <Select label="Resource" value={res?.key ?? ""} onChange={(x) => { setResource(x); setAction(resources.find((r) => r.key === x)?.actions[0] ?? "read"); }} options={eligible.map((r) => ({ value: r.key, label: `${r.name} (${r.key})` }))} />

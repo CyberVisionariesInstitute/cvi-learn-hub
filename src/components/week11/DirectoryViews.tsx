@@ -31,8 +31,8 @@ export function UsersView({ store, dir, selected, onSelect, mission, go }: { sto
   return (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
       <div className={a ? "hidden lg:block" : ""}>
-        <Card eyebrow={dir === "AD" ? "Viewing: On-Premises AD" : "Viewing: Cloud (Entra ID)"} title={dir === "AD" ? "AD users" : "Cloud users"}>
-          <p className="mb-2 text-xs text-muted-foreground">Looking for a {dir === "AD" ? "cloud (cl-…)" : "AD (ad-…)"} account? Switch the directory above the menu.</p>
+        <Card eyebrow={dir === "AD" ? "ACTIVE DIRECTORY" : "CLOUD IDENTITY"} title="Users">
+          <p className="mb-2 text-xs text-muted-foreground">Looking for a {dir === "AD" ? "Cloud Identity (cl-…)" : "Active Directory (ad-…)"} account? Switch the directory above the menu.</p>
           <label className="block"><span className="sr-only">Search users</span><input className={input} placeholder="Search name or UPN" value={q} onChange={(e) => setQ(e.target.value)} /></label>
           <ul className="mt-3 space-y-1.5">
             {list.map((x) => (
@@ -77,7 +77,7 @@ function AccountDetail({ store, accountKey, onBack, mission, go }: { store: Week
         <a href={`#si-${a.key}`} className={`${btn} text-xs`}>Jump to Sign-in tester</a>
         <a href={`#at-${a.key}`} className={`${btn} text-xs`}>Jump to Test Access</a>
       </div>
-      <Card eyebrow={a.dir === "AD" ? "On-Premises Directory — Active Directory (simulated AD DS)" : "Cloud Identity — Microsoft Entra ID (simulation)"} title={`${p.name} · ${a.key}`}>
+      <Card eyebrow={a.dir === "AD" ? "ACTIVE DIRECTORY" : "CLOUD IDENTITY"} title={`${p.name} · ${a.key}`}>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <h3 className="mb-2 text-sm font-medium">Account (identity attributes)</h3>
@@ -90,8 +90,8 @@ function AccountDetail({ store, accountKey, onBack, mission, go }: { store: Week
           </div>
           <div>
             <h3 className="mb-2 text-sm font-medium">Person record (HR)</h3>
-            <KV rows={[["Person", `${p.key} ${p.name}`], ["HR ID", p.hrId], ["Department", departments[p.dept]], ["Employment", employmentLabel[p.status]], ["AD account", p.ad ? (go ? <button type="button" className="underline" onClick={() => go({ label: p.ad!, view: "users", account: p.ad! })}>{p.ad} (open)</button> : p.ad) : "none"], ["Cloud account", p.cloud ? (go ? <button type="button" className="underline" onClick={() => go({ label: p.cloud!, view: "users", account: p.cloud! })}>{p.cloud} (open)</button> : p.cloud) : "none"]]} />
-            <p className="mt-2 text-xs text-muted-foreground">No automatic synchronization: the two accounts have separate status, credentials, memberships and sessions.</p>
+            <KV rows={[["Person", `${p.key} ${p.name}`], ["HR ID", p.hrId], ["Department", departments[p.dept]], ["Employment", employmentLabel[p.status]], ["Active Directory account", p.ad ? (go ? <button type="button" className="underline" onClick={() => { if (p.ad) go({ label: "Users", view: "users", account: p.ad }); }}>{p.ad} (open)</button> : p.ad) : "none"], ["Cloud Identity account", p.cloud ? (go ? <button type="button" className="underline" onClick={() => { if (p.cloud) go({ label: "Users", view: "users", account: p.cloud }); }}>{p.cloud} (open)</button> : p.cloud) : "none"]]} />
+            <p className="mt-2 text-xs text-muted-foreground">One person can have two separate accounts. Use the account links above to switch between them. No automatic synchronization: the two accounts have separate status, credentials, memberships and sessions.</p>
           </div>
         </div>
       </Card>
@@ -154,14 +154,14 @@ export function GroupsView({ store, dir }: { store: Week11Store; dir?: Directory
   const shown = groups.filter((g) => both || !dir || g.dir === dir);
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      <div className="flex flex-wrap items-center gap-2 text-sm md:col-span-2"><Badge tone="info">{both || !dir ? "Showing both directories" : dir === "AD" ? "Showing On-Premises AD groups" : "Showing Cloud groups"}</Badge>
+      <div className="flex flex-wrap items-center gap-2 text-sm md:col-span-2"><Badge tone="info">{both || !dir ? "Showing both directories" : dir === "AD" ? "ACTIVE DIRECTORY" : "CLOUD IDENTITY"}</Badge>
         {dir ? <button type="button" className={btn} aria-pressed={both} onClick={() => setBoth(!both)}>{both ? "Show only the current directory" : "Show both directories"}</button> : null}</div>
       {shown.map((g) => {
         const members = s.memberships.filter((m) => m.group === g.key).map((m) => m.account);
         const asg = s.assignments.filter((a) => a.group === g.key);
         const acl = adAcl.filter((a) => a.group === g.key);
         return (
-          <Card key={g.key} eyebrow={`${g.dir === "AD" ? "AD" : "Cloud"} security group · ${g.key}`} title={g.name}>
+          <Card key={g.key} eyebrow={`${g.dir === "AD" ? "Active Directory" : "Cloud Identity"} security group · ${g.key}`} title={g.name}>
             <p className="text-sm text-muted-foreground">{g.purpose}</p>
             <p className="mt-2 text-sm">Members: {members.length ? members.join(", ") : "none"}</p>
             <p className="mt-1 text-sm">Grants: {g.dir === "AD" ? (acl.length ? acl.map((a) => `${a.resource}/${a.actions.join(",")}`).join("; ") : "no resource ACL entry") : (asg.length ? asg.map((a) => `${a.key}: ${a.role} @ ${a.scope}`).join("; ") : "no role assignment")}</p>
@@ -181,7 +181,7 @@ export function GroupsView({ store, dir }: { store: Week11Store; dir?: Directory
 
 export function OUsView({ store, dir }: { store: Week11Store; dir: Directory }) {
   const s = store.view!.state;
-  if (dir === "CLOUD") return <Card title="Organizational Units"><p className="text-sm">OUs are an AD concept in this exercise. Switch to the On-Premises Directory tab to see the OU tree.</p></Card>;
+  if (dir === "CLOUD") return <Card title="Organizational Units"><p className="text-sm">Organizational Units are an Active Directory concept in this exercise. Switch to Active Directory to see them.</p></Card>;
   const render = (parent: string | null, depth: number): React.ReactNode => ous.filter((o) => o.parent === parent).map((o) => (
     <li key={o.key} style={{ marginLeft: depth * 16 }} className="mt-2">
       <p className="font-medium">{o.name} <span className="font-mono text-xs text-muted-foreground">{o.key}</span></p>
@@ -191,7 +191,7 @@ export function OUsView({ store, dir }: { store: Week11Store; dir: Directory }) 
     </li>
   ));
   return (
-    <Card title="AD organizational units" eyebrow="ad.cloudheights.example (fictional)">
+    <Card title="Organizational Units" eyebrow="ad.cloudheights.example (fictional)">
       <p className="text-sm text-muted-foreground">OU placement is organization only. No Group Policy and no OU-based resource permissions are simulated. Moving to Disabled Accounts does not disable an account.</p>
       <ul>{render(null, 0)}</ul>
     </Card>
@@ -270,7 +270,7 @@ export function TicketsView({ store, initial }: { store: Week11Store; initial?: 
   const [note, setNote] = useState("");
   return (
     <div className="grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]">
-      <Card title="IAM ticket queue">
+      <Card title="Help Desk / IAM Tickets">
         <ul className="space-y-1.5">{s.tickets.map((x) => { const seed = tickets.find((y) => y.key === x.key)!; return (
           <li key={x.key}><button type="button" aria-pressed={x.key === open} onClick={() => setOpen(x.key)} className={`${btn} w-full text-left ${x.key === open ? "border-primary bg-primary/10" : ""}`}>
             <span className="font-mono text-xs">{x.key} · {seed.mission}</span><span className="block text-sm">{seed.title}</span><span className="mt-1 flex gap-1"><Badge>{x.status}</Badge>{seed.verification ? <Badge tone={x.verification === "passed" ? "allow" : x.verification === "failed" ? "deny" : "neutral"}>verify: {x.verification}</Badge> : null}</span>

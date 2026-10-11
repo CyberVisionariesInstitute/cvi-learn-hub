@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { navForMissing, stepGuides, type Nav } from "@/lib/week11/guidance";
+import { Button } from "@/components/ui/button";
+import { instructionSteps, instructionProgress } from "@/lib/week11/instructions";
+import { useInstructionPreferences } from "./useInstructionPreferences";
+import { Week11Path } from "./Week11Path";
+import { navForMissing, type Nav } from "@/lib/week11/guidance";
 import { CaptureEvidence } from "./CaptureEvidence";
 import { missions, SIMULATION_BANNER, tickets, traceConcepts, type Directory, type MissionId } from "@/lib/week11/seed";
 import { scenarioTime } from "@/lib/week11/engine";
@@ -14,15 +18,19 @@ import { DownloadsView } from "./DownloadsView";
 
 export const VIEWS = ["dashboard", "missions", "users", "groups", "ous", "roles", "resources", "tickets", "signins", "audit", "evidence", "report", "downloads"] as const;
 export type View = (typeof VIEWS)[number];
-const labels: Record<View, string> = { dashboard: "Dashboard", missions: "Mission Progress", users: "Users", groups: "Groups", ous: "Organizational Units", roles: "Roles & Access", resources: "Resources", tickets: "Help Desk / IAM Tickets", signins: "Sign-in Logs", audit: "Audit Logs", evidence: "Evidence Tray", report: "Case File (Lab 06)", downloads: "Download & GitHub" };
+const labels: Record<View, string> = { dashboard: "Dashboard", missions: "Mission Progress", users: "Users", groups: "Groups", ous: "Organizational Units", roles: "Roles & Access", resources: "Resources", tickets: "Help Desk / IAM Tickets", signins: "Sign-in Logs", audit: "Audit Logs", evidence: "Evidence Tray", report: "Case File", downloads: "Download & GitHub" };
 
 export function Simulator({ store, view, onView, mission, onMission }: { store: Week11Store; view: View; onView: (v: View) => void; mission: string; onMission: (m: string) => void }) {
-  const v = store.view!;
+  const v = store.view;
+  const currentMission = missions.find((item) => item.key === mission) ?? missions[0];
+  const orientation = useInstructionPreferences(v?.id ?? "loading", currentMission?.key ?? "M01");
   const [dir, setDir] = useState<Directory>("AD");
   const [selected, setSelected] = useState<string | null>(null);
   const [missionPanelOpen, setMissionPanelOpen] = useState(true);
   const [ticketFocus, setTicketFocus] = useState<string | undefined>(undefined);
-  const [stepIdx, setStepIdx] = useState<Record<string, number>>({});
+  if (!v || !currentMission) return null;
+  const progress = instructionProgress(instructionSteps[currentMission.key], orientation.preference);
+  const nextInstruction = instructionSteps[currentMission.key][progress.current];
   const go = (n: Nav) => {
     const acct = n.account ? v.state.accounts.find((a) => a.key === n.account) : undefined;
     if (acct) { setDir(acct.dir); setSelected(acct.key); } else if (n.dir) { setDir(n.dir); if (n.view === "users") setSelected(null); }
@@ -51,23 +59,30 @@ export function Simulator({ store, view, onView, mission, onMission }: { store: 
           <button type="button" className={btn} onClick={() => void store.flush()}>Save</button>
         </div>
       </div>
+      <Week11Path store={store} mission={mission} onMission={onMission} onView={onView} />
+      <div className="mt-3 flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
+        <div className="min-w-0 max-w-prose text-xs"><p className="font-medium">{v.state.seq > 0 || v.textRevision > 0 ? "Welcome back" : "Ready to begin"} · Current lab: {currentMission.lab}</p><p className="mt-1 text-muted-foreground [overflow-wrap:anywhere]">Next step: {nextInstruction?.doing}</p></div>
+        <Button type="button" variant="outline" onClick={() => { setMissionPanelOpen(true); onView("missions"); }}>Continue</Button>
+      </div>
       {archived ? <p className="mt-2 rounded-md border border-border p-2 text-sm">Archived attempt — read-only.</p> : null}
       <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-[14rem_minmax(0,1fr)]">
         <CurrentMissionPanel
           store={store}
-          mission={mission}
+          mission={currentMission.key}
           open={missionPanelOpen}
           onOpenChange={setMissionPanelOpen}
           onView={onView}
           go={go}
-          step={stepIdx[mission] ?? 0}
-          onStep={(n) => setStepIdx((m) => ({ ...m, [mission]: n }))}
+          preference={orientation.preference}
+          onStep={orientation.onStep}
+          onComplete={orientation.onComplete}
+          dir={dir}
         />
         <nav aria-label="Simulator" className="min-w-0 lg:sticky lg:top-4 lg:row-span-2 lg:row-start-1 lg:self-start">
-          <p className="mb-1 text-xs font-medium text-muted-foreground">Directory you're viewing (Users, Groups, OUs):</p>
+          <p className="mb-1 text-xs font-medium text-muted-foreground">Current directory (Users, Groups, Organizational Units):</p>
           <div className="mb-3 grid grid-cols-2 gap-1 lg:grid-cols-1" role="group" aria-label="Directory context">
-            <button type="button" aria-pressed={dir === "AD"} className={`${btn} text-xs ${dir === "AD" ? "border-primary bg-primary/10" : ""}`} onClick={() => switchDir("AD")}>On-Premises Directory — Active Directory (simulated AD DS)</button>
-            <button type="button" aria-pressed={dir === "CLOUD"} className={`${btn} text-xs ${dir === "CLOUD" ? "border-primary bg-primary/10" : ""}`} onClick={() => switchDir("CLOUD")}>Cloud Identity — Microsoft Entra ID (simulation)</button>
+            <button type="button" aria-pressed={dir === "AD"} className={`${btn} text-xs ${dir === "AD" ? "border-primary bg-primary/10" : ""}`} onClick={() => switchDir("AD")}>Active Directory</button>
+            <button type="button" aria-pressed={dir === "CLOUD"} className={`${btn} text-xs ${dir === "CLOUD" ? "border-primary bg-primary/10" : ""}`} onClick={() => switchDir("CLOUD")}>Cloud Identity</button>
           </div>
           <ul className="grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-1">
             {VIEWS.map((x) => <li key={x}><button type="button" aria-current={view === x ? "page" : undefined} onClick={() => onView(x)} className={`${btn} w-full text-left text-xs ${view === x ? "border-primary bg-primary/10" : ""}`}>{labels[x]}</button></li>)}
@@ -166,16 +181,13 @@ function MissionView({ store, mission, onMission, onView, go }: { store: Week11S
       <MissionArt mission={m.key} />
       <Card eyebrow={`${m.lab} · ${m.time} (estimate)`} title={m.title}>
         <p className="text-sm"><strong>Objective:</strong> {m.objective}</p>
-        <p className="mt-1 text-sm"><strong>Situation:</strong> {m.situation}</p>
+
         {m.tickets.length ? <p className="mt-1 text-sm">Tickets: {m.tickets.map((t) => <button key={t} type="button" className="mr-2 underline" onClick={() => go({ label: t, view: "tickets", ticket: t })}>{t} {tickets.find((x) => x.key === t)?.title}</button>)}</p> : null}
-        <ol className="mt-3 list-decimal space-y-3 pl-5 text-sm">{m.steps.map((st, i) => { const g = stepGuides[m.key]?.[i]; return (
-          <li key={st}><span>{st}</span> {g ? <Badge tone={g.mode === "explore" ? "info" : "warn"}>{g.mode === "explore" ? "Explore — nothing assessed yet" : "Assessed: your final state/records count"}</Badge> : null}
-            {g ? <><p className="mt-1 text-xs text-muted-foreground"><strong className="text-foreground">Where:</strong> {g.where}</p>
-              <div className="mt-1 flex flex-wrap gap-1.5">{g.links.map((n) => <button key={n.label + n.view} type="button" className={`${btn} min-h-9 py-1 text-xs`} onClick={() => go(n)}>Open {n.label}</button>)}</div></> : null}
-          </li>); })}</ol>
-        <p className="mt-3 text-xs text-muted-foreground">Any valid path through the console counts — you don't have to click screens in this exact order. Plain language → analogy → term: an account is like a badge; a group is a list on the door; a role is a job's bundle of keys; a permission is one specific key.</p>
+        <p className="mt-3 max-w-prose text-sm">Follow one small step in Current Mission above. Use All steps to choose a different task.</p>
+        <details className="mt-3"><summary className="cursor-pointer text-xs">Original mission requirements</summary><ol className="mt-2 max-w-prose list-decimal space-y-2 pl-5 text-xs">{m.steps.map((step) => <li key={step}>{step}</li>)}</ol></details>
+        <details className="mt-3"><summary className="cursor-pointer text-xs">Situation / supporting context</summary><p className="mt-2 max-w-prose text-xs">{m.situation}</p></details>
       </Card>
-      <ConceptGuides mission={m.key} />
+      <details><summary className="cursor-pointer text-sm">Concept help</summary><div className="mt-3"><ConceptGuides mission={m.key} /></div></details>
       {m.key === "M01" ? (
         <Card title="Directory trace — seven concepts" eyebrow="Pick real objects, not definitions">
           <div className="grid gap-3 sm:grid-cols-2">{traceConcepts.map((c) => (
@@ -185,7 +197,7 @@ function MissionView({ store, mission, onMission, onView, go }: { store: Week11S
       ) : null}
       <Card title="Your explanations" eyebrow="Saved automatically">
         <div className="space-y-3">{m.questions.map((qq) => <TextArea key={qq.id} label={qq.label} value={ans[qq.id] ?? ""} onChange={(x) => setAns(qq.id, x)} />)}</div>
-        {m.key === "M06" ? <button type="button" className={`${btn} mt-3`} onClick={() => onView("report")}>Open the case file editor</button> : null}
+        {m.key === "M06" ? <button type="button" className={`${btn} mt-3`} onClick={() => onView("report")}>Open Case File</button> : null}
       </Card>
       <CaptureEvidence store={store} mission={m.key} slots={m.evidence} />
       <Card title="Readiness" eyebrow="Presence of required work — not a grade">
@@ -193,7 +205,7 @@ function MissionView({ store, mission, onMission, onView, go }: { store: Week11S
           <ul className="list-disc space-y-1 pl-5 text-sm">{r.missing.map((x) => { const n = navForMissing(m.key, x); return <li key={x}>{x} {n && n.view !== "missions" ? <button type="button" className="text-xs underline" onClick={() => go(n)}>Go there: {n.label}</button> : null}</li>; })}</ul>
         )}
         <DownloadLabButton store={store} mission={m.key} lab={m.lab} onView={onView} />
-        <p className="mt-3 text-xs text-muted-foreground">Made a mistake? Correct it with the opposite action (Remove from group, Move OU, Enable/Disable, remove an assignment), then retest and recapture. Earlier captures stay as history. A full reset is rarely needed.</p>
+        <details className="mt-3"><summary className="cursor-pointer text-xs">Troubleshooting</summary><p className="mt-2 max-w-prose text-xs text-muted-foreground">Made a mistake? Correct it with the opposite action (Remove from group, Move OU, Enable/Disable, remove an assignment), then retest and recapture. Earlier captures stay as history. Do not reset between labs unless your instructor tells you to.</p></details>
       </Card>
     </div>
   );
