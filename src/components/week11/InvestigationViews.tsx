@@ -33,6 +33,7 @@ export function LogsView({ store, kind }: { store: Week11Store; kind: "signin" |
   return (
     <div className="space-y-4">
       <Card eyebrow={kind === "signin" ? "Sign-in Logs" : "Audit Logs"} title={source === "HISTORICAL" ? "Historical scenario records (fabricated September 21 snapshot)" : source === "LIVE" ? "Your simulated activity (this attempt)" : "Combined — see the Source column"}>
+        <p className="mb-3 max-w-prose text-xs text-muted-foreground">Historical = the supplied investigation records. Your simulated activity = actions from your saved attempt. Choose one source, then open an event ID to read its raw record.</p>
         <div className="flex flex-wrap gap-2" role="group" aria-label="Source">
           {(["HISTORICAL", "LIVE", "ALL"] as const).map((x) => <button key={x} type="button" aria-pressed={source === x} className={`${btn} ${source === x ? "border-primary bg-primary/10" : ""}`} onClick={() => { setSource(x); setPage(0); }}>{x === "HISTORICAL" ? "Historical" : x === "LIVE" ? "Your simulated activity" : "Combined"}</button>)}
         </div>
@@ -66,7 +67,7 @@ export function LogsView({ store, kind }: { store: Week11Store; kind: "signin" |
           </div>
         </div>
       ) : null}
-      {source !== "LIVE" ? <Card title="Investigative context"><ul className="list-disc space-y-1 pl-5 text-sm">{historicalContext.map((c) => <li key={c}>{c}</li>)}</ul></Card> : null}
+      {source !== "LIVE" ? <details><summary className="cursor-pointer text-sm">Investigative context</summary><div className="mt-3"><Card title="Investigative context"><ul className="list-disc space-y-1 pl-5 text-sm">{historicalContext.map((c) => <li key={c}>{c}</li>)}</ul></Card></div></details> : null}
     </div>
   );
 }
@@ -117,8 +118,10 @@ export function ReportView({ store }: { store: Week11Store }) {
   return (
     <div className="space-y-4">
       <Card eyebrow="Lab 06 · Portfolio Deliverable 4" title="Cloud Heights IAM Investigation Case File">
-        <p className="text-sm">A technical case file, inside Lab 06 — the sixth and final Week 11 submission. It may reference earlier lab files instead of repeating them. Nothing here is graded automatically; readiness only checks that required pieces are present.</p>
-        <p className="mt-2 rounded-md border border-primary/40 bg-primary/10 p-3 text-sm"><strong>Week 12 handoff:</strong> Week 12 uses this case file as source material to create the professional Technical Incident Report and Executive Summary, and to finalize and present your portfolio. You do not write those here.</p>
+        <p className="max-w-prose text-sm">Labs 1–5: administer, test, and collect evidence.</p>
+        <p className="mt-1 max-w-prose text-sm"><strong>Lab 6:</strong> investigate the records and assemble Portfolio Deliverable 4. Follow one field at a time in Current Mission.</p>
+        <details className="mt-3"><summary className="cursor-pointer text-xs">Case File help</summary><div className="mt-2 max-w-prose space-y-2 text-xs text-muted-foreground"><p>Select historical event IDs using the checkboxes in each finding. They come from Sign-in Logs and Audit Logs → Historical.</p><p>Your own audit records live in Audit Logs → Your simulated activity. Describe them separately in Live simulator accountability chain.</p><p>Put each finding’s unknowns in Uncertainty / missing information. Put overall limits in Explicit simulation/environment limitations.</p><p>Earlier lab files can be referenced rather than repeated. Readiness checks presence, not a grade. The final download is in Download &amp; GitHub below.</p></div></details>
+        <p className="mt-3 border-l-2 border-primary pl-3 text-xs"><strong>Week 12 handoff:</strong> Your completed Week 11 Case File becomes the source for Week 12. Use the same signed-in account for Week 12 so your Case File can be found.</p>
       </Card>
       {findings.map((f, i) => (
         <Card key={f.key} title={`Finding ${i + 1}`}>
