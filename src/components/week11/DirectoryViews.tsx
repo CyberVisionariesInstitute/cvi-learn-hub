@@ -90,7 +90,7 @@ function AccountDetail({ store, accountKey, onBack, mission, go }: { store: Week
           </div>
           <div>
             <h3 className="mb-2 text-sm font-medium">Person record (HR)</h3>
-            <KV rows={[["Person", `${p.key} ${p.name}`], ["HR ID", p.hrId], ["Department", departments[p.dept]], ["Employment", employmentLabel[p.status]], ["AD account", p.ad ? (go ? <button type="button" className="underline" onClick={() => go({ label: "Users", view: "users", account: p.ad ?? undefined })}>{p.ad} (open)</button> : p.ad) : "none"], ["Cloud account", p.cloud ? (go ? <button type="button" className="underline" onClick={() => go({ label: "Users", view: "users", account: p.cloud ?? undefined })}>{p.cloud} (open)</button> : p.cloud) : "none"]]} />
+            <KV rows={[["Person", `${p.key} ${p.name}`], ["HR ID", p.hrId], ["Department", departments[p.dept]], ["Employment", employmentLabel[p.status]], ["Active Directory account", p.ad ? (go ? <button type="button" className="underline" onClick={() => { if (p.ad) go({ label: "Users", view: "users", account: p.ad }); }}>{p.ad} (open)</button> : p.ad) : "none"], ["Cloud Identity account", p.cloud ? (go ? <button type="button" className="underline" onClick={() => { if (p.cloud) go({ label: "Users", view: "users", account: p.cloud }); }}>{p.cloud} (open)</button> : p.cloud) : "none"]]} />
             <p className="mt-2 text-xs text-muted-foreground">One person can have two separate accounts. Use the account links above to switch between them. No automatic synchronization: the two accounts have separate status, credentials, memberships and sessions.</p>
           </div>
         </div>

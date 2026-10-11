@@ -272,9 +272,9 @@ export function parseInstructionPreferences(raw: string | null): InstructionPref
       if (!entry || typeof entry !== "object") continue;
       const value = entry as Record<string, unknown>;
       const steps = instructionSteps[mission.key];
-      const current = typeof value.current === "number" && Number.isInteger(value.current) && value.current >= 0 && value.current < steps.length ? value.current : 0;
+      const current = typeof value['current'] === "number" && Number.isInteger(value['current']) && value['current'] >= 0 && value['current'] < steps.length ? value['current'] : 0;
       const validIds = new Set(steps.map((step) => step.id));
-      const completed = Array.isArray(value.completed) ? [...new Set(value.completed.filter((id): id is string => typeof id === "string" && validIds.has(id)))] : [];
+      const completed = Array.isArray(value['completed']) ? [...new Set(value['completed'].filter((id): id is string => typeof id === "string" && validIds.has(id)))] : [];
       result[mission.key] = { current, completed };
     }
     return result;
