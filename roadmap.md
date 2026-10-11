@@ -1,5 +1,6 @@
 # Roadmap
 
+- [ ] Week 11 instruction clarity: single-action guidance for all six labs, local-only resume checklist, explicit evidence/context, Lab 06 handoff; regression and desktop/390px checks; no publish
 - [x] Week 12 Broadcast Tower hero + six reusable teaching visuals; presentation-only, desktop/390px checks and Week 10–12 tests; no publish
 
 - [x] W11-UX-01: persistent collapsible current-mission companion across all Week 11 simulator views; focused accessibility, mobile, Week 11, and Week 10 checks; preview only
