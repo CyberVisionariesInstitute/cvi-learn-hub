@@ -1,5 +1,6 @@
 # Roadmap
 
+- [ ] Week 11 Lab 06 guided Case File builder: preserve all fields and exports, remove specific-ID guidance, validate saved work/navigation and desktop/390px; preview only
 - [x] Week 11 remaining-section clarity: Evidence Tray, Help Desk / IAM Tickets, Sign-in Logs, Audit Logs, Case File and Resources; protected contracts unchanged, 197 tests and isolated desktop/390px checks passed; preview only
 - [x] Week 11 guided evidence capture: all 19 slots, optional refs, empty-state navigation, unchanged payload; isolated capture checks, Week 10–12 regressions, desktop/390px; preview only
 
