@@ -30,7 +30,7 @@ export function InstructionStepPanel({ instruction, mission, store, go, currentD
           <p className="mt-1 font-medium">{slot.slot} · {slot.label}</p>
           <p className="mt-1 text-xs">{slotHints[slot.slot]}</p>
           <Button type="button" variant="outline" className="mt-2 h-auto min-h-11 whitespace-normal" aria-expanded={capturing} aria-controls={`capture-${instruction.id}`} onClick={() => setCapturing((value) => !value)}>{capturing ? "Hide capture" : `Capture ${slot.slot} here`}</Button>
-          {capturing ? <div id={`capture-${instruction.id}`} className="mt-3"><CaptureEvidence compact store={store} mission={mission} slots={definition.evidence} initialSlot={slot.slot} /></div> : null}
+          {capturing ? <div id={`capture-${instruction.id}`} className="mt-3"><CaptureEvidence compact store={store} mission={mission} slots={definition.evidence} initialSlot={slot.slot} go={go} /></div> : null}
         </section>
       ) : null}
       <details className="border-t border-border pt-2"><summary className="cursor-pointer text-xs">Need help?</summary><div className="mt-2 max-w-prose space-y-2 text-xs text-muted-foreground"><p>Use the Open button to reach this screen. In Users, use Jump to Sign-in tester or Jump to Test Access for the testers on the account page.</p><p>If a named account is not listed, check the directory context. A planned account must be created in its earlier task.</p></div></details>

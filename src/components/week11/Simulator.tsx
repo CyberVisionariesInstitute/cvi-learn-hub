@@ -199,7 +199,7 @@ function MissionView({ store, mission, onMission, onView, go }: { store: Week11S
         <div className="space-y-3">{m.questions.map((qq) => <TextArea key={qq.id} label={qq.label} value={ans[qq.id] ?? ""} onChange={(x) => setAns(qq.id, x)} />)}</div>
         {m.key === "M06" ? <button type="button" className={`${btn} mt-3`} onClick={() => onView("report")}>Open Case File</button> : null}
       </Card>
-      <CaptureEvidence store={store} mission={m.key} slots={m.evidence} />
+      <CaptureEvidence store={store} mission={m.key} slots={m.evidence} go={go} />
       <Card title="Readiness" eyebrow="Presence of required work — not a grade">
         {r.ready ? <p className="text-sm"><Badge tone="allow">✓ Evidence-ready</Badge> Everything required is present. Your instructor reviews the reasoning.</p> : (
           <ul className="list-disc space-y-1 pl-5 text-sm">{r.missing.map((x) => { const n = navForMissing(m.key, x); return <li key={x}>{x} {n && n.view !== "missions" ? <button type="button" className="text-xs underline" onClick={() => go(n)}>Go there: {n.label}</button> : null}</li>; })}</ul>

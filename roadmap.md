@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Week 11 guided evidence capture: all 19 slots, optional refs, empty-state navigation, unchanged payload; isolated capture checks, Week 10–12 regressions, desktop/390px; preview only
+
 - [ ] Week 11 instruction clarity: single-action guidance for all six labs, local-only resume checklist, explicit evidence/context, Lab 06 handoff; regression and desktop/390px checks; no publish
 - [x] Week 12 Broadcast Tower hero + six reusable teaching visuals; presentation-only, desktop/390px checks and Week 10–12 tests; no publish
 
