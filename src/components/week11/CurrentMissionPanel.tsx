@@ -36,6 +36,8 @@ export function CurrentMissionPanel({ store, mission, open, onOpenChange, onView
   const checklist = testChecklists[mission];
   const nextNav = readiness?.missing[0] ? navForMissing(mission, readiness.missing[0]) : null;
   const checked = preference?.completed.includes(instruction.id) ?? false;
+  const ticketSteps = instruction.group ? steps.filter((item) => item.group === instruction.group) : [];
+  const ticketIndex = ticketSteps.findIndex((item) => item.id === instruction.id);
   const advance = () => { onComplete(instruction.id, true); onStep(Math.min(idx + 1, steps.length - 1)); };
 
   return (
@@ -51,7 +53,8 @@ export function CurrentMissionPanel({ store, mission, open, onOpenChange, onView
       <CollapsibleContent id={contentId} className="max-h-[65dvh] overflow-y-auto border-t border-border px-3 pb-4 pt-3 sm:px-4">
         <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_15rem]">
           <div className="min-w-0">
-            <p className="text-xs text-muted-foreground">{progress.completed} checked complete · current step {idx + 1} · {progress.remaining} unchecked</p>
+            {instruction.group ? <p className="mb-1 text-xs font-medium">{instruction.group} · Substep {ticketIndex + 1} of {ticketSteps.length} · {ticketSteps.filter((item) => preference?.completed.includes(item.id)).length} checked complete</p> : null}
+            <p className="text-xs text-muted-foreground">{progress.completed} checked complete · current step {idx + 1} · {progress.remaining} steps remaining</p>
             <p className="mt-1 text-xs text-muted-foreground">Personal checklist on this browser only — not readiness or a grade.</p>
             <div className="my-3 flex flex-wrap items-center gap-2" role="group" aria-label="Choose the step you're working on">
               <Button type="button" variant="outline" disabled={idx === 0} onClick={() => onStep(idx - 1)}>← Previous</Button>

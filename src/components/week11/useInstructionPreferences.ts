@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { instructionSteps, parseInstructionPreferences, type InstructionPreferences } from "@/lib/week11/instructions";
-import { missions, type MissionId } from "@/lib/week11/seed";
+import { parseInstructionPreferences, type InstructionPreferences } from "@/lib/week11/instructions";
+import type { MissionId } from "@/lib/week11/seed";
 
 /** Local orientation only. Never writes learner text, simulator state or readiness. */
 export function useInstructionPreferences(attemptId: string, mission: MissionId) {
@@ -22,6 +22,5 @@ export function useInstructionPreferences(attemptId: string, mission: MissionId)
     const previous = all[mission] ?? { current: 0, completed: [] };
     return { ...all, [mission]: { ...previous, completed: checked ? [...new Set([...previous.completed, id])] : previous.completed.filter((value) => value !== id) } };
   });
-  const nextIncomplete = missions.find((item) => instructionSteps[item.key].some((step) => !preferences[item.key]?.completed.includes(step.id)));
-  return { preference, onStep, onComplete, nextIncomplete: nextIncomplete?.key };
+  return { preference, onStep, onComplete };
 }
