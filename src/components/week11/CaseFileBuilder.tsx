@@ -80,19 +80,20 @@ export function CaseFileBuilder({ store, onView }: { store: Week11Store; onView?
   const writing = writingSteps[findingStep as keyof typeof writingSteps];
   const guidance = sectionGuidance[section];
   const sectionTitle = (reportSections[section] ?? "").replace(" (including C009)", "");
-  return <div className="min-w-0 space-y-5 [overflow-wrap:anywhere]">
+  return <div className="min-w-0 max-w-3xl space-y-5 [overflow-wrap:anywhere]">
     <header className="space-y-3 border-b border-border pb-5">
       <p className="text-xs text-primary">Lab 06 · Portfolio Deliverable 4</p>
       <h2 className="font-display text-xl">Cloud Heights IAM Investigation Case File</h2>
       <p className="max-w-prose text-sm font-medium">You are not writing the polished incident report yet.</p>
-      <details><summary className="min-h-11 cursor-pointer content-center text-sm focus-visible:outline focus-visible:outline-primary">Week 11 / Week 12: what am I making?</summary><div className="max-w-prose space-y-2 text-sm">
-        <p><strong>Week 11:</strong> Build your technical Case File and document what the evidence supports.</p><p><strong>Week 12:</strong> Turn this Case File into the polished Technical Incident Report and executive communication.</p>
+      <p className="max-w-prose text-sm"><strong>Week 11:</strong> Build your technical Case File and document what the evidence supports.</p>
+      <p className="max-w-prose text-sm"><strong>Week 12:</strong> Turn this Case File into the polished Technical Incident Report and executive communication.</p>
+      <details><summary className="min-h-11 cursor-pointer content-center text-sm focus-visible:outline focus-visible:outline-primary">How Lab 6 connects to earlier labs</summary><div className="max-w-prose space-y-2 text-sm">
         <p>Labs 1–5: administer, test, and collect evidence.</p><p>Lab 6: investigate the records and assemble Portfolio Deliverable 4.</p>
       </div></details>
       <p className="max-w-prose border-l-2 border-primary pl-3 text-xs">Your completed Week 11 Case File becomes the source for Week 12. Use the same signed-in account for Week 12 so your Case File can be found.</p>
-      <nav aria-label="Case File progress"><ol className="grid gap-1 sm:grid-cols-2">{path.map((title, i) => {
+      <nav aria-label="Case File progress"><ol className="grid grid-cols-2 gap-1">{path.map((title, i) => {
         const done = [v.evidence.length > 0, (learner.findings?.length ?? 0) >= 2 && (learner.findings ?? []).every((f) => findingPresence(f).every(Boolean)), Boolean(learner.comparison?.refs.length && learner.comparison.text.trim()), Boolean(rep.liveChain?.trim()), review.sections && Boolean(rep.limitations?.trim()), false, false][i];
-        return <li key={title}><Button variant={currentPath === i ? "secondary" : "ghost"} aria-current={currentPath === i ? "step" : undefined} className="min-h-11 h-auto w-full justify-start whitespace-normal text-left text-xs" onClick={() => go(i > 4 ? i + 1 : i)}>{done ? "✓" : `${i + 1}.`} {title}</Button></li>;
+        return <li key={title}><Button variant={currentPath === i ? "secondary" : "ghost"} aria-current={currentPath === i ? "step" : undefined} className="min-h-11 h-auto w-full justify-start whitespace-normal text-left text-xs" onClick={() => go(i > 4 ? i + 1 : i)}>{i + 1}. {title}{done ? " ✓" : ""}</Button></li>;
       })}</ol></nav>
       <p className="text-xs text-muted-foreground">Progress describes saved writing and selections only, not a grade. Your writing saves automatically.</p>
     </header>
