@@ -37,7 +37,7 @@ function Starter({ text }: { text: string }) {
   return text ? <p className="my-3 max-w-prose text-xs text-muted-foreground"><strong>Sentence starter:</strong> {text}</p> : null;
 }
 
-export function CaseFileBuilder({ store, onView }: { store: Week11Store; onView?: (view: Destination) => void }) {
+export function CaseFileBuilder({ store, onView }: { store: Week11Store; onView?: ((view: Destination) => void) | undefined }) {
   const [stage, setStage] = useState(0);
   const [findingIndex, setFindingIndex] = useState(0);
   const [findingStep, setFindingStep] = useState(0);
