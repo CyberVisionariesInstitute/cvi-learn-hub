@@ -200,7 +200,7 @@ export function ReportView({ store }: { store: Week11Store }) {
             "Summarize your access tests and cite records of the temporary grant and its removal.",
             "Describe the current-policy and what-if tests; distinguish a prediction from a saved policy change.",
             "Record the joiner, mover, leaver and reset-request decisions and the evidence you checked.",
-            "Refer to your historical findings below and their selected event IDs.",
+            "Refer to your historical findings above and their selected event IDs.",
             "Explain record links, including C009, without treating a shared ID as proof of cause. Include your comparison.",
             "Propose next checks or actions, their priority, and what remains uncertain.",
             "List the evidence keys or event IDs your Case File relies on and where each is used.",
