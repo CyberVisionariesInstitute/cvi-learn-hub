@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Week 11 Case File four focused corrections: public section titles, three live-ID groups, core versus optional finding presence, scope/limitations distinction; regressions and desktop/390px validation; preview only
+- [x] Week 11 Case File four focused corrections: public section titles, three live-ID groups, core versus optional finding presence, scope/limitations distinction; 204 tests, desktop/390px fictional-store checks and protected-file fingerprints passed; preview only
 
 - [x] Week 11 Lab 06 guided Case File builder: nine finding steps, twelve sections in four phases, separate limitations and non-grading review; 201 tests, fictional saved-work desktop/390px checks, protected-file checksums; preview only
 - [x] Week 11 remaining-section clarity: Evidence Tray, Help Desk / IAM Tickets, Sign-in Logs, Audit Logs, Case File and Resources; protected contracts unchanged, 197 tests and isolated desktop/390px checks passed; preview only
