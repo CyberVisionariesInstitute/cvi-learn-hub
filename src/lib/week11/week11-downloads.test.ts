@@ -19,6 +19,22 @@ describe("Week 11 student downloads", () => {
     expect(Object.keys(files).sort()).toEqual([...WEEK11_EXPORT_PATHS].sort());
   });
 
+  it("preserves twelve numeric section keys in order and exports all optional findings and the existing chain", () => {
+    const report = { sections: Object.fromEntries(Array.from({ length: 12 }, (_, i) => [String(i + 1), `SECTION-VALUE-${i + 1}-END`])), limitations: "LIMITATIONS-VALUE", liveChain: "LA-FICTION AT-FICTION LS-FICTION" };
+    const findings = Array.from({ length: 3 }, (_, i) => ({ key: `F${i + 1}`, title: `FINDING-VALUE-${i + 1}`, refs: [], observation: "", hypothesis: "", conclusion: "", uncertainty: "", nextAction: "", priority: "" as const, rationale: "" }));
+    const saved = { ...learner, report, findings, comparison: { refs: ["S002"], text: "COMPARISON-VALUE" } };
+    const before = JSON.stringify(saved);
+    const content = buildLabExport({ ...input, learner: saved }, "M06").content;
+    const positions = Array.from({ length: 12 }, (_, i) => content.indexOf(`SECTION-VALUE-${i + 1}-END`));
+    expect(positions.every((n) => n >= 0)).toBe(true);
+    expect(positions).toEqual([...positions].sort((a, b) => a - b));
+    for (const f of findings) expect(content).toContain(f.title);
+    expect(content).toContain(report.liveChain);
+    expect(content).toContain(report.limitations);
+    expect(content).toContain(saved.comparison.text);
+    expect(JSON.stringify(saved)).toBe(before);
+  });
+
   it("incomplete work is DRAFT with a deterministic name", () => {
     expect(z.draft).toBe(true);
     expect(z.filename).toBe("week-11-portfolio-DRAFT.zip");
