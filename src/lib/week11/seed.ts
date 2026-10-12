@@ -599,7 +599,7 @@ export const traceConcepts = [
 ] as const;
 
 export const reportSections = [
-  "Scope, environment and explicit simulation limitation",
+  "Scope and environment",
   "Identity/directory trace and AD DS–Entra–Azure comparison",
   "Blair authentication-versus-authorization investigation",
   "Directory administration and sensitive-action verification",
@@ -608,7 +608,7 @@ export const reportSections = [
   "ABAC current-policy and what-if findings",
   "Joiner/mover/leaver and unverified-reset decisions",
   "Historical identity findings (see findings below)",
-  "Sign-in/audit correlation (including C009) and one benign/ambiguous comparison",
+  "Sign-in/audit correlation and one benign/ambiguous comparison",
   "Preliminary response/remediation recommendations, priority and uncertainty",
   "Evidence index notes",
 ];

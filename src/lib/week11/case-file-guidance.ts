@@ -7,7 +7,7 @@ export function findingPresence(finding: Finding): boolean[] {
 }
 
 export const sectionGuidance = [
-  { part: 1, help: "State what you investigated and which simulated systems you used.", avoid: "Do not write findings or recommendations here.", starter: "This investigation examined…" },
+  { part: 1, help: "Briefly describe what you investigated, which simulated systems you used, and the boundaries of the work.", avoid: "Save the full investigation limitations and unknowns for the dedicated Limitations step later in the Case File.", starter: "This investigation examined…" },
   { part: 1, help: "Explain how people, identities, accounts, groups, roles and permissions connect across the directory contexts.", avoid: "Do not replace your own examples with definitions alone.", starter: "In this environment, the relationship between…" },
   { part: 1, help: "Use your recorded tests to explain the difference between signing in and accessing a resource.", avoid: "Do not treat a successful sign-in as proof of resource access.", starter: "The sign-in and access records show…" },
   { part: 2, help: "Describe the directory changes, approvals and identity checks you performed.", avoid: "Do not describe an intended change as completed without a supporting record.", starter: "During directory administration, I…" },
@@ -24,7 +24,7 @@ export const sectionGuidance = [
 export const caseFileParts = ["Set the context", "Explain what you did", "Explain lifecycle & investigation", "Close the case"] as const;
 
 export function caseFilePresence(learner: Learner, historicalIds: readonly string[], liveIds: readonly string[]) {
-  const findings = learner.findings ?? [];
+  const findings = (learner.findings ?? []).slice(0, 2);
   const all = (check: (finding: Finding) => boolean) => findings.length > 0 && findings.every(check);
   const liveText = learner.report?.liveChain ?? "";
   const mentions = (id: string) => liveText.split(/[^A-Za-z0-9_-]+/).includes(id);

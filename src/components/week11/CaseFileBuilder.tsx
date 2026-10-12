@@ -79,7 +79,12 @@ export function CaseFileBuilder({ store, onView }: { store: Week11Store; onView?
   const logButtons = <div className="mt-3 flex flex-wrap gap-2">{(["signins", "audit"] as const).map((view) => <Button key={view} variant="outline" className="min-h-11 whitespace-normal" onClick={() => onView?.(view)} disabled={!onView}>Open {view === "signins" ? "Sign-in Logs" : "Audit Logs"}</Button>)}</div>;
   const writing = writingSteps[findingStep as keyof typeof writingSteps];
   const guidance = sectionGuidance[section];
-  const sectionTitle = (reportSections[section] ?? "").replace(" (including C009)", "");
+  const sectionTitle = reportSections[section] ?? "";
+  const liveRecordGroups = [
+    { label: "Audit records", empty: "No audit records yet. Complete an action in an earlier lab, then return here.", records: v.state.audits.map((e) => ({ id: e.id, description: e.activity })) },
+    { label: "Access-test records", empty: "No access-test records yet. Open Users and run an Access tester test, then return here.", records: v.state.tests.map((e) => ({ id: e.id, description: `${e.account} · ${e.resource} · ${e.action}` })) },
+    { label: "Sign-in records", empty: "No sign-in records yet. Open Users and run a Sign-in tester test, then return here.", records: v.state.signins.map((e) => ({ id: e.id, description: e.account })) },
+  ];
   return <div className="min-w-0 max-w-3xl space-y-5 [overflow-wrap:anywhere]">
     <header className="space-y-3 border-b border-border pb-5">
       <p className="text-xs text-primary">Lab 06 · Portfolio Deliverable 4</p>
@@ -92,7 +97,7 @@ export function CaseFileBuilder({ store, onView }: { store: Week11Store; onView?
       </div></details>
       <p className="max-w-prose border-l-2 border-primary pl-3 text-xs">Your completed Week 11 Case File becomes the source for Week 12. Use the same signed-in account for Week 12 so your Case File can be found.</p>
       <nav aria-label="Case File progress"><ol className="grid grid-cols-2 gap-1">{path.map((title, i) => {
-        const done = [v.evidence.length > 0, (learner.findings?.length ?? 0) >= 2 && (learner.findings ?? []).every((f) => findingPresence(f).every(Boolean)), Boolean(learner.comparison?.refs.length && learner.comparison.text.trim()), Boolean(rep.liveChain?.trim()), review.sections && Boolean(rep.limitations?.trim()), false, false][i];
+        const done = [v.evidence.length > 0, review.twoFindings && (learner.findings ?? []).slice(0, 2).every((f) => findingPresence(f).every(Boolean)), Boolean(learner.comparison?.refs.length && learner.comparison.text.trim()), Boolean(rep.liveChain?.trim()), review.sections && Boolean(rep.limitations?.trim()), false, false][i];
         return <li key={title}><Button variant={currentPath === i ? "secondary" : "ghost"} aria-current={currentPath === i ? "step" : undefined} className="min-h-11 h-auto w-full justify-start whitespace-normal text-left text-xs" onClick={() => go(i > 4 ? i + 1 : i)}>{i + 1}. {title}{done ? " ✓" : ""}</Button></li>;
       })}</ol></nav>
       <p className="text-xs text-muted-foreground">Progress describes saved writing and selections only, not a grade. Your writing saves automatically.</p>
@@ -108,6 +113,7 @@ export function CaseFileBuilder({ store, onView }: { store: Week11Store; onView?
         <div className="flex flex-wrap gap-2" role="group" aria-label="Choose finding">{findings.map((f, i) => <Button key={f.key} variant={findingIndex === i ? "secondary" : "outline"} className="min-h-11" aria-pressed={findingIndex === i} onClick={() => { setFindingIndex(i); setFindingStep(0); }}>Finding {i + 1}</Button>)}</div>
         <label className="block text-sm">Choose a finding step<select className={`${input} mt-1`} value={findingStep} onChange={(e) => setFindingStep(Number(e.target.value))}>{findingLabels.map((label, i) => <option key={label} value={i}>{i + 1}. {label}</option>)}</select></label>
         <h3 className="font-display text-lg">Finding {findingIndex + 1} · Step {findingStep + 1} of 9 — {findingLabels[findingStep]}</h3>
+        <p className="text-xs text-muted-foreground">{findingIndex < 2 ? "Core finding · one of the two baseline findings" : "Additional finding · optional, with its own progress"}</p>
         {findingStep === 0 ? <label className="block text-sm">Give this finding a short title.<span className="block text-xs text-muted-foreground">What are you investigating in this finding?</span><input className={`${input} mt-2`} value={finding.title} maxLength={200} onChange={(e) => setF({ title: e.target.value })} /></label> : null}
         {findingStep === 1 ? <><p className="text-sm">Choose only the historical event IDs that directly support this finding.</p><HistoricalPicker label="Exact historical events this finding rests on" value={finding.refs} onChange={(refs) => setF({ refs })} />{logButtons}</> : null}
         {writing ? <><TextArea label={writing.prompt} value={finding[writing.field]} onChange={(value) => setF({ [writing.field]: value })} /><Starter text={writing.starter} />{findingStep === 3 ? <p className="max-w-prose text-xs text-muted-foreground">A hypothesis is something you are considering. It is not something you have proven.</p> : null}</> : null}
@@ -115,6 +121,7 @@ export function CaseFileBuilder({ store, onView }: { store: Week11Store; onView?
         <details open={findingStep === 8}><summary className="min-h-11 cursor-pointer content-center text-sm">Finding {findingIndex + 1} progress · {presence.filter(Boolean).length} of 9 added</summary><ul className="grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">{progressLabels.map((label, i) => <li key={label}>{presence[i] ? "✓" : "○"} {label}</li>)}</ul><p className="mt-2 text-xs">Guidance only: this checks presence, not correctness.</p></details>
         {presence.every(Boolean) ? <p role="status" className="text-sm">✓ Finding {findingIndex + 1} ready for final Case File review</p> : null}
         {findings.length < 6 ? <Button variant="outline" className="min-h-11" onClick={() => { setLearner((l) => ({ ...l, findings: [...(l.findings?.length ? l.findings : findings), blankFinding(findings.length + 1)] })); setFindingIndex(findings.length); setFindingStep(0); }}>Add another finding</Button> : null}
+        <p className="max-w-prose text-xs text-muted-foreground">Additional findings are optional. Add one only if you have another evidence-supported finding you want to complete.</p>
       </> : null}
       {stage === 2 ? <>
         <h3 className="font-display text-lg">3. Benign or ambiguous comparison</h3><p className="max-w-prose text-sm">This section demonstrates professional judgment. Unusual does not automatically mean malicious.</p>
@@ -126,27 +133,34 @@ export function CaseFileBuilder({ store, onView }: { store: Week11Store; onView?
         <h3 className="font-display text-lg">4. Show one example from your own Week 11 work.</h3><p className="text-sm">Choose records that show: Action → recorded change/test → result.</p><p className="max-w-prose text-xs text-muted-foreground">Use IDs from Your simulated activity here, not Historical S/A records.</p>
         <TextArea label="In 1–3 sentences, explain what you did and what the simulator recorded." value={rep.liveChain ?? ""} onChange={(liveChain) => setRep({ liveChain })} />
         <Starter text="During my Week 11 work, I performed ________. Record ________ shows ________." />
-        <details><summary className="min-h-11 cursor-pointer content-center text-sm">Insert a live audit ID (newest first)</summary><div className="flex max-h-64 flex-wrap gap-2 overflow-auto">{[...v.state.audits].reverse().slice(0, 30).map((e) => <Button key={e.id} variant="outline" className="min-h-11 h-auto max-w-full whitespace-normal text-left font-mono text-xs" onClick={() => setRep({ liveChain: `${rep.liveChain ?? ""}${rep.liveChain ? " " : ""}${e.id}` })}>{e.id} {e.activity}</Button>)}{!v.state.audits.length ? <p className="text-xs">No live activity yet — complete earlier missions first.</p> : null}</div></details>
+        <p className="text-xs text-muted-foreground">Choose an ID to add it to your writing. Nothing is selected automatically.</p>
+        {liveRecordGroups.map((group) => <details key={group.label}><summary className="min-h-11 cursor-pointer content-center text-sm">{group.label} · insert an ID (newest first)</summary><div className="flex max-h-64 flex-wrap gap-2 overflow-auto">{[...group.records].reverse().map((e) => <Button key={e.id} variant="outline" className="min-h-11 h-auto max-w-full whitespace-normal text-left font-mono text-xs" onClick={() => setLearner((l) => { const text = l.report?.liveChain ?? ""; return { ...l, report: { ...(l.report ?? {}), liveChain: `${text}${text ? " " : ""}${e.id}` } }; })}>{e.id} {e.description}</Button>)}{!group.records.length ? <p className="text-xs text-muted-foreground">{group.empty}</p> : null}</div></details>)}
       </> : null}
       {stage === 4 && guidance ? <>
         <p className="text-xs text-primary">Part {guidance.part} — {caseFileParts[guidance.part - 1]}</p>
-        <label className="block text-sm">Choose a Case File section<select className={`${input} mt-1`} value={section} onChange={(e) => setSection(Number(e.target.value))}>{reportSections.map((title, i) => <option key={title} value={i}>{i + 1}. {title.replace(" (including C009)", "")}</option>)}</select></label>
+        <label className="block text-sm">Choose a Case File section<select className={`${input} mt-1`} value={section} onChange={(e) => setSection(Number(e.target.value))}>{reportSections.map((title, i) => <option key={title} value={i}>{i + 1}. {title}</option>)}</select></label>
         <h3 className="font-display text-lg">Section {section + 1} of 12 — {sectionTitle}</h3>
         <div className="max-w-prose text-sm"><h4 className="font-medium">What belongs here?</h4><p className="mt-1 text-muted-foreground">{guidance.help}</p></div>
+        {section === 0 ? <p className="max-w-prose text-xs text-muted-foreground">Save the full investigation limitations and unknowns for the dedicated Limitations step later in the Case File.</p> : null}
         <details><summary className="min-h-11 cursor-pointer content-center text-sm">Do not put here</summary><p className="max-w-prose text-xs text-muted-foreground">{guidance.avoid}</p></details>
         <Starter text={guidance.starter} /><TextArea label={`Write section ${section + 1}`} rows={6} value={rep.sections?.[String(section + 1)] ?? ""} onChange={(value) => setLearner((l) => ({ ...l, report: { ...(l.report ?? {}), sections: { ...(l.report?.sections ?? {}), [String(section + 1)]: value } } }))} />
-        <details><summary className="min-h-11 cursor-pointer content-center text-sm">What belongs in each section?</summary><ol className="list-decimal space-y-3 pl-5 text-xs text-muted-foreground">{sectionGuidance.map((item, i) => <li key={i}><strong>{reportSections[i]?.replace(" (including C009)", "")}</strong><p>{item.help}</p></li>)}</ol></details>
+        <details><summary className="min-h-11 cursor-pointer content-center text-sm">What belongs in each section?</summary><ol className="list-decimal space-y-3 pl-5 text-xs text-muted-foreground">{sectionGuidance.map((item, i) => <li key={i}><strong>{reportSections[i]}</strong><p>{item.help}</p></li>)}</ol></details>
       </> : null}
       {stage === 5 ? <>
         <p className="text-xs text-primary">Part 4 — Close the case</p><h3 className="font-display text-lg">Limitations</h3>
+        <p className="max-w-prose text-sm">Use this step for the full limitations of the investigation. Section 1 only needs a brief scope/environment boundary.</p>
         <TextArea label="What can this simulation or the available records NOT tell you?" value={rep.limitations ?? ""} onChange={(limitations) => setRep({ limitations })} />
         <Starter text="This investigation is limited by…" /><details><summary className="min-h-11 cursor-pointer content-center text-sm">Need help? Categories to consider</summary><ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground"><li>Missing records</li><li>Simulated environment limits</li><li>Facts that cannot be confirmed</li></ul></details>
       </> : null}
       {stage === 6 ? <>
         <h3 className="font-display text-lg">Your Case File Check</h3><p className="max-w-prose text-sm">Final readiness is still checked by the existing Week 11 system. This review helps you catch missing work before downloading.</p>
+        <p className="max-w-prose text-xs text-muted-foreground">Baseline finding checks below use core Findings 1 and 2. Additional findings have separate progress; they do not change this presentation checklist.</p>
         <ul className="space-y-3 text-sm">{([
           [review.twoFindings, "At least two saved findings exist"], [review.findingEvidence, "Findings have selected evidence"], [review.observationsAndConclusions, "Observation and supported conclusion fields are filled"], [review.uncertaintyAndLimitations, "Uncertainty and limitations are documented"], [review.nextActions, "Next actions are included"], [review.historicalSelections, "Finding and comparison selections use Historical records"], [review.liveSource, "Live chain cites Your simulated activity, with no Historical event IDs detected"], [review.sections, "All twelve Case File sections have content"],
         ] as const).map(([done, label]) => <li key={label}>{done ? "✓" : "○"} {label}</li>)}</ul>
+        <h4 className="text-sm font-medium">Core finding progress</h4>
+        <ul className="space-y-2 text-xs">{findings.slice(0, 2).map((f, i) => <li key={f.key}>Finding {i + 1} · {findingPresence(f).filter(Boolean).length} of 9 added</li>)}</ul>
+        {findings.length > 2 ? <><h4 className="text-sm font-medium">Additional findings · optional</h4><ul className="space-y-2 text-xs">{findings.slice(2).map((f, i) => <li key={f.key}>Finding {i + 3} · {findingPresence(f).filter(Boolean).length} of 9 added</li>)}</ul></> : null}
         <p className="max-w-prose text-xs text-muted-foreground">Presence checks cannot judge your reasoning or verify every reference in free text. Read your IDs again to ensure Historical records and Your simulated activity are not mixed in the wrong fields. Nothing here blocks downloading.</p>
       </> : null}
       {stage === 7 ? <>

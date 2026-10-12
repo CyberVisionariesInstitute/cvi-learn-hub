@@ -4,6 +4,29 @@ import type { Finding, Learner } from "./types";
 
 const finding: Finding = { key: "F1", title: "Fictional title", refs: ["S-DEMO"], observation: "Observed", hypothesis: "Possible", conclusion: "Supported", uncertainty: "Unknown", nextAction: "Check", priority: "medium", rationale: "Impact" };
 describe("Case File presentation presence", () => {
+  it("evaluates the two core findings without letting an unfinished optional third change the baseline", () => {
+    const learner: Learner = { findings: [finding, { ...finding, key: "F2" }], comparison: { refs: ["S-DEMO"], text: "Compare" }, report: { limitations: "Unknowns" } };
+    const extra: Finding = { key: "F3", title: "", refs: [], observation: "", hypothesis: "", conclusion: "", uncertainty: "", nextAction: "", priority: "", rationale: "" };
+    const withExtra = { ...learner, findings: [...(learner.findings ?? []), extra] };
+    const before = JSON.stringify(withExtra);
+    const baseline = caseFilePresence(learner, ["S-DEMO"], []);
+    expect(baseline.findingEvidence).toBe(true);
+    expect(baseline.observationsAndConclusions).toBe(true);
+    expect(baseline.uncertaintyAndLimitations).toBe(true);
+    expect(baseline.nextActions).toBe(true);
+    expect(baseline.historicalSelections).toBe(true);
+    expect(caseFilePresence(withExtra, ["S-DEMO"], [])).toEqual(baseline);
+    expect(findingPresence(extra)).toEqual(Array(9).fill(false));
+    expect(JSON.stringify(withExtra)).toBe(before);
+  });
+  it("still reports missing baseline work in a core finding even with a complete extra", () => {
+    const learner: Learner = { findings: [finding, { ...finding, key: "F2", refs: [], observation: "", conclusion: "", uncertainty: "", nextAction: "" }, { ...finding, key: "F3" }], report: { limitations: "Unknowns" } };
+    const review = caseFilePresence(learner, ["S-DEMO"], []);
+    expect(review.findingEvidence).toBe(false);
+    expect(review.observationsAndConclusions).toBe(false);
+    expect(review.uncertaintyAndLimitations).toBe(false);
+    expect(review.nextActions).toBe(false);
+  });
   it("reports nine finding fields without judging their content or changing writing", () => {
     const before = JSON.stringify(finding);
     expect(findingPresence(finding)).toEqual(Array(9).fill(true));
