@@ -112,8 +112,10 @@ const WHY: Record<number, string> = {
 };
 
 /** Welcome-back card: resumes the last stage this browser saw for this account + attempt. Navigation only. */
-export function Week12Resume({ stage, attemptId, onStage, nextAction }: { stage: number; attemptId: string; onStage: (n: number) => void; nextAction: string }) {
+export function Week12Resume({ stage, attemptId, onStage, execOption }: { stage: number; attemptId: string; onStage: (n: number) => void; execOption: ExecOption }) {
   const { prefs, ready } = useGuidePrefs(attemptId);
+  const steps = stageSteps(stage, execOption);
+  const nextAction = steps[stageProgress(steps, prefs.stages[String(stage)]).current]?.doing ?? "";
   const [initial, setInitial] = useState<number | null>(null);
   useEffect(() => { if (ready && initial === null) setInitial(prefs.lastStage ?? 0); }, [ready, initial, prefs.lastStage]);
   const resume = initial && initial !== stage ? initial : null;
