@@ -49,7 +49,7 @@ export function Week12Guide({ stage, title, execOption, guide, onStage, stageRea
   const pref = prefs.stages[String(stage)];
   const p = stageProgress(steps, pref);
   const step = steps[p.current];
-  useEffect(() => { setPrefs((all) => (all.lastStage === stage ? all : { ...all, lastStage: stage })); }, [stage, setPrefs]);
+  useEffect(() => { if (guide.ready) setPrefs((all) => (all.lastStage === stage ? all : { ...all, lastStage: stage })); }, [stage, setPrefs, guide.ready]);
   if (!step) return null;
   const setStep = (current: number) => setPrefs((all) => ({ ...all, stages: { ...all.stages, [stage]: { completed: all.stages[stage]?.completed ?? [], current } } }));
   const mark = (id: string, on: boolean) => setPrefs((all) => {
