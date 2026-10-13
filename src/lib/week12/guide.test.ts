@@ -26,3 +26,11 @@ describe("Week 12 guide", () => {
     expect(stageProgress(steps, { current: 99, completed: [] }).current).toBe(steps.length - 1);
   });
 });
+
+describe("Week 12 guide named Stage 3 targets", () => {
+  it("Report header and Limitations select their own sections", () => {
+    const s3 = GUIDE_STEPS[3]!;
+    expect(s3.find((s) => s.id === "s3-header")!.links[0]!.section).toBe(0);
+    expect(s3.find((s) => s.id === "s3-limits")!.links[0]!.section).toBe(8);
+  });
+});
