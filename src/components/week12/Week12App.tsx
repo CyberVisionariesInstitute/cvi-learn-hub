@@ -92,7 +92,7 @@ function SaveStatus({ store }: { store: Week12Store }) {
   const s = store.saveState;
   return (
     <span role="status" aria-live="polite" className="text-xs text-muted-foreground">
-      {s.kind === "saving" ? "Saving…" : s.kind === "saved" ? `Saved ${s.at}` : s.kind === "failed" ? `Not saved: ${s.message}` : s.kind === "conflict"
+      {s.kind === "pending" ? "Saving…" : s.kind === "saving" ? "Saving…" : s.kind === "saved" ? `Saved ${s.at}` : s.kind === "failed" ? `Not saved: ${s.message}` : s.kind === "conflict"
         ? <>Changed in another tab. <button type="button" className="underline" onClick={() => void store.reloadAfterConflict()}>Save my version</button></> : "Autosaves as you type"}
     </span>
   );

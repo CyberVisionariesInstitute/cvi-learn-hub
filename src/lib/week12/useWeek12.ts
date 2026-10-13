@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import type { ExecOption, W12Content, Week12File, Week12View } from "./model";
 import { exportWeek12, exportWeek12File, refreshWeek12Source, saveWeek12Draft, setWeek12Volunteer, startOrResumeWeek12 } from "./week12.functions";
 
-export type SaveState = { kind: "idle" } | { kind: "saving" } | { kind: "saved"; at: string } | { kind: "failed"; message: string } | { kind: "conflict" };
+export type SaveState = { kind: "idle" } | { kind: "pending" } | { kind: "saving" } | { kind: "saved"; at: string } | { kind: "failed"; message: string } | { kind: "conflict" };
 
 const download = (blob: Blob, name: string) => {
   const url = URL.createObjectURL(blob);
@@ -61,7 +61,7 @@ export function useWeek12() {
 
   const schedule = useCallback(() => {
     dirty.current = true;
-    setSaveState({ kind: "idle" });
+    setSaveState({ kind: "pending" });
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => void flush(), 1200);
   }, [flush]);
