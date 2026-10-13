@@ -1,3 +1,4 @@
+import type React from "react";
 import { useEffect, useId, useMemo, useState } from "react";
 import { Badge, btn, btnPrimary, Card, input, Select, TextArea } from "@/components/week11/ui";
 import {
@@ -6,6 +7,9 @@ import {
 } from "@/lib/week12/model";
 import type { Week12Store } from "@/lib/week12/useWeek12";
 import { Week12Visual } from "./Week12Visual";
+import { useGuidePrefs, Week12Guide, Week12Resume } from "./Week12Guide";
+
+const A = ({ id, children, className = "" }: { id: string; children: React.ReactNode; className?: string }) => <div id={id} tabIndex={-1} className={`scroll-mt-64 outline-none ${className}`}>{children}</div>;
 
 export const STAGES = [
   { n: 1, title: "Review your case file", doing: "Read your own Week 11 Lab 06 case file and sort each statement: is it a fact, evidence, a finding, an interpretation, an unknown, or a recommendation?", proves: "Every source statement has a label. There are no right-answer marks — this is to sharpen your thinking." },
@@ -22,15 +26,12 @@ export function Week12App({ store, stage, onStage }: { store: Week12Store; stage
   const qa = useMemo(() => computeQA(v.snapshot, c, store.execOption), [v.snapshot, c, store.execOption]);
   const st = STAGES[stage - 1]!;
   const stageChecks = qa.checks.filter((x) => x.stage === stage);
-  const [open, setOpen] = useState(true);
-  const panelId = useId();
-  useEffect(() => { try { const s = localStorage.getItem("cvi:w12-companion"); if (s) setOpen(s === "1"); } catch { /* ignore */ } }, []);
-  const toggle = () => setOpen((o) => { try { localStorage.setItem("cvi:w12-companion", o ? "0" : "1"); } catch { /* ignore */ } return !o; });
+  const guide = useGuidePrefs(v.id);
   useEffect(() => { window.scrollTo({ top: 0 }); }, [stage]);
 
   return (
     <div className="mx-auto max-w-6xl space-y-4 px-3 py-5 sm:px-6">
-      <Card eyebrow="CyberFoundations · Week 12 · Final capstone" title="Communications Capstone — Portfolio Deliverable 5">
+      <A id="w12-top"><Card eyebrow="CyberFoundations · Week 12 · Final capstone" title="Communications Capstone — Portfolio Deliverable 5">
         <p className="text-sm">You already did the investigation in Week 11. This week you <strong>communicate</strong> it: a Technical Incident Report plus one executive communication (written or video). Don't add new incident facts — work from your own case file.</p>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
           {v.snapshot.sourceComplete ? <Badge tone="allow">Source: Week 11 Lab 06 complete</Badge> : <Badge tone="warn">DRAFT SOURCE</Badge>}
@@ -38,9 +39,11 @@ export function Week12App({ store, stage, onStage }: { store: Week12Store; stage
           <SaveStatus store={store} />
         </div>
         <Week12Visual stage="hero" />
-      </Card>
+      </Card></A>
 
       <SourceBanner store={store} />
+
+      <Week12Resume stage={stage} guide={guide} onStage={onStage} execOption={store.execOption} />
 
       <nav aria-label="Week 12 stages" className="overflow-x-hidden">
         <ol className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
@@ -62,21 +65,13 @@ export function Week12App({ store, stage, onStage }: { store: Week12Store; stage
 
       <Week12Visual stage={st.n} />
 
-      <section className="rounded-xl border border-primary/40 bg-primary/5 p-3 text-sm" aria-label="Current stage guide">
-        <div className="flex items-start justify-between gap-2">
-          <h2 className="font-display text-base">Stage {st.n}: {st.title}</h2>
-          <button type="button" className={`${btn} min-h-9 py-1 text-xs`} aria-expanded={open} aria-controls={panelId} onClick={toggle}>{open ? "Hide guide" : "Show guide"}</button>
-        </div>
-        {open ? (
-          <div id={panelId} className="mt-2 space-y-1">
-            <p><strong>What am I doing?</strong> {st.doing}</p>
-            <p><strong>What proves success?</strong> {st.proves}</p>
-            {stageChecks.length ? (
-              <ul className="mt-1 space-y-0.5">{stageChecks.map((x) => <li key={x.id}>{x.ok ? "✓" : "◌"} {x.label}{!x.ok && x.missing.length ? <span className="block pl-5 text-xs text-muted-foreground">{x.missing.slice(0, 3).join(" ")}</span> : null}</li>)}</ul>
-            ) : null}
-          </div>
-        ) : null}
-      </section>
+      <div className="rounded-xl border border-border bg-surface p-3 text-sm">
+        <p><strong>Stage {st.n}: {st.title}.</strong> {st.doing}</p>
+        <p className="mt-1 text-xs text-muted-foreground"><strong>What proves success?</strong> {st.proves}</p>
+        {stageChecks.length ? <ul className="mt-1 space-y-0.5 text-xs">{stageChecks.map((x) => <li key={x.id}>{x.ok ? "✓" : "◌"} {x.label}</li>)}</ul> : null}
+      </div>
+
+      <Week12Guide stage={st.n} title={st.title} execOption={store.execOption} guide={guide} onStage={onStage} stageReady={stageChecks.length > 0 && stageChecks.every((x) => x.ok)} />
 
       {stage === 1 ? <StageReview store={store} /> : null}
       {stage === 2 ? <StageFindings store={store} /> : null}
