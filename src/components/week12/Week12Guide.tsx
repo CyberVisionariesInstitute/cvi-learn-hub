@@ -36,10 +36,12 @@ export function useGoTo(stage: number, onStage: (n: number) => void) {
   };
 }
 
-export function Week12Guide({ stage, title, execOption, attemptId, onStage, stageReady }: {
-  stage: number; title: string; execOption: ExecOption; attemptId: string; onStage: (n: number) => void; stageReady: boolean;
+export type GuideState = ReturnType<typeof useGuidePrefs>;
+
+export function Week12Guide({ stage, title, execOption, guide, onStage, stageReady }: {
+  stage: number; title: string; execOption: ExecOption; guide: GuideState; onStage: (n: number) => void; stageReady: boolean;
 }) {
-  const { prefs, setPrefs } = useGuidePrefs(attemptId);
+  const { prefs, setPrefs } = guide;
   const go = useGoTo(stage, onStage);
   const panelId = useId();
   const [open, setOpen] = useState(true);
@@ -112,8 +114,8 @@ const WHY: Record<number, string> = {
 };
 
 /** Welcome-back card: resumes the last stage this browser saw for this account + attempt. Navigation only. */
-export function Week12Resume({ stage, attemptId, onStage, execOption }: { stage: number; attemptId: string; onStage: (n: number) => void; execOption: ExecOption }) {
-  const { prefs, ready } = useGuidePrefs(attemptId);
+export function Week12Resume({ stage, guide, onStage, execOption }: { stage: number; guide: GuideState; onStage: (n: number) => void; execOption: ExecOption }) {
+  const { prefs, ready } = guide;
   const steps = stageSteps(stage, execOption);
   const nextAction = steps[stageProgress(steps, prefs.stages[String(stage)]).current]?.doing ?? "";
   const [initial, setInitial] = useState<number | null>(null);
