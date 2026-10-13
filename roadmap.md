@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Week 12 Week-11-style instructional flow: six-stage step guide, one-at-a-time statements/findings/sections/recommendations, resume, Stage 6 status + submission handoff; Final QA/data/exports unchanged; practice-harness desktop/390px walkthrough; not deployed
+
 - [x] Week 11 Case File four focused corrections: public section titles, three live-ID groups, core versus optional finding presence, scope/limitations distinction; 204 tests, desktop/390px fictional-store checks and protected-file fingerprints passed; preview only
 
 - [x] Week 11 Lab 06 guided Case File builder: nine finding steps, twelve sections in four phases, separate limitations and non-grading review; 201 tests, fictional saved-work desktop/390px checks, protected-file checksums; preview only
