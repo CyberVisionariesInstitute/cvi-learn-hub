@@ -32,7 +32,9 @@ export function useGoTo(stage: number, onStage: (n: number) => void) {
       const field = el.matches("input,textarea,select,button") ? el : el.querySelector<HTMLElement>("input,textarea,select,button,summary");
       (field ?? el).focus({ preventScroll: true });
     };
-    if (target.stage !== stage) { onStage(target.stage); setTimeout(focus, 150); } else focus();
+    const select = () => { if (target.section !== undefined) window.dispatchEvent(new CustomEvent("w12:select-section", { detail: target.section })); };
+    if (target.stage !== stage) { onStage(target.stage); setTimeout(() => { select(); setTimeout(focus, 60); }, 150); }
+    else { select(); setTimeout(focus, 60); }
   };
 }
 

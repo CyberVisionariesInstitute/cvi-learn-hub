@@ -5,7 +5,7 @@
  */
 import type { ExecOption } from "./model";
 
-export interface GuideTarget { label: string; stage: number; anchor: string }
+export interface GuideTarget { label: string; stage: number; anchor: string; /** Stage 3 pager index to select before focusing (navigation only). */ section?: number }
 export interface GuideStep {
   id: string;
   /** Only shown when the student has chosen this Stage 4 path. */
@@ -15,7 +15,7 @@ export interface GuideStep {
   help?: string;
 }
 
-const t = (label: string, stage: number, anchor: string): GuideTarget => ({ label, stage, anchor });
+const t = (label: string, stage: number, anchor: string, section?: number): GuideTarget => (section === undefined ? { label, stage, anchor } : { label, stage, anchor, section });
 
 export const GUIDE_STEPS: Record<number, GuideStep[]> = {
   1: [
@@ -35,10 +35,10 @@ export const GUIDE_STEPS: Record<number, GuideStep[]> = {
     { id: "s2-next", doing: "Repeat for your second finding.", where: "\"Next finding →\" — or \"+ Add another evidence-supported finding\" if you have fewer than two.", lookFor: "Finding 2 with its own statement, references, confidence and uncertainty.", whenDone: "At least two findings each have a statement and a ✓ reference.", links: [t("Finding picker", 2, "w12-finding-picker")] },
   ],
   3: [
-    { id: "s3-header", doing: "Fill in the report header.", where: "Stage 3 → section \"Report header\": \"Report title\" and \"Analyst (your name)\".", lookFor: "A clear title and your own name.", whenDone: "Both boxes are filled.", links: [t("Report header", 3, "w12-report-section")] },
+    { id: "s3-header", doing: "Fill in the report header.", where: "Stage 3 → section \"Report header\": \"Report title\" and \"Analyst (your name)\".", lookFor: "A clear title and your own name.", whenDone: "Both boxes are filled.", links: [t("Report header", 3, "w12-report-section", 0)] },
     { id: "s3-sections", doing: "Write ONE report section, then choose \"Save & next section →\".", where: "Stage 3 → \"Section X of 10\" bar. Each section has its own prompt and sentence starter.", lookFor: "The \"What belongs here?\" prompt for the section on screen.", whenDone: "Each written section has at least one or two full sentences (20+ characters).", links: [t("Current report section", 3, "w12-report-section")], help: "Your typing autosaves. Moving between sections never deletes anything." },
     { id: "s3-auto", doing: "Check sections 5 and 7 — you do not write them here.", where: "Section 5 (Findings) and Section 7 (Recommendations) in the Stage 3 section bar.", lookFor: "Section 5 is filled automatically from Stage 2. Section 7 is filled automatically from Stage 5.", whenDone: "You know recommendations wait until Stage 5 — no copy-paste needed.", links: [t("Stage 2 findings", 2, "w12-finding-picker"), t("Stage 5 recommendations", 5, "w12-rec-picker")] },
-    { id: "s3-limits", doing: "Write the limitations section.", where: "Section 8 \"Limitations / unknowns\".", lookFor: "What the evidence cannot tell you and data you did not have.", whenDone: "At least one full sentence (20+ characters).", links: [t("Current report section", 3, "w12-report-section")] },
+    { id: "s3-limits", doing: "Write the limitations section.", where: "Section 8 \"Limitations / unknowns\".", lookFor: "What the evidence cannot tell you and data you did not have.", whenDone: "At least one full sentence (20+ characters).", links: [t("Section 8 Limitations / unknowns", 3, "w12-report-section", 8)] },
     { id: "s3-wording", doing: "Check for high-certainty wording in the report.", where: "Bottom of Stage 3 → yellow wording box (only shown if flagged).", lookFor: "Flagged words in Purpose, Timeline, Impact or Conclusion.", whenDone: "Each flag is reworded or has an evidence note.", links: [t("Wording check", 3, "w12-coach")] },
   ],
   4: [

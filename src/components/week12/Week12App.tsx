@@ -232,6 +232,7 @@ function RefsInput({ value, onChange, valid }: { value: string[]; onChange: (v: 
       <label htmlFor={id} className="block text-sm font-medium">Evidence / event references</label>
       <span className="block text-xs text-muted-foreground">Comma-separated. Format example only (fictional): EV-XYZ999-001, LIB-77</span>
       <p className="mt-1 text-xs text-muted-foreground">Use the evidence/event IDs from your Week 11 Case File shown in Stage 1. Do not invent new IDs.</p>
+      <p className="mt-1 text-xs font-medium">After typing IDs, click outside the box or press Tab to show the reference badges.</p>
       <details className="mt-1 text-xs"><summary className="cursor-pointer">Where do I find these IDs?</summary>
         <p className="mt-1 text-muted-foreground">Valid references come from your Week 11 source and evidence list, already displayed in Stage 1 of this capstone. Copy the IDs exactly as they appear there.</p>
       </details>
@@ -329,6 +330,11 @@ function StageReport({ store }: { store: Week12Store }) {
   const flags = coachFlags(store.content!, store.execOption).filter((f) => f.field.startsWith("report:"));
   const [idx, setIdx] = useState(0);
   const [all, setAll] = useState(false);
+  useEffect(() => {
+    const on = (e: Event) => { const n = (e as CustomEvent<number>).detail; if (Number.isInteger(n)) { setIdx(n); setAll(false); } };
+    window.addEventListener("w12:select-section", on);
+    return () => window.removeEventListener("w12:select-section", on);
+  }, []);
   const filled = (s: (typeof REPORT_STEPS)[number]) => s.auto === "findings" ? store.content!.findings.length > 0 : s.auto === "recs" ? store.content!.recommendations.length > 0 : (s.keys ?? []).every((k) => r[k].trim().length >= (k === "title" ? 5 : k === "analyst" ? 1 : 20));
   const section = (s: (typeof REPORT_STEPS)[number], i: number) => (
     <Card key={s.n} eyebrow={s.n === "Header" ? `Section ${i + 1} of ${REPORT_STEPS.length}` : `Section ${i + 1} of ${REPORT_STEPS.length} · Report section ${s.n}`} title={s.title}>
