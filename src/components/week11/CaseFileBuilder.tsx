@@ -130,7 +130,7 @@ export function CaseFileBuilder({ store, onView }: { store: Week11Store; onView?
         <TextArea label="Write these three ideas together" help="Use one paragraph or three short parts in this same field." value={learner.comparison?.text ?? ""} onChange={(text) => setLearner((l) => ({ ...l, comparison: { refs: l.comparison?.refs ?? [], text } }))} />
       </> : null}
       {stage === 3 ? <>
-        <h3 className="font-display text-lg">4. Show one example from your own Week 11 work.</h3><p className="text-sm">Choose records that show: Action → recorded change/test → result.</p><p className="max-w-prose text-xs text-muted-foreground">Use IDs from Your simulated activity here, not Historical S/A records.</p>
+        <h3 className="font-display text-lg">4. Show one example from your own Week 11 work.</h3><p className="text-sm">Choose your own activity from Labs 01–05: Alex’s Lab 05 changes or Casey’s Lab 04 actions are examples. Casey is not required.</p><p className="text-sm">Use LA-/AT- IDs from Your simulated activity to show: Action → recorded test/change → result.</p><p className="max-w-prose text-xs text-muted-foreground">Historical S/A IDs, such as Alex’s A003 or Casey’s A002, belong to the scenario history. Do not use them as live activity.</p>
         <TextArea label="In 1–3 sentences, explain what you did and what the simulator recorded." value={rep.liveChain ?? ""} onChange={(liveChain) => setRep({ liveChain })} />
         <Starter text="During my Week 11 work, I performed ________. Record ________ shows ________." />
         <p className="text-xs text-muted-foreground">Choose an ID to add it to your writing. Nothing is selected automatically.</p>

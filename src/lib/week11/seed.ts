@@ -574,7 +574,7 @@ export const missions: MissionSeed[] = [
       "Correlate sign-ins with audit changes. Explain what a shared correlation ID supports — and does not prove.",
       "Record one benign or ambiguous comparison (for example a documented typo or VPN context) with its source records.",
       "For each finding fill observation, hypothesis, supported conclusion, uncertainty, next action, priority and why.",
-      "Add one live simulator audit/access chain from your earlier missions, labelled separately from historical records.",
+      "Add one live simulator audit/access chain from your own Labs 01–05 activity (for example Alex’s Lab 05 changes or Casey’s Lab 04 actions; Casey is not required). Use LA-/AT- IDs from Your simulated activity to show action → recorded test/change → result. Historical S/A IDs, such as Alex’s A003 or Casey’s A002, must not be used as live activity.",
       "Assemble the case file sections, preliminary response recommendations and explicit simulation limitations.",
       "Open Download & GitHub, review the missing-items list for Lab 06, fix anything missing, then download the complete ZIP and upload it to your GitHub portfolio. Week 12 uses this case file as source material.",
     ],
