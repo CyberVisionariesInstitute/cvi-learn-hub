@@ -543,6 +543,24 @@
 }
 
 /* Week 11 guided view: keep embedded simulator records readable (no tiny text). */
-.w11-guided-tool .text-xs { font-size: 0.9375rem; line-height: 1.5; }
-.w11-guided-tool .text-sm { font-size: 1rem; line-height: 1.6; }
-.w11-guided-tool .text-\[0\.7rem\] { font-size: 0.875rem; }
+.w11-guided :is(.text-xs, .text-sm, .text-\[0\.7rem\]) { font-size: 1rem; line-height: 1.6; }
+.w11-guided :is(.w11-guidance, .w11-activity) :is(p, li, label, legend, summary) {
+  overflow-wrap: anywhere;
+}
+.w11-guided .w11-guidance :is(p, li) { font-size: 1.125rem; line-height: 1.6; }
+.w11-guided :is(h1, h2, h3, h4) { letter-spacing: 0; }
+.w11-guided-intro img { max-height: 160px; }
+.w11-guided-intro section > div.relative { min-height: 160px; padding: 1rem; }
+/* The current account is the task, not a competing full directory sidebar. */
+.w11-tool-content > .grid:has(> .space-y-4) { grid-template-columns: minmax(0, 1fr); }
+.w11-tool-content > .grid:has(> .space-y-4) > div:first-child { display: none; }
+.w11-tool-content > .grid:has(> .space-y-4) .lg\:hidden { display: inline-flex; }
+/* Expanded ID choices follow the page scroll, rather than a nested panel. */
+.w11-guided .max-h-64.overflow-auto { max-height: none; overflow: visible; }
+.w11-guided :is(input, textarea, select, button, a, summary) { scroll-margin-block: 1rem; }
+@media (max-width: 639px) {
+  .w11-guided nav[aria-label="Step navigation"] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .w11-guided nav[aria-label="Step navigation"] label { grid-column: 1 / -1; grid-row: 2; width: 100%; }
+  .w11-guided nav[aria-label="Step navigation"] select { max-width: none; }
+  .w11-guided nav[aria-label="Step navigation"] button { white-space: normal; height: auto; min-height: 44px; }
+}

@@ -67,8 +67,7 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
   if (index === null) return <p role="status" className="p-8 text-lg">Opening your labs…</p>;
   const screen = GUIDED_SCREENS[index];
   if (!screen) return null;
-  const lab = GUIDED_LABS.find((l) => l.n === screen.lab);
-  if (!lab) return null;
+  const lab = GUIDED_LABS.find((l) => l.n === screen.lab) ?? { title: "Optional practice", why: "Explore further when you want more practice." };
   const inLab = labScreens(screen.lab);
   const isLabStart = inLab[0]!.id === screen.id;
   const isMissionStart = !screen.optional && GUIDED_SCREENS.find((s) => s.mission === screen.mission && !s.example)!.id === screen.id;
@@ -316,7 +315,7 @@ function ToolPanel({ store, links, mission }: { store: Week11Store; links: Nav[]
           {(["AD", "CLOUD"] as Directory[]).map((d) => <button key={d} type="button" aria-pressed={dir === d} onClick={() => switchDir(d)} className={`min-h-11 rounded-md border px-3 text-base font-semibold uppercase ${dir === d ? "border-primary bg-primary/15" : "border-border"}`}>{directoryLabel(d)}</button>)}
         </div>
       ) : null}
-      <div role={links.length > 1 ? "tabpanel" : undefined}>
+      <div className="w11-tool-content" role={links.length > 1 ? "tabpanel" : undefined}>
         {link.view === "users" ? <UsersView store={store} dir={dir} selected={selected} onSelect={setSelected} mission={mission} go={go} /> : null}
         {link.view === "groups" ? <GroupsView store={store} dir={dir} /> : null}
         {link.view === "ous" ? <OUsView store={store} dir={dir} /> : null}
