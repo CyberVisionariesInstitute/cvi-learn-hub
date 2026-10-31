@@ -24,7 +24,7 @@ export function Week11Hero() {
       <div className="relative flex min-h-[190px] max-w-lg flex-col justify-center p-5 sm:min-h-[260px] sm:p-8">
         <p className="font-display text-xs tracking-[0.2em] text-primary uppercase">Meet Ivy · Security & Identity Analyst</p>
         <h2 id="w11-hero" className="mt-2 font-display text-xl sm:text-2xl">Welcome to the Identity Center</h2>
-        <p className="mt-2 text-sm">Ivy guides you through six missions: who is who, how access is decided, and how to prove it with evidence. The console below is yours — Ivy only steps in at mission briefings and the investigation.</p>
+        <p className="mt-2 text-sm">Ivy guides you through the labs: who is who, how access is decided, and how to prove it with evidence. The console below is yours — Ivy only steps in at mission briefings and the investigation.</p>
       </div>
     </section>
   );

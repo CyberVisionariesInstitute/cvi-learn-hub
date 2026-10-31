@@ -4,9 +4,10 @@ import { cyberfoundations } from "@/lib/demo-lab/programs";
 import { Simulator, VIEWS, type View } from "@/components/week11/Simulator";
 import { useWeek11 } from "@/lib/week11/useWeek11";
 import { supabase } from "@/integrations/supabase/client";
+import { GuidedApp } from "@/components/week11/guided/GuidedApp";
 
-interface Search { view?: View | undefined; mission?: string | undefined }
-const description = "Week 11 browser-based simulated AD/IAM administration: six connected missions in the fictional Cloud Heights Identity Center, ending in the IAM Investigation Case File (Portfolio Deliverable 4). Week 12 turns it into the final incident report and presentation.";
+interface Search { view?: View | undefined; mission?: string | undefined; mode?: "classic" | undefined }
+const description = "Week 11 browser-based simulated AD/IAM administration: three guided labs in the fictional Cloud Heights Identity Center, ending in the IAM Investigation Case File (Portfolio Deliverable 4). Week 12 turns it into the final incident report and presentation.";
 
 export const Route = createFileRoute("/cyberfoundations/week-11/")({
   ssr: false,
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/cyberfoundations/week-11/")({
   validateSearch: (s: Record<string, unknown>): Search => ({
     view: typeof s['view'] === "string" && (VIEWS as readonly string[]).includes(s['view']) ? (s['view'] as View) : undefined,
     mission: typeof s['mission'] === "string" && /^M0[1-6]$/.test(s['mission']) ? s['mission'] : undefined,
+    mode: s['mode'] === "classic" ? "classic" : undefined,
   }),
   beforeLoad: async ({ location }) => {
     const { data } = await supabase.auth.getSession();
@@ -42,6 +44,7 @@ function Week11Page() {
     <DemoLabShell themeClass={cyberfoundations.themeClass}>
       {store.loadError ? <p role="alert" className="mx-auto max-w-3xl p-8 text-sm">Could not open your Week 11 attempt: {store.loadError}. Refresh to try again; nothing was changed.</p>
         : !store.view ? <p className="mx-auto max-w-3xl p-8 text-sm" role="status">Opening your Cloud Heights Identity Center attempt…</p>
+        : search.mode !== "classic" && !search.view ? <GuidedApp store={store} onClassic={() => navigate({ search: { mode: "classic", view: "dashboard" } })} />
         : <Simulator store={store} view={view} mission={mission} onView={(v) => navigate({ search: (p: Search) => ({ ...p, view: v }) })} onMission={(m) => navigate({ search: (p: Search) => ({ ...p, mission: m }) })} />}
     </DemoLabShell>
   );

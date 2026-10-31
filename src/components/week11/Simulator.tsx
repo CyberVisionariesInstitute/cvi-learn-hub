@@ -50,12 +50,13 @@ export function Simulator({ store, view, onView, mission, onMission }: { store: 
       <p role="note" className="rounded-md border border-amber/60 bg-amber/10 px-3 py-2 text-sm text-foreground">{SIMULATION_BANNER}</p>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
         <div>
+          <a href="/cyberfoundations/week-11" className="text-sm underline">← Back to the guided labs</a>
           <p className="font-display text-xs tracking-[0.2em] text-primary uppercase">CyberFoundations · Module 4 · Week 11</p>
           <h1 className="font-display text-2xl">Cloud Heights Identity Center</h1>
           <p className="text-xs text-muted-foreground">You — Junior IAM/Security Analyst (sim-junior-analyst) · attempt {v.shortId} · revision {v.revision} · scenario time (fictional) {scenarioTime(v.state.seq)}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-sm" aria-live="polite">
-          {save.kind === "saving" ? <Badge>Saving…</Badge> : save.kind === "saved" ? <Badge tone="allow">Saved at {save.at}</Badge> : save.kind === "failed" ? <Badge tone="deny">Not saved: {save.message}</Badge> : save.kind === "conflict" ? <><Badge tone="warn">Changed in another tab</Badge><button type="button" className={btn} onClick={() => void store.reloadAfterConflict()}>Review & reapply my text</button></> : null}
+          {save.kind === "saving" || save.kind === "pending" ? <Badge>Saving…</Badge> : save.kind === "saved" ? <Badge tone="allow">Saved at {save.at}</Badge> : save.kind === "failed" ? <Badge tone="deny">Not saved: {save.message}</Badge> : save.kind === "conflict" ? <><Badge tone="warn">Changed in another tab</Badge><button type="button" className={btn} onClick={() => void store.reloadAfterConflict()}>Review & reapply my text</button></> : null}
           <button type="button" className={btn} onClick={() => void store.flush()}>Save</button>
         </div>
       </div>
@@ -114,6 +115,12 @@ export function Simulator({ store, view, onView, mission, onMission }: { store: 
   );
 }
 
+export const traceObjectsFor = (v: NonNullable<Week11Store["view"]>) => [
+    ...v.state.people.map((p) => `${p.key} ${p.name}`), ...v.state.accounts.map((a) => `${a.key} (${a.upn})`), ...v.state.accounts.map((a) => `${a.key}.department=${a.dept}`),
+    "GA-RESP Response-Team", "GC-RESP Response-Operators", "GC-JUN Junior-Analysts", "GC-READ Case-Readers", "OU-RESP Response", "OU-SUP Support", "OU-DIS Disabled Accounts",
+    "RL-RESP Response Agent @ R-QUEUE", "RL-READ Case Reader @ R-CASE", "RL-LAND Landing Reader @ R-LAND", "queue → read", "queue → update", "case → read", "ad_file R-ADRESP → read (ACL)",
+];
+
 function Dashboard({ store, onView, onMission }: { store: Week11Store; onView: (v: View) => void; onMission: (m: string) => void }) {
   const v = store.view!;
   const s = v.state;
@@ -170,11 +177,7 @@ function MissionView({ store, mission, onMission, onView, go }: { store: Week11S
   const setAns = (id: string, val: string) => store.setLearner((l) => ({ ...l, missions: { ...(l.missions ?? {}), [m.key]: { ...(l.missions?.[m.key] ?? {}), answers: { ...ans, [id]: val } } } }));
   const trace = store.learner.missions?.["M01"]?.trace ?? {};
   const setTrace = (id: string, val: string) => store.setLearner((l) => ({ ...l, missions: { ...(l.missions ?? {}), M01: { ...(l.missions?.["M01"] ?? {}), trace: { ...trace, [id]: val } } } }));
-  const traceObjects = [
-    ...v.state.people.map((p) => `${p.key} ${p.name}`), ...v.state.accounts.map((a) => `${a.key} (${a.upn})`), ...v.state.accounts.map((a) => `${a.key}.department=${a.dept}`),
-    "GA-RESP Response-Team", "GC-RESP Response-Operators", "GC-JUN Junior-Analysts", "GC-READ Case-Readers", "OU-RESP Response", "OU-SUP Support", "OU-DIS Disabled Accounts",
-    "RL-RESP Response Agent @ R-QUEUE", "RL-READ Case Reader @ R-CASE", "RL-LAND Landing Reader @ R-LAND", "queue → read", "queue → update", "case → read", "ad_file R-ADRESP → read (ACL)",
-  ];
+  const traceObjects = traceObjectsFor(v);
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-1.5" role="group" aria-label="Missions">{missions.map((x) => <button key={x.key} type="button" aria-pressed={x.key === m.key} className={`${btn} text-xs ${x.key === m.key ? "border-primary bg-primary/10" : ""}`} onClick={() => onMission(x.key)}>{x.lab}</button>)}</div>

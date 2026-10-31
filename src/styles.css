@@ -50,6 +50,11 @@
   --color-signal-foreground: var(--signal-foreground);
   --color-amber: var(--amber);
   --color-violet: var(--violet);
+  --color-reading: var(--reading);
+  --color-reading-foreground: var(--reading-foreground);
+  --color-reading-muted: var(--reading-muted);
+  --color-reading-accent: var(--reading-accent);
+  --color-reading-border: var(--reading-border);
   --color-evidence: var(--evidence);
   --color-terminal: var(--terminal);
   --color-terminal-foreground: var(--terminal-foreground);
@@ -100,6 +105,11 @@
   --signal-foreground: oklch(0.18 0.05 250);
   --amber: oklch(0.8 0.14 76);
   --violet: oklch(0.68 0.15 305);
+  --reading: oklch(0.975 0.008 300);
+  --reading-foreground: oklch(0.22 0.04 285);
+  --reading-muted: oklch(0.42 0.04 285);
+  --reading-accent: oklch(0.48 0.17 300);
+  --reading-border: oklch(0.86 0.03 300);
   --evidence: oklch(0.78 0.14 165);
   --terminal: oklch(0.15 0.03 250);
   --terminal-foreground: oklch(0.88 0.12 165);
@@ -531,3 +541,8 @@
     transform: none;
   }
 }
+
+/* Week 11 guided view: keep embedded simulator records readable (no tiny text). */
+.w11-guided-tool .text-xs { font-size: 0.9375rem; line-height: 1.5; }
+.w11-guided-tool .text-sm { font-size: 1rem; line-height: 1.6; }
+.w11-guided-tool .text-\[0\.7rem\] { font-size: 0.875rem; }

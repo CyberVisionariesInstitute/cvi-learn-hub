@@ -7,7 +7,7 @@ import {
   captureWeek11Evidence, executeWeek11Command, exportWeek11, exportWeek11Lab, resetWeek11, saveWeek11Text, startOrResumeWeek11,
 } from "./week11.functions";
 
-export type TextSave = { kind: "idle" } | { kind: "saving" } | { kind: "saved"; at: string } | { kind: "failed"; message: string } | { kind: "conflict" };
+export type TextSave = { kind: "idle" } | { kind: "pending" } | { kind: "saving" } | { kind: "saved"; at: string } | { kind: "failed"; message: string } | { kind: "conflict" };
 
 const key = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
 
@@ -70,7 +70,7 @@ export function useWeek11() {
       return next;
     });
     dirty.current = true;
-    setTextSave({ kind: "idle" });
+    setTextSave({ kind: "pending" });
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => void flush(), 1200);
   }, [flush]);
