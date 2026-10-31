@@ -99,7 +99,7 @@ export function ticketOutcome(s: SimState, key: string, target: "resolved" | "es
         cl?.dept !== "DEP-AUD" && "cl-alex's department attribute is not Audit.",
         has(s, "cl-alex", "GC-RESP") && "cl-alex still has the Response operational membership.",
         !has(s, "cl-alex", "GC-AUD") && "cl-alex is missing the approved Audit membership.",
-        has(s, "ad-alex", "GA-RESP") && !has(s, "ad-alex", "GA-AUD") ? null : (has(s, "ad-alex", "GA-AUD") && !has(s, "ad-alex", "GA-ALL")) && "Alex lost the staff membership the handbook depends on.",
+        !has(s, "ad-alex", "GA-ALL") && "Alex lost the staff membership the handbook depends on.",
       );
       break;
     }
