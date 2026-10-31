@@ -43,7 +43,8 @@ const PLAIN: Record<string, { everyday: string; term: string; link: string }> = 
 const VIEW_LABELS: Record<string, string> = { users: "Users", groups: "Groups", ous: "Organizational Units", roles: "Roles & Access", resources: "Resources", tickets: "Help Desk / IAM Tickets", signins: "Sign-in Logs", audit: "Audit Logs", evidence: "Evidence Tray", report: "Case File", downloads: "Download & GitHub" };
 
 export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic: () => void }) {
-  const v = store.view!;
+  const v = store.view;
+  if (!v) return null;
   const storageKey = guidedKey(v.id);
   const [index, setIndex] = useState<number | null>(null);
   const [showCaseFile, setShowCaseFile] = useState(false);
@@ -64,8 +65,10 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
   };
 
   if (index === null) return <p role="status" className="p-8 text-lg">Opening your labs…</p>;
-  const screen = GUIDED_SCREENS[index]!;
-  const lab = GUIDED_LABS.find((l) => l.n === screen.lab)!;
+  const screen = GUIDED_SCREENS[index];
+  if (!screen) return null;
+  const lab = GUIDED_LABS.find((l) => l.n === screen.lab);
+  if (!lab) return null;
   const inLab = labScreens(screen.lab);
   const isLabStart = inLab[0]!.id === screen.id;
   const isMissionStart = !screen.optional && GUIDED_SCREENS.find((s) => s.mission === screen.mission && !s.example)!.id === screen.id;
@@ -74,74 +77,79 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
   const resumed = v.state.seq > 0 || v.textRevision > 0;
 
   return (
-    <div className="w11-guided mx-auto max-w-3xl px-4 py-6 sm:px-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="font-display text-sm tracking-[0.2em] text-primary uppercase">Week 11 · Cloud Heights Identity Center</p>
+    <div className="w11-guided mx-auto w-full max-w-[1440px] px-4 py-4 sm:px-6">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+        <div className="min-w-0">
+          <p className="font-display text-sm text-primary">Week 11 · Cloud Heights Identity Center</p>
           <p className="mt-1 text-base text-muted-foreground">Practice data only — every person and account here is fictional.</p>
         </div>
-        <p aria-live="polite" className="rounded-md border border-border px-3 py-1.5 text-base">
+        <p aria-live="polite" className="max-w-40 shrink-0 break-words border-l border-border pl-3 text-base">
           {save.kind === "pending" || save.kind === "saving" ? "Saving…" : save.kind === "saved" ? `Saved ✓ ${save.at}` : save.kind === "failed" ? `Not saved — ${save.message}` : save.kind === "conflict" ? "Changed in another tab" : "All work saved"}
         </p>
       </header>
-      {save.kind === "conflict" ? <button type="button" className="mt-2 underline" onClick={() => void store.reloadAfterConflict()}>Review and reapply my text</button> : null}
+      {save.kind === "conflict" ? <Button type="button" variant="link" onClick={() => void store.reloadAfterConflict()}>Review and reapply my text</Button> : null}
 
-      <nav aria-label="Week 11 labs" className="mt-4">
-        <ol className="grid gap-2 sm:grid-cols-4">
+      <div className="mt-3 grid gap-2 border-b border-border pb-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+        <div className="min-w-0">
+          <p className="text-base text-primary">{positionLabel(index)}</p>
+          <p className="font-display text-xl font-semibold">{screen.optional ? "Optional practice" : lab.title}{screen.part ? ` · ${screen.part}` : ""}</p>
+        </div>
+        <details className="min-w-0 sm:max-w-xl">
+          <summary className="min-h-11 cursor-pointer content-center text-base">Change lab or open optional practice</summary>
+      <nav aria-label="Week 11 labs" className="mt-2">
+        <ol className="grid gap-2 sm:grid-cols-2">
           {GUIDED_LABS.map((l) => {
             const ready = labDone(l.n);
             const current = l.n === screen.lab;
             return (
               <li key={l.n}>
-                <button type="button" aria-current={current ? "step" : undefined} onClick={() => go(GUIDED_SCREENS.findIndex((s) => s.lab === l.n))}
-                  className={`min-h-11 w-full rounded-lg border px-3 py-2 text-left text-base ${current ? "border-violet bg-violet/15" : "border-border"}`}>
+                <Button variant="outline" type="button" aria-current={current ? "step" : undefined} onClick={() => go(GUIDED_SCREENS.findIndex((s) => s.lab === l.n))}
+                  className={`h-auto min-h-11 w-full min-w-0 flex-col items-start whitespace-normal rounded-lg border px-3 py-2 text-left text-base ${current ? "border-violet bg-violet/15" : "border-border"}`}>
                   <span className="block text-sm text-muted-foreground">Lab {l.n} · {l.minutes}{ready ? " · ✓ done" : ""}</span>
                   <span className="font-medium">{l.title}</span>
-                </button>
+                </Button>
               </li>
             );
           })}
           <li>
-            <button type="button" aria-current={screen.optional ? "step" : undefined} onClick={() => go(FIRST_OPTIONAL)}
-              className={`min-h-11 w-full rounded-lg border border-dashed px-3 py-2 text-left text-base ${screen.optional ? "border-violet bg-violet/15" : "border-border"}`}>
+            <Button variant="outline" type="button" aria-current={screen.optional ? "step" : undefined} onClick={() => go(FIRST_OPTIONAL)}
+              className={`h-auto min-h-11 w-full min-w-0 flex-col items-start whitespace-normal rounded-lg border border-dashed px-3 py-2 text-left text-base ${screen.optional ? "border-violet bg-violet/15" : "border-border"}`}>
               <span className="block text-sm text-muted-foreground">Not required</span>
               <span className="font-medium">Optional practice</span>
-            </button>
+            </Button>
           </li>
         </ol>
       </nav>
 
-      <div className="mt-3 flex flex-wrap gap-2 text-base">
-        <button type="button" className="min-h-11 underline" onClick={() => setShowCaseFile((x) => !x)} aria-expanded={showCaseFile}>{showCaseFile ? "Back to my step" : "Open my Case File"}</button>
+      <div className="mt-1 flex flex-wrap items-center gap-2 text-base">
+        <Button type="button" variant="link" className="min-h-11 px-0 text-base" onClick={() => setShowCaseFile((x) => !x)} aria-expanded={showCaseFile}>{showCaseFile ? "Back to my step" : "Open my Case File"}</Button>
         <span aria-hidden className="text-muted-foreground">·</span>
-        <button type="button" className="min-h-11 underline" onClick={onClassic}>Classic six-lab view</button>
+        <Button type="button" variant="link" className="min-h-11 px-0 text-base" onClick={onClassic}>Classic six-lab view</Button>
+      </div>
+
+        </details>
       </div>
 
       {showCaseFile ? (
         <section className="mt-4" aria-label="Case File"><CaseFileBuilder store={store} /></section>
       ) : (
         <>
+          <div className="w11-guided-workspace mt-4 grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+          <article className="w11-guidance min-w-0 border-l-2 border-reading-accent bg-reading p-4 text-lg leading-relaxed text-reading-foreground sm:p-5" aria-labelledby="w11g-goal">
           {screen.optional ? (
             <p className="mt-4 rounded-lg border border-dashed border-border p-3 text-lg"><strong>Optional practice.</strong> This does not count toward finishing Week 11. Anything you already did here is kept and still shows in your downloads.</p>
           ) : null}
           {screen.example ? (
             <p className="mt-4 rounded-lg border border-violet/50 bg-violet/10 p-3 text-lg"><strong>Worked example.</strong> Follow along — there is nothing to save on this step. Next, you'll try a similar task on your own.</p>
           ) : null}
-          {isLabStart && !screen.optional ? (
-            <div className="mt-4 space-y-3">
-              {screen.lab === 1 ? <Week11Hero /> : <MissionArt mission={screen.mission} />}
-            </div>
-          ) : null}
           {resumed && index === firstOpenScreen(v, store.learner) ? (
             <p className="mt-4 rounded-lg border border-violet/50 bg-violet/10 p-3 text-lg">Welcome back. Your saved work is here — you're on <strong>{lab.title}</strong>.</p>
           ) : null}
 
-          <article className="mt-4 rounded-2xl border border-reading-border bg-reading p-5 text-lg leading-relaxed text-reading-foreground sm:p-8" aria-labelledby="w11g-goal">
-            <p className="text-base font-semibold text-reading-accent">{positionLabel(index)} · {screen.optional ? "Optional practice" : lab.title}{screen.part ? ` · ${screen.part}` : ""}</p>
-            <h1 id="w11g-goal" ref={headingRef} tabIndex={-1} className="mt-2 font-display text-2xl leading-snug sm:text-3xl focus:outline-none">Your goal</h1>
+            <h1 id="w11g-goal" ref={headingRef} tabIndex={-1} className="font-display text-2xl leading-snug focus-visible:outline">Your goal</h1>
             <p className="mt-2 text-xl">{screen.goal}</p>
 
-            <h2 className="mt-6 text-xl font-semibold">Why it matters</h2>
+            <h2 className="mt-4 text-xl font-semibold">Why it matters</h2>
             {isMissionStart ? (
               <div className="mt-1 space-y-2">
                 <p><strong>In everyday words:</strong> {PLAIN[screen.mission]!.everyday}</p>
@@ -152,7 +160,7 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
 
             {screen.example ? <WorkedExample /> : null}
 
-            <h2 className="mt-6 text-xl font-semibold">Steps</h2>
+            <h2 className="mt-4 text-xl font-semibold">Steps</h2>
             <ol className="mt-2 space-y-3">
               {screen.subs.map((sub, i) => (
                 <li key={sub.step.id} className="flex gap-3">
@@ -172,20 +180,29 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
             {screen.subs.some((s) => /test|sign in|sign-in/i.test(s.step.doing)) ? (
               <p className="mt-4 rounded-lg border border-reading-border p-3 text-base"><strong>About DENY results:</strong> {denyCoaching}</p>
             ) : null}
+            {isLabStart && !screen.optional ? (
+              <details className="w11-guided-intro mt-4">
+                <summary className="min-h-11 cursor-pointer content-center text-base text-reading-accent">Meet Ivy · lab introduction</summary>
+                <div className="mt-2">{screen.lab === 1 ? <Week11Hero /> : <MissionArt mission={screen.mission} />}</div>
+              </details>
+            ) : null}
           </article>
 
-          <section aria-label="Your task" className="mt-4 space-y-4">
+          <div className="w11-activity min-w-0">
+          <section aria-label="Your task" className="min-w-0 space-y-3">
             <h2 className="font-display text-xl">Do it here</h2>
             <ScreenTask store={store} screen={screen} />
           </section>
 
           <CheckYourWork store={store} screen={screen} />
+          </div>
+          </div>
 
-          <nav aria-label="Step navigation" className="sticky bottom-0 mt-6 flex items-center justify-between gap-3 border-t border-border bg-background/95 py-3 backdrop-blur">
+          <nav aria-label="Step navigation" className="mt-4 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-t border-border py-3">
             <Button type="button" variant="outline" size="lg" disabled={index === 0} onClick={() => go(index - 1)}>← Back</Button>
-            <label className="hidden min-w-0 sm:block">
+            <label className="min-w-0 justify-self-center">
               <span className="sr-only">Jump to a step</span>
-              <select className="min-h-11 max-w-[16rem] rounded-md border border-border bg-background px-2 text-base" value={index} onChange={(e) => go(Number(e.target.value))}>
+              <select className="min-h-11 w-full max-w-[16rem] rounded-md border border-border bg-background px-2 text-base" value={index} onChange={(e) => go(Number(e.target.value))}>
                 <optgroup label="Required">{GUIDED_SCREENS.slice(0, REQUIRED_COUNT).map((s, i) => <option key={s.id} value={i}>{positionLabel(i)}</option>)}</optgroup>
                 <optgroup label="Optional practice">{GUIDED_SCREENS.slice(REQUIRED_COUNT).map((s, i) => <option key={s.id} value={i + REQUIRED_COUNT}>{positionLabel(i + REQUIRED_COUNT)}</option>)}</optgroup>
               </select>
@@ -204,7 +221,7 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
 
 function WorkedExample() {
   return (
-    <details open className="mt-5 rounded-lg border border-reading-border bg-reading p-4 text-lg">
+    <details open className="mt-4 border-y border-reading-border py-3 text-lg">
       <summary className="cursor-pointer font-semibold">Let's do one together first</summary>
       <ol className="mt-2 list-decimal space-y-1 pl-6">
         <li>Open <strong>Users</strong> in <strong>Active Directory</strong> and choose <strong>ad-alex</strong>.</li>
@@ -322,7 +339,7 @@ function CheckYourWork({ store, screen }: { store: Week11Store; screen: GuidedSc
   const r = v.readiness.find((x) => x.mission === screen.mission)!;
   const lastOfMission = !screen.optional && [...GUIDED_SCREENS.slice(0, REQUIRED_COUNT)].reverse().find((s) => s.mission === screen.mission)!.id === screen.id && r.required !== false;
   return (
-    <section aria-labelledby="w11g-check" className="mt-6 rounded-2xl border border-reading-border bg-reading p-5 text-lg text-reading-foreground sm:p-6">
+    <section aria-labelledby="w11g-check" className="mt-4 border-t border-reading-border bg-reading p-4 text-lg leading-relaxed text-reading-foreground">
       <h2 id="w11g-check" className="text-xl font-semibold">Check your work</h2>
       {checks.length ? (
         <ul className="mt-2 space-y-1">{checks.map((c) => <li key={c.id}>{c.done ? "✓" : "○"} {c.label}{c.done ? "" : " — not yet"}{c.optional && !screen.optional ? " (optional)" : ""}</li>)}</ul>
