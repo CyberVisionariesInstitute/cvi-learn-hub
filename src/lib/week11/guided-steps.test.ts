@@ -1,14 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { GUIDED_SCREENS, GUIDED_LABS, firstOpenScreen, positionLabel, screenChecks, parseGuided } from "./guided-steps";
+import { GUIDED_SCREENS, GUIDED_LABS, REQUIRED_COUNT, firstOpenScreen, positionLabel, screenChecks, parseGuided } from "./guided-steps";
+import { ALL_REQUIRED_SLOTS, REQUIRED_QUESTIONS } from "./requirements";
 import { missions, reportSections, traceConcepts } from "./seed";
 import { instructionSteps } from "./instructions";
 
 const allSubs = GUIDED_SCREENS.flatMap((s) => s.subs.map((x) => ({ ...x, mission: s.mission })));
 
 describe("Week 11 guided labs map onto unchanged missions", () => {
-  it("has three labs covering all six missions once", () => {
+  it("has three required labs and puts required screens before optional practice", () => {
     expect(GUIDED_LABS.map((l) => l.n)).toEqual([1, 2, 3]);
-    expect(GUIDED_LABS.flatMap((l) => l.missions)).toEqual(["M01", "M02", "M03", "M04", "M05", "M06"]);
+    expect(GUIDED_SCREENS.slice(0, REQUIRED_COUNT).every((s) => !s.optional && s.lab > 0)).toBe(true);
+    expect(GUIDED_SCREENS.slice(REQUIRED_COUNT).every((s) => s.optional && s.lab === 0)).toBe(true);
+    expect(REQUIRED_COUNT).toBe(18);
+  });
+  it("puts every required evidence slot and question on a required screen", () => {
+    const req = GUIDED_SCREENS.slice(0, REQUIRED_COUNT);
+    expect(ALL_REQUIRED_SLOTS).toEqual(["E03", "E04", "E13", "E14", "E17", "E18", "E19"]);
+    for (const slot of ALL_REQUIRED_SLOTS) expect(req.some((s) => s.subs.some((x) => x.kind === "capture" && x.step.capture === slot)), slot).toBe(true);
+    for (const [m, ids] of Object.entries(REQUIRED_QUESTIONS)) for (const id of ids!) expect(req.some((s) => s.mission === m && s.subs.some((x) => x.questionId === id)), id).toBe(true);
+  });
+  it("starts with one worked example that saves nothing", () => {
+    const ex = GUIDED_SCREENS.filter((s) => s.example);
+    expect(ex.map((s) => s.id)).toEqual(["L1-example"]);
+    expect(ex[0]!.subs.every((x) => x.kind === "tool")).toBe(true);
   });
   it("keeps every instruction substep exactly once", () => {
     const total = missions.reduce((n, m) => n + instructionSteps[m.key].length, 0);
@@ -41,9 +55,9 @@ describe("existing six-lab attempts resume correctly", () => {
   it("starts a fresh attempt at Lab 1 step 1", () => {
     expect(firstOpenScreen({ evidence: [], readiness: ready([]) }, {})).toBe(0);
   });
-  it("skips missions already evidence-ready and lands in the next one", () => {
-    const i = firstOpenScreen({ evidence: [], readiness: ready(["M01", "M02"]) }, {});
-    expect(GUIDED_SCREENS[i]!.mission).toBe("M03");
+  it("skips required work already saved and lands on Alex's team move", () => {
+    const i = firstOpenScreen({ evidence: [{ slot: "E03" } as never, { slot: "E04" } as never], readiness: ready(["M01", "M02", "M03", "M04"]) }, {});
+    expect(GUIDED_SCREENS[i]!.mission).toBe("M05");
     expect(GUIDED_SCREENS[i]!.lab).toBe(2);
   });
   it("counts a capture only when the slot really exists", () => {

@@ -237,3 +237,30 @@ describe("ticket outcome validation (T201–T505)", () => {
     expect(ticketOutcome(s, "T505", "resolved").ok).toBe(true);
   });
 });
+
+describe("Week 11 shorter beginner path (approved simplification)", () => {
+  const r = (m: string) => computeReadiness(createSeedState(), {}, []).find((x) => x.mission === m)!;
+  it("Labs 01, 03 and 04 are optional practice and never block completion", () => {
+    for (const m of ["M01", "M03", "M04"]) { expect(r(m).required, m).toBe(false); expect(r(m).ready, m).toBe(true); expect(r(m).optional.length, m).toBeGreaterThan(0); }
+  });
+  it("Lab 05 no longer requires Jamie, the unverified reset or the Azure ticket", () => {
+    const missing = r("M05").missing.join(" ");
+    expect(missing).not.toMatch(/T501|T504|T505|E12|E15|E16/);
+    expect(missing).toMatch(/T502/);
+    expect(missing).toMatch(/T503/);
+  });
+  it("T502 only requires the Cloud Identity side and the export retest", () => {
+    const missing = r("M05").missing.filter((x) => x.startsWith("T502")).join(" ");
+    expect(missing).not.toMatch(/ad-alex|AD placement|both directories/);
+    expect(missing).toMatch(/export/);
+  });
+  it("Lab 06 keeps every Week 12 requirement but drops the separate hypothesis question", () => {
+    const missing = r("M06").missing.join(" ");
+    for (const x of ["two findings", "comparison", "live simulator", "limitations", "E17", "E18", "E19"]) expect(missing).toContain(x);
+    expect(missing).not.toMatch(/Starting hypothesis/);
+  });
+  it("Lab 02 requires only three short answers", () => {
+    const answers = r("M02").missing.filter((x) => x.startsWith("Answer"));
+    expect(answers).toHaveLength(3);
+  });
+});
