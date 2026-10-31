@@ -114,6 +114,12 @@ export function Simulator({ store, view, onView, mission, onMission }: { store: 
   );
 }
 
+export const traceObjectsFor = (v: NonNullable<Week11Store["view"]>) => [
+    ...v.state.people.map((p) => `${p.key} ${p.name}`), ...v.state.accounts.map((a) => `${a.key} (${a.upn})`), ...v.state.accounts.map((a) => `${a.key}.department=${a.dept}`),
+    "GA-RESP Response-Team", "GC-RESP Response-Operators", "GC-JUN Junior-Analysts", "GC-READ Case-Readers", "OU-RESP Response", "OU-SUP Support", "OU-DIS Disabled Accounts",
+    "RL-RESP Response Agent @ R-QUEUE", "RL-READ Case Reader @ R-CASE", "RL-LAND Landing Reader @ R-LAND", "queue → read", "queue → update", "case → read", "ad_file R-ADRESP → read (ACL)",
+];
+
 function Dashboard({ store, onView, onMission }: { store: Week11Store; onView: (v: View) => void; onMission: (m: string) => void }) {
   const v = store.view!;
   const s = v.state;
@@ -170,11 +176,7 @@ function MissionView({ store, mission, onMission, onView, go }: { store: Week11S
   const setAns = (id: string, val: string) => store.setLearner((l) => ({ ...l, missions: { ...(l.missions ?? {}), [m.key]: { ...(l.missions?.[m.key] ?? {}), answers: { ...ans, [id]: val } } } }));
   const trace = store.learner.missions?.["M01"]?.trace ?? {};
   const setTrace = (id: string, val: string) => store.setLearner((l) => ({ ...l, missions: { ...(l.missions ?? {}), M01: { ...(l.missions?.["M01"] ?? {}), trace: { ...trace, [id]: val } } } }));
-  const traceObjects = [
-    ...v.state.people.map((p) => `${p.key} ${p.name}`), ...v.state.accounts.map((a) => `${a.key} (${a.upn})`), ...v.state.accounts.map((a) => `${a.key}.department=${a.dept}`),
-    "GA-RESP Response-Team", "GC-RESP Response-Operators", "GC-JUN Junior-Analysts", "GC-READ Case-Readers", "OU-RESP Response", "OU-SUP Support", "OU-DIS Disabled Accounts",
-    "RL-RESP Response Agent @ R-QUEUE", "RL-READ Case Reader @ R-CASE", "RL-LAND Landing Reader @ R-LAND", "queue → read", "queue → update", "case → read", "ad_file R-ADRESP → read (ACL)",
-  ];
+  const traceObjects = traceObjectsFor(v);
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-1.5" role="group" aria-label="Missions">{missions.map((x) => <button key={x.key} type="button" aria-pressed={x.key === m.key} className={`${btn} text-xs ${x.key === m.key ? "border-primary bg-primary/10" : ""}`} onClick={() => onMission(x.key)}>{x.lab}</button>)}</div>
