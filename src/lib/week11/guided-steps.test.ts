@@ -18,7 +18,7 @@ describe("Week 11 guided labs map onto unchanged missions", () => {
   it("makes every evidence slot E01–E19 reachable from exactly one screen", () => {
     const slots = missions.flatMap((m) => m.evidence.map((e) => e.slot));
     expect(slots).toHaveLength(19);
-    for (const slot of slots) expect(GUIDED_SCREENS.filter((s) => s.subs.some((x) => x.step.capture === slot))).toHaveLength(1);
+    for (const slot of slots) expect(GUIDED_SCREENS.filter((s) => s.subs.some((x) => x.kind === "capture" && x.step.capture === slot))).toHaveLength(1);
   });
   it("makes every mission question reachable from exactly one screen", () => {
     for (const m of missions) for (const q of m.questions) {
