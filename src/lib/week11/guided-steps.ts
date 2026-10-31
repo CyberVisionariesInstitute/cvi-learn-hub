@@ -40,6 +40,12 @@ export interface GuidedScreen {
 
 const EXPLAIN = "Write your explanation: ";
 const TRACE = "Choose one real object for ";
+/** Explicit question links where the substep wording is shortened from the seed label. */
+const QUESTION_ALIASES: Record<string, Record<string, string>> = {
+  M03: { "ou placement": "ou", "group membership": "group", "credential reset and verification": "reset", "disabling and re-enabling": "status" },
+  M04: { "blair: job, required actions, forbidden actions": "jobs", "casey: job, required actions, forbidden actions": "jobs", "emi: job, required actions, forbidden actions": "jobs", "why sign-in did not settle authorization, and how abac adds conditions": "abac" },
+  M05: { "why azure resource role/scope differs from a cloud directory role": "azure" },
+};
 const norm = (s: string) => s.replace(/[’']/g, "'").replace(/[.?]+$/, "").trim().toLowerCase();
 
 export function classify(mission: MissionId, step: InstructionStep): GuidedSub {
@@ -49,6 +55,8 @@ export function classify(mission: MissionId, step: InstructionStep): GuidedSub {
     const label = norm(step.doing.slice(EXPLAIN.length));
     const q = m.questions.find((x) => norm(x.label).startsWith(label) || label.startsWith(norm(x.label)));
     if (q) return { step, kind: "explain", questionId: q.id };
+    const alias = QUESTION_ALIASES[mission]?.[label];
+    if (alias) return { step, kind: "explain", questionId: alias };
   }
   if (mission === "M01" && step.doing.startsWith(TRACE)) {
     const label = norm(step.doing.slice(TRACE.length));
@@ -60,6 +68,7 @@ export function classify(mission: MissionId, step: InstructionStep): GuidedSub {
 
 export function buildScreens(): GuidedScreen[] {
   const out: GuidedScreen[] = [];
+  const seenSlots = new Set<string>();
   for (const lab of GUIDED_LABS) {
     for (const mk of lab.missions) {
       const m = missions.find((x) => x.key === mk)!;
@@ -69,7 +78,12 @@ export function buildScreens(): GuidedScreen[] {
         out.push({
           id: `${mk}-S${src}`, lab: lab.n, mission: mk, sourceStep: src,
           goal: m.steps[src] ?? m.objective,
-          subs: steps.filter((s) => s.sourceStep === src).map((s) => classify(mk, s)),
+          subs: steps.filter((s) => s.sourceStep === src).map((s) => {
+            const sub = classify(mk, s);
+            // A slot captured again later is shown as a reminder, not a second capture box.
+            if (sub.kind === "capture") { if (seenSlots.has(s.capture!)) return { step: s, kind: "tool" as const }; seenSlots.add(s.capture!); }
+            return sub;
+          }),
         });
       }
     }
@@ -91,7 +105,8 @@ export function positionLabel(index: number) {
 export function screenChecks(s: GuidedScreen, view: Pick<AttemptView, "evidence">, learner: Learner) {
   const ans = learner.missions?.[s.mission]?.answers ?? {};
   const trace = learner.missions?.["M01"]?.trace ?? {};
-  return s.subs.filter((x) => x.kind !== "tool").map((x) => {
+  const seen = new Set<string>();
+  return s.subs.filter((x) => x.kind !== "tool").filter((x) => { const k = x.questionId ?? x.traceId ?? x.step.capture ?? x.step.id; if (seen.has(k)) return false; seen.add(k); return true; }).map((x) => {
     if (x.kind === "capture") return { id: x.step.id, label: `Evidence ${x.step.capture} saved`, done: view.evidence.some((e) => e.slot === x.step.capture) };
     if (x.kind === "trace") return { id: x.step.id, label: `${traceConcepts.find((c) => c.id === x.traceId)?.label} picked`, done: !!trace[x.traceId!]?.trim() };
     return { id: x.step.id, label: "Explanation written", done: (ans[x.questionId!] ?? "").trim().length > 0 };
@@ -100,13 +115,13 @@ export function screenChecks(s: GuidedScreen, view: Pick<AttemptView, "evidence"
 
 /** Resume an existing (six-lab) attempt at the first screen with unsaved required work. */
 export function firstOpenScreen(view: Pick<AttemptView, "evidence" | "readiness">, learner: Learner) {
-  const i = GUIDED_SCREENS.findIndex((s) => {
-    if (view.readiness.find((r) => r.mission === s.mission)?.ready) return false;
-    return screenChecks(s, view, learner).some((c) => !c.done);
-  });
-  if (i >= 0) return i;
-  const j = GUIDED_SCREENS.findIndex((s) => !view.readiness.find((r) => r.mission === s.mission)?.ready);
-  return j >= 0 ? j : GUIDED_SCREENS.length - 1;
+  const open = GUIDED_SCREENS.find((s) => !view.readiness.find((r) => r.mission === s.mission)?.ready);
+  if (!open) return GUIDED_SCREENS.length - 1;
+  const inMission = GUIDED_SCREENS.map((s, i) => ({ s, i })).filter((x) => x.s.mission === open.mission);
+  const checks = inMission.map((x) => ({ i: x.i, c: screenChecks(x.s, view, learner) }));
+  // Nothing saved in this mission yet: start at its first screen.
+  if (!checks.some((x) => x.c.some((c) => c.done))) return inMission[0]!.i;
+  return checks.find((x) => x.c.some((c) => !c.done))?.i ?? inMission[0]!.i;
 }
 
 export const guidedKey = (attempt: string) => `w11-guided:${attempt}`;

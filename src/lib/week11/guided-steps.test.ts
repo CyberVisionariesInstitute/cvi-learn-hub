@@ -22,7 +22,7 @@ describe("Week 11 guided labs map onto unchanged missions", () => {
   });
   it("makes every mission question reachable from exactly one screen", () => {
     for (const m of missions) for (const q of m.questions) {
-      expect(allSubs.filter((x) => x.mission === m.key && x.questionId === q.id), `${m.key}.${q.id}`).toHaveLength(1);
+      expect(GUIDED_SCREENS.filter((s) => s.mission === m.key && s.subs.some((x) => x.questionId === q.id)), `${m.key}.${q.id}`).toHaveLength(1);
     }
   });
   it("makes every directory-trace concept reachable", () => {
