@@ -152,6 +152,8 @@ export function screenChecks(s: GuidedScreen, view: Pick<AttemptView, "evidence"
 
 /** Resume at the first required screen with unsaved required work. */
 export function firstOpenScreen(view: Pick<AttemptView, "evidence" | "readiness">, learner: Learner) {
+  const anyAnswer = Object.values(learner.missions ?? {}).some((m) => Object.values(m?.answers ?? {}).some((a) => (a ?? "").trim()));
+  if (!view.evidence.length && !anyAnswer) return 0;
   const req = GUIDED_SCREENS.slice(0, REQUIRED_COUNT).map((s, i) => ({ s, i }));
   const open = req.find(({ s }) => !s.example && view.readiness.find((r) => r.mission === s.mission)?.ready === false && screenChecks(s, view, learner).some((c) => !c.optional && !c.done));
   if (open) return open.i;
@@ -160,7 +162,6 @@ export function firstOpenScreen(view: Pick<AttemptView, "evidence" | "readiness"
     // Nothing visibly missing on screens: start at the mission's first required screen.
     return req.find(({ s }) => s.mission === notReady.s.mission && !s.example)!.i;
   }
-  if (!view.readiness.length || view.readiness.every((r) => !r.ready)) return 0;
   return REQUIRED_COUNT - 1;
 }
 
