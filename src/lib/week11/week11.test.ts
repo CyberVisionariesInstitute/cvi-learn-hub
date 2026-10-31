@@ -142,7 +142,7 @@ describe("engine fixtures", () => {
   it("readiness starts incomplete and reports facts", () => {
     const r = computeReadiness(createSeedState(), {}, []);
     expect(r).toHaveLength(6);
-    expect(r.every((m) => !m.ready)).toBe(true);
+    expect(r.filter((m) => m.required).every((m) => !m.ready)).toBe(true);
   });
 
   it("Lab 06 readiness is a case file: no manager-summary requirement, E19 required", () => {

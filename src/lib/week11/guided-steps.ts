@@ -46,6 +46,16 @@ export interface GuidedScreen {
   subs: GuidedSub[];
 }
 
+const EXPLAIN = "Write your explanation: ";
+const TRACE = "Choose one real object for ";
+/** Explicit question links where the substep wording is shortened from the seed label. */
+const QUESTION_ALIASES: Record<string, Record<string, string>> = {
+  M03: { "ou placement": "ou", "group membership": "group", "credential reset and verification": "reset", "disabling and re-enabling": "status" },
+  M04: { "blair: job, required actions, forbidden actions": "jobs", "casey: job, required actions, forbidden actions": "jobs", "emi: job, required actions, forbidden actions": "jobs", "why sign-in did not settle authorization, and how abac adds conditions": "abac" },
+  M05: { "why azure resource role/scope differs from a cloud directory role": "azure" },
+};
+const norm = (s: string) => s.replace(/[’']/g, "'").replace(/[.?]+$/, "").trim().toLowerCase();
+
 export function classify(mission: MissionId, step: InstructionStep): GuidedSub {
   if (step.capture) return { step, kind: "capture" };
   const m = missions.find((x) => x.key === mission)!;

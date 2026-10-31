@@ -46,7 +46,8 @@ describe("Week 11 student downloads", () => {
       const r = buildLabExport(input, m.key);
       expect(r.filename).toBe(m.exportPath.split("/").pop());
       expect(r.content).toBe(strFromU8(files[m.exportPath]!));
-      expect(r.content).toContain("DRAFT — incomplete");
+      if (["M01", "M03", "M04"].includes(m.key)) expect(r.content).toContain("Optional practice");
+      else expect(r.content).toContain("DRAFT — incomplete");
     }
   });
 
