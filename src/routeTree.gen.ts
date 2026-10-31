@@ -18,6 +18,7 @@ import { Route as Phase3DefenseRouteImport } from './routes/phase3-defense'
 import { Route as Phase3GradingRouteImport } from './routes/phase3-grading'
 import { Route as Phase3RubricRouteImport } from './routes/phase3-rubric'
 import { Route as PkiRouteImport } from './routes/pki'
+import { Route as ZzW11HarnessRouteImport } from './routes/zz-w11-harness'
 import { Route as CyberfoundationsIndexRouteImport } from './routes/cyberfoundations.index'
 import { Route as PkiIndexRouteImport } from './routes/pki.index'
 import { Route as PkiCapstoneRouteImport } from './routes/pki.capstone'
@@ -82,6 +83,11 @@ const Phase3RubricRoute = Phase3RubricRouteImport.update({
 const PkiRoute = PkiRouteImport.update({
   id: '/pki',
   path: '/pki',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ZzW11HarnessRoute = ZzW11HarnessRouteImport.update({
+  id: '/zz-w11-harness',
+  path: '/zz-w11-harness',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CyberfoundationsIndexRoute = CyberfoundationsIndexRouteImport.update({
@@ -207,6 +213,7 @@ export interface FileRoutesByFullPath {
   '/phase3-grading': typeof Phase3GradingRoute
   '/phase3-rubric': typeof Phase3RubricRoute
   '/pki': typeof PkiRouteWithChildren
+  '/zz-w11-harness': typeof ZzW11HarnessRoute
   '/pki/capstone': typeof PkiCapstoneRouteWithChildren
   '/pki/phase3': typeof PkiPhase3Route
   '/cyberfoundations/': typeof CyberfoundationsIndexRoute
@@ -237,6 +244,7 @@ export interface FileRoutesByTo {
   '/phase3-defense': typeof Phase3DefenseRoute
   '/phase3-grading': typeof Phase3GradingRoute
   '/phase3-rubric': typeof Phase3RubricRoute
+  '/zz-w11-harness': typeof ZzW11HarnessRoute
   '/pki/phase3': typeof PkiPhase3Route
   '/cyberfoundations': typeof CyberfoundationsIndexRoute
   '/pki': typeof PkiIndexRoute
@@ -268,6 +276,7 @@ export interface FileRoutesById {
   '/phase3-grading': typeof Phase3GradingRoute
   '/phase3-rubric': typeof Phase3RubricRoute
   '/pki': typeof PkiRouteWithChildren
+  '/zz-w11-harness': typeof ZzW11HarnessRoute
   '/pki/capstone': typeof PkiCapstoneRouteWithChildren
   '/pki/phase3': typeof PkiPhase3Route
   '/cyberfoundations/': typeof CyberfoundationsIndexRoute
@@ -301,6 +310,7 @@ export interface FileRouteTypes {
     | '/phase3-grading'
     | '/phase3-rubric'
     | '/pki'
+    | '/zz-w11-harness'
     | '/pki/capstone'
     | '/pki/phase3'
     | '/cyberfoundations/'
@@ -331,6 +341,7 @@ export interface FileRouteTypes {
     | '/phase3-defense'
     | '/phase3-grading'
     | '/phase3-rubric'
+    | '/zz-w11-harness'
     | '/pki/phase3'
     | '/cyberfoundations'
     | '/pki'
@@ -361,6 +372,7 @@ export interface FileRouteTypes {
     | '/phase3-grading'
     | '/phase3-rubric'
     | '/pki'
+    | '/zz-w11-harness'
     | '/pki/capstone'
     | '/pki/phase3'
     | '/cyberfoundations/'
@@ -393,6 +405,7 @@ export interface RootRouteChildren {
   Phase3GradingRoute: typeof Phase3GradingRoute
   Phase3RubricRoute: typeof Phase3RubricRoute
   PkiRoute: typeof PkiRouteWithChildren
+  ZzW11HarnessRoute: typeof ZzW11HarnessRoute
   CyberfoundationsIndexRoute: typeof CyberfoundationsIndexRoute
   CyberfoundationsWeek06FromTheGridToCloudHeightsRoute: typeof CyberfoundationsWeek06FromTheGridToCloudHeightsRoute
   CyberfoundationsWeek07CloudHeightsGuardPostRoute: typeof CyberfoundationsWeek07CloudHeightsGuardPostRoute
@@ -471,6 +484,13 @@ declare module '@tanstack/react-router' {
       path: '/pki'
       fullPath: '/pki'
       preLoaderRoute: typeof PkiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/zz-w11-harness': {
+      id: '/zz-w11-harness'
+      path: '/zz-w11-harness'
+      fullPath: '/zz-w11-harness'
+      preLoaderRoute: typeof ZzW11HarnessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cyberfoundations/': {
@@ -658,6 +678,7 @@ const rootRouteChildren: RootRouteChildren = {
   Phase3GradingRoute: Phase3GradingRoute,
   Phase3RubricRoute: Phase3RubricRoute,
   PkiRoute: PkiRouteWithChildren,
+  ZzW11HarnessRoute: ZzW11HarnessRoute,
   CyberfoundationsIndexRoute: CyberfoundationsIndexRoute,
   CyberfoundationsWeek06FromTheGridToCloudHeightsRoute:
     CyberfoundationsWeek06FromTheGridToCloudHeightsRoute,
