@@ -10,7 +10,7 @@ const kindLabels: Record<EvidenceKind, string> = { accounts: "Account snapshot",
 const kinds: EvidenceKind[] = ["accounts", "tests", "signins", "audits", "groups", "tickets", "historical"];
 const example = "Example format — not your case answer: In a fictional example, the sign-in record shows that the account authenticated successfully. The access test records the account’s access decision for the requested resource before any changes were made.";
 
-export function CaptureEvidence({ store, mission, slots, initialSlot, compact, go, preselect }: { store: Week11Store; mission: string; slots: { slot: string; label: string }[]; initialSlot?: string | undefined; compact?: boolean; go?: (nav: Nav) => void; /** Optional starting ticks from the student's own records; they can untick before saving. */ preselect?: Partial<Record<EvidenceKind, string[]>> }) {
+export function CaptureEvidence({ store, mission, slots, initialSlot, compact, go, preselect }: { store: Week11Store; mission: string; slots: { slot: string; label: string }[]; initialSlot?: string | undefined; compact?: boolean; go?: (nav: Nav) => void; /** Optional starting ticks from the student's own records; they can untick before saving. */ preselect?: Partial<Record<EvidenceKind, string[]>> | undefined }) {
   const [slot, setSlot] = useState(initialSlot && slots.some((x) => x.slot === initialSlot) ? initialSlot : slots[0]?.slot ?? "");
   const withPreselect = () => ({ ...emptyEvidenceRefs(), ...(preselect ?? {}) });
   const [refs, setRefs] = useState(withPreselect);

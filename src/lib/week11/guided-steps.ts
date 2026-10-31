@@ -40,9 +40,9 @@ export interface GuidedScreen {
   mission: MissionId; sourceStep: number;
   goal: string;
   /** Short part label inside a lab, e.g. "Part A · Fix Blair". */
-  part?: string;
-  example?: boolean;
-  optional?: boolean;
+  part?: string | undefined;
+  example?: boolean | undefined;
+  optional?: boolean | undefined;
   subs: GuidedSub[];
 }
 
