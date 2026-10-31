@@ -45,7 +45,7 @@ export function buildFiles(p: ExportInput): Record<string, string> {
   const allReady = readiness.every((r) => r.ready);
   const draft = (m: string) => !readiness.find((r) => r.mission === m)?.ready;
   const header = (title: string, m?: string) =>
-    `# ${title}\n\n**Learner:** ${name}  \n**Attempt:** ${p.attemptLabel} · seed ${SEED_VERSION} · state revision ${p.revision} · text revision ${p.textRevision}\n\n> ${SIMULATION_BANNER}\n\n${m && draft(m) ? `> **DRAFT — incomplete.** Missing:\n${readiness.find((r) => r.mission === m)!.missing.map((x) => `> - ${esc(x)}`).join("\n")}\n\n` : ""}`;
+    `# ${title}\n\n**Learner:** ${name}  \n**Attempt:** ${p.attemptLabel} · seed ${SEED_VERSION} · state revision ${p.revision} · text revision ${p.textRevision}\n\n> ${SIMULATION_BANNER}\n\n${m && readiness.find((r) => r.mission === m)?.required === false ? "> Optional practice — not required to finish Week 11.\n\n" : ""}${m && draft(m) ? `> **DRAFT — incomplete.** Missing:\n${readiness.find((r) => r.mission === m)!.missing.map((x) => `> - ${esc(x)}`).join("\n")}\n\n` : ""}`;
   const evList = (m: string) => {
     const rows = evidence.filter((e) => e.mission === m);
     return rows.length ? rows.map((e) => `- **${e.slot} · ${e.evidence_key}** — ${esc(e.title)} (captured at revision ${e.captured_revision})  \n  _What this proves:_ ${block(learner.captions?.[e.evidence_key])}  \n  See [evidence index](evidence/week11-evidence-index.md#${e.evidence_key.toLowerCase()})`).join("\n") : "_No evidence captured yet._";
