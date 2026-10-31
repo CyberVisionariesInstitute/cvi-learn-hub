@@ -37,10 +37,10 @@ function Starter({ text }: { text: string }) {
   return text ? <p className="my-3 max-w-prose text-xs text-muted-foreground"><strong>Sentence starter:</strong> {text}</p> : null;
 }
 
-export function CaseFileBuilder({ store, onView }: { store: Week11Store; onView?: ((view: Destination) => void) | undefined }) {
-  const [stage, setStage] = useState(0);
-  const [findingIndex, setFindingIndex] = useState(0);
-  const [findingStep, setFindingStep] = useState(0);
+export function CaseFileBuilder({ store, onView, initialFinding }: { initialFinding?: number | undefined; store: Week11Store; onView?: ((view: Destination) => void) | undefined }) {
+  const [stage, setStage] = useState(initialFinding === undefined ? 0 : 1);
+  const [findingIndex, setFindingIndex] = useState(initialFinding ?? 0);
+  const [findingStep, setFindingStep] = useState(initialFinding === undefined ? 0 : 1);
   const [section, setSection] = useState(0);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");

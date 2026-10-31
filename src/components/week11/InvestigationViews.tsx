@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { AUDIT_FIELDS, historicalAudit, historicalAuditTsv, historicalContext, historicalSignins, historicalSigninsTsv, SIGNIN_FIELDS } from "@/lib/week11/seed";
 import type { Week11Store } from "@/lib/week11/useWeek11";
 import { Badge, btn, btnPrimary, Card, input, TableWrap, TextArea } from "./ui";
@@ -7,7 +8,7 @@ import { CaseFileBuilder } from "./CaseFileBuilder";
 
 type Row = Record<string, string> & { __source: string };
 
-export function LogsView({ store, kind }: { store: Week11Store; kind: "signin" | "audit" }) {
+export function LogsView({ store, kind, guided = false }: { store: Week11Store; guided?: boolean; kind: "signin" | "audit" }) {
   const s = store.view!.state;
   const [source, setSource] = useState<"HISTORICAL" | "LIVE" | "ALL">("HISTORICAL");
   const [q, setQ] = useState("");
@@ -17,6 +18,8 @@ export function LogsView({ store, kind }: { store: Week11Store; kind: "signin" |
   const [page, setPage] = useState(0);
   const opener = useRef<HTMLElement | null>(null);
   const fields = kind === "signin" ? SIGNIN_FIELDS : AUDIT_FIELDS;
+  const [allFields, setAllFields] = useState(false);
+  const visibleFields = guided && !allFields ? (kind === "signin" ? ["event_id", "user", "outcome", "reason", "correlation_id"] : ["event_id", "activity", "target", "result", "correlation_id"]) : fields;
   const rows: Row[] = useMemo(() => {
     const hist = (kind === "signin" ? historicalSignins : historicalAudit).map((r) => ({ ...r, __source: "HISTORICAL" }) as Row);
     const live = kind === "signin"
@@ -33,7 +36,7 @@ export function LogsView({ store, kind }: { store: Week11Store; kind: "signin" |
   return (
     <div className="min-w-0 space-y-4">
       <Card eyebrow={kind === "signin" ? "Sign-in Logs" : "Audit Logs"} title={source === "HISTORICAL" ? "Historical scenario records (fabricated September 21 snapshot)" : source === "LIVE" ? "Your simulated activity (this attempt)" : "Combined — see the Source column"}>
-        <div className="mb-3 max-w-prose space-y-2 text-sm">
+        {guided ? <p className="mb-2 text-base">Historical = supplied scenario records (S/A IDs). Your simulated activity = records from this attempt. Open an Event ID for every exact field.</p> : <div className="mb-3 max-w-prose space-y-2 text-sm">
           <p>{kind === "signin" ? "Sign-in Logs show recorded sign-in attempts." : "Audit Logs show changes/actions recorded by the simulator."}</p>
           <ul className="space-y-1 text-xs text-muted-foreground">
             <li><strong>Historical</strong> = supplied investigation records.</li>
@@ -61,21 +64,31 @@ export function LogsView({ store, kind }: { store: Week11Store; kind: "signin" |
             </dl>
           </details>
           {kind === "audit" ? <p className="text-xs text-muted-foreground">A refused action is still useful evidence. It shows what was attempted and how the simulator responded.</p> : null}
-        </div>
+        </div>}
         <div className="flex flex-wrap gap-2" role="group" aria-label="Source">
           {(["HISTORICAL", "LIVE", "ALL"] as const).map((x) => <button key={x} type="button" aria-pressed={source === x} className={`${btn} ${source === x ? "border-primary bg-primary/10" : ""}`} onClick={() => { setSource(x); setPage(0); }}>{x === "HISTORICAL" ? "Historical" : x === "LIVE" ? "Your simulated activity" : "Combined"}</button>)}
         </div>
+        {guided ? <div className="mt-3 space-y-2">
+          <label><span className="mb-1 block text-xs text-muted-foreground">Search (literal, any field)</span><input className={input} value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} /></label>
+          <details><summary className="min-h-11 cursor-pointer content-center text-base">More filters and field definitions</summary><div className="grid gap-2 sm:grid-cols-2">
+
+          <label><span className="mb-1 block text-xs text-muted-foreground">Correlation ID</span><input className={input} value={corr} onChange={(e) => { setCorr(e.target.value.trim()); setPage(0); }} /></label>
+          <label><span className="mb-1 block text-xs text-muted-foreground">{kind === "signin" ? "Outcome" : "Result"}</span><select className={input} value={result} onChange={(e) => { setResult(e.target.value); setPage(0); }}><option value="">any</option>{(kind === "signin" ? ["success", "failure"] : ["success", "refused", "accepted"]).map((o) => <option key={o} value={o}>{o}</option>)}</select></label>
+          </div><p className="mt-2 text-base">Outcome is a sign-in result; audit result is whether an action was accepted. A correlation ID links records, but does not prove cause. Open a raw record for time, actor, device and before/after values.</p></details>
+          <Button type="button" variant="outline" className="min-h-11" aria-pressed={allFields} onClick={() => setAllFields(!allFields)}>{allFields ? "Show essential fields" : "Show all record fields"}</Button>
+        </div> : (
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
           <label><span className="mb-1 block text-xs text-muted-foreground">Search (literal, any field)</span><input className={input} value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} /></label>
           <label><span className="mb-1 block text-xs text-muted-foreground">Correlation ID</span><input className={input} value={corr} onChange={(e) => { setCorr(e.target.value.trim()); setPage(0); }} /></label>
           <label><span className="mb-1 block text-xs text-muted-foreground">{kind === "signin" ? "Outcome" : "Result"}</span><select className={input} value={result} onChange={(e) => { setResult(e.target.value); setPage(0); }}><option value="">any</option>{(kind === "signin" ? ["success", "failure"] : ["success", "refused", "accepted"]).map((o) => <option key={o} value={o}>{o}</option>)}</select></label>
         </div>
+        )}
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm"><span aria-live="polite">{rows.length} record(s)</span><button type="button" className={btn} onClick={() => { setQ(""); setCorr(""); setResult(""); setPage(0); }}>Clear filters</button>
           <span className="text-xs text-muted-foreground">Times are UTC. Historical dates are fictional scenario time.</span></div>
         {rows.length === 0 ? <p className="mt-3 text-sm">No records match these filters. That does not mean nothing happened — clear the filters to see everything.</p> : (
           <div className="mt-3 min-w-0"><TableWrap label={`${kind} log table`}>
-            <thead><tr className="border-b border-border">{source === "ALL" ? <th className="p-2">Source</th> : null}{fields.map((f) => <th key={f} className="p-2 font-mono text-xs">{f}</th>)}</tr></thead>
-            <tbody>{shown.map((r) => <tr key={r['event_id']} className="border-b border-border/50">{source === "ALL" ? <td className="p-2"><Badge>{r.__source === "HISTORICAL" ? "Historical" : "Your simulated activity"}</Badge></td> : null}{fields.map((f) => <td key={f} className="max-w-[16rem] break-words p-2 font-mono text-xs">{f === "event_id" ? <button type="button" className="underline" onClick={(e) => { opener.current = e.currentTarget; setOpen(r); }}>{r[f]}</button> : r[f]}</td>)}</tr>)}</tbody>
+            <thead><tr className="border-b border-border">{source === "ALL" ? <th className="p-2">Source</th> : null}{visibleFields.map((f) => <th key={f} className="p-2 font-mono text-xs">{f}</th>)}</tr></thead>
+            <tbody>{shown.map((r) => <tr key={r['event_id']} className="border-b border-border/50">{source === "ALL" ? <td className="p-2"><Badge>{r.__source === "HISTORICAL" ? "Historical" : "Your simulated activity"}</Badge></td> : null}{visibleFields.map((f) => <td key={f} className="max-w-[16rem] break-words p-2 font-mono text-xs">{f === "event_id" ? <button type="button" className="underline" onClick={(e) => { opener.current = e.currentTarget; setOpen(r); }}>{r[f]}</button> : r[f]}</td>)}</tr>)}</tbody>
           </TableWrap></div>
         )}
         {rows.length > PAGE ? <div className="mt-2 flex gap-2"><button type="button" className={btn} disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</button><button type="button" className={btn} disabled={(page + 1) * PAGE >= rows.length} onClick={() => setPage(page + 1)}>Next</button></div> : null}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { accountDn, effectiveAccess } from "@/lib/week11/engine";
 import { adAcl, departments, devices, employmentLabel, groups, ous, resourceGroups, resources, roles, tickets, type Directory } from "@/lib/week11/seed";
 import type { Week11Store } from "@/lib/week11/useWeek11";
@@ -21,7 +22,7 @@ function Justify({ store, onChange }: { store: Week11Store; onChange: (j: { tick
   );
 }
 
-export function UsersView({ store, dir, selected, onSelect, mission, go }: { store: Week11Store; dir: Directory; selected: string | null; onSelect: (k: string | null) => void; mission?: string; go?: (n: Nav) => void }) {
+export function UsersView({ store, dir, selected, onSelect, mission, go, guided = false }: { store: Week11Store; guided?: boolean; dir: Directory; selected: string | null; onSelect: (k: string | null) => void; mission?: string; go?: (n: Nav) => void }) {
   const s = store.view!.state;
   const [q, setQ] = useState("");
   const list = s.accounts.filter((a) => a.dir === dir && (a.upn + (s.people.find((p) => p.key === a.person)?.name ?? "")).toLowerCase().includes(q.toLowerCase()));
@@ -53,12 +54,12 @@ export function UsersView({ store, dir, selected, onSelect, mission, go }: { sto
           ) : null}
         </Card>
       </div>
-      {a ? <AccountDetail store={store} accountKey={a.key} onBack={() => onSelect(null)} mission={mission} go={go} /> : <Card><p className="text-sm text-muted-foreground">Select an account to see its person record, groups and effective access, administrative actions, and the Sign-in and Test Access testers.</p></Card>}
+      {a ? <AccountDetail store={store} accountKey={a.key} onBack={() => onSelect(null)} mission={mission} go={go} guided={guided} /> : <Card><p className="text-sm text-muted-foreground">Select an account to see its person record, groups and effective access, administrative actions, and the Sign-in and Test Access testers.</p></Card>}
     </div>
   );
 }
 
-function AccountDetail({ store, accountKey, onBack, mission, go }: { store: Week11Store; accountKey: string; onBack: () => void; mission?: string | undefined; go?: ((n: Nav) => void) | undefined }) {
+function AccountDetail({ store, accountKey, onBack, mission, go, guided = false }: { store: Week11Store; guided?: boolean; accountKey: string; onBack: () => void; mission?: string | undefined; go?: ((n: Nav) => void) | undefined }) {
   const s = store.view!.state;
   const a = s.accounts.find((x) => x.key === accountKey)!;
   const p = s.people.find((x) => x.key === a.person)!;
@@ -78,6 +79,23 @@ function AccountDetail({ store, accountKey, onBack, mission, go }: { store: Week
         <a href={`#at-${a.key}`} className={`${btn} text-xs`}>Jump to Test Access</a>
       </div>
       <Card eyebrow={a.dir === "AD" ? "ACTIVE DIRECTORY" : "CLOUD IDENTITY"} title={`${p.name} · ${a.key}`}>
+        {guided ? <div className="space-y-3">
+          <div>
+            <h3 className="mb-2 text-sm font-medium">Person record (HR)</h3>
+            <KV rows={[["Person", `${p.key} ${p.name}`], ["HR ID", p.hrId], ["Department", departments[p.dept]], ["Employment", employmentLabel[p.status]], ["Active Directory account", p.ad ? (go ? <button type="button" className="underline" onClick={() => { if (p.ad) go({ label: "Users", view: "users", account: p.ad }); }}>{p.ad} (open)</button> : p.ad) : "none"], ["Cloud Identity account", p.cloud ? (go ? <button type="button" className="underline" onClick={() => { if (p.cloud) go({ label: "Users", view: "users", account: p.cloud }); }}>{p.cloud} (open)</button> : p.cloud) : "none"]]} />
+            <p className="mt-2 text-xs text-muted-foreground">One person can have two separate accounts. Use the account links above to switch between them. No automatic synchronization: the two accounts have separate status, credentials, memberships and sessions.</p>
+          </div>
+          <h3 className="text-lg font-medium">Current account</h3>
+          <KV rows={[["Account ID", a.key], ["UPN (sign-in name)", a.upn], ["Department attr", `${a.dept} (${departments[a.dept]})`], ["Status", a.status], ["Locked", a.locked ? "yes" : "no"], ["MFA", a.mfa], ["Must change", a.mustChange ? "yes" : "no"], ...(a.dir === "AD" ? [["OU", a.ou ?? "—"] as [string, string]] : [])]} />
+          <details><summary className="min-h-11 cursor-pointer content-center text-base">More account details</summary>
+            <KV rows={[
+              ["Account ID", a.key], [<abbr key="u" title={glossary["UPN"]}>UPN</abbr>, a.upn], ...(a.dir === "AD" ? [["sAMAccountName", a.username] as [React.ReactNode, React.ReactNode], ["OU", a.ou ?? "—"] as [React.ReactNode, React.ReactNode], [<abbr key="d" title={glossary["DN"]}>DN</abbr>, accountDn(s, a) ?? "—"] as [React.ReactNode, React.ReactNode]] : [["OU", "none — OUs are an AD concept in this exercise"] as [React.ReactNode, React.ReactNode]]),
+              ["Department attr", `${a.dept} (${departments[a.dept]})`], ["Status", a.status], ["Locked", a.locked ? "yes" : "no"],
+              [<abbr key="c" title={glossary["Credential version"]}>Credential version</abbr>, String(a.credentialVersion)], ["Must change", a.mustChange ? "yes" : "no"], ["Failed count", String(a.failedCount)],
+              ["MFA", a.mfa], [<abbr key="r" title={glossary["Security revision"]}>Security revision</abbr>, String(a.securityRevision)],
+            ]} />
+          </details>
+        </div> : (
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <h3 className="mb-2 text-sm font-medium">Account (identity attributes)</h3>
@@ -94,6 +112,7 @@ function AccountDetail({ store, accountKey, onBack, mission, go }: { store: Week
             <p className="mt-2 text-xs text-muted-foreground">One person can have two separate accounts. Use the account links above to switch between them. No automatic synchronization: the two accounts have separate status, credentials, memberships and sessions.</p>
           </div>
         </div>
+        )}
       </Card>
       <Card title="Groups and effective access">
         <p className="text-sm">Member of: {mem.length ? mem.map((m) => <Badge key={m.group}>{groups.find((g) => g.key === m.group)?.name} ({m.group})</Badge>) : "no groups"}</p>
@@ -272,27 +291,33 @@ export function ResourcesView() {
   );
 }
 
-export function TicketsView({ store, initial }: { store: Week11Store; initial?: string | undefined }) {
+export function TicketsView({ store, initial, guided = false }: { store: Week11Store; initial?: string | undefined; guided?: boolean }) {
   const s = store.view!.state;
   const [open, setOpen] = useState(initial && tickets.some((x) => x.key === initial) ? initial : tickets[0]!.key);
   const t = tickets.find((x) => x.key === open)!;
   const ts = s.tickets.find((x) => x.key === open)!;
+  const [browse, setBrowse] = useState(false);
   const [route, setRoute] = useState<"trusted" | "request_only">("trusted");
   const [hr, setHr] = useState("");
   const [note, setNote] = useState("");
   return (
-    <div className="min-w-0 grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]">
-      <Card title="Help Desk / IAM Tickets">
+    <div className={guided ? "min-w-0 grid grid-cols-[minmax(0,1fr)] gap-4" : "min-w-0 grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]"}>
+      {guided ? <Button type="button" variant="outline" className="min-h-11 justify-self-start text-base" aria-expanded={browse} onClick={() => setBrowse(!browse)}>{browse ? "Close other tickets" : "Browse other tickets"}</Button> : null}
+      {!guided || browse ? <Card title="Help Desk / IAM Tickets">
         <ul className="space-y-1.5">{s.tickets.map((x) => { const seed = tickets.find((y) => y.key === x.key)!; return (
-          <li key={x.key}><button type="button" aria-pressed={x.key === open} onClick={() => setOpen(x.key)} className={`${btn} w-full text-left ${x.key === open ? "border-primary bg-primary/10" : ""}`}>
+          <li key={x.key}><button type="button" aria-pressed={x.key === open} onClick={() => { setOpen(x.key); if (guided) setBrowse(false); }} className={`${btn} w-full text-left ${x.key === open ? "border-primary bg-primary/10" : ""}`}>
             <span className="font-mono text-xs">{x.key} · {seed.mission}</span><span className="block text-sm">{seed.title}</span><span className="mt-1 flex gap-1"><Badge>{x.status}</Badge>{seed.verification ? <Badge tone={x.verification === "passed" ? "allow" : x.verification === "failed" ? "deny" : "neutral"}>verify: {x.verification}</Badge> : null}</span>
           </button></li>); })}
           {s.recoveryTickets.map((r) => <li key={r.key} className="text-xs text-muted-foreground">{r.key} — training recovery for {r.account} (verify & act from the ticket's account page)</li>)}
         </ul>
-      </Card>
+      </Card> : null}
       <div className="min-w-0 space-y-4 [overflow-wrap:anywhere]">
         <Card eyebrow={`${t.key} · ${t.mission}`} title={t.title}>
-          <div className="mb-4 max-w-prose space-y-3 text-xs">
+          {guided ? <div className="mb-3 max-w-prose space-y-2 text-base">
+            <h3 className="font-semibold">Request</h3><p>{t.request}</p>
+            <p><strong>Approved scope:</strong> {t.approvedScope}</p>
+            <p><strong>Next action:</strong> Read the attached approval below, then use the Users tool for the account named in this step. Compare every change with the approved scope; retest before recording your decision.</p>
+          </div> : <div className="mb-4 max-w-prose space-y-3 text-xs">
             <div><h3 className="font-semibold text-primary">WHAT IS THIS TICKET ASKING FOR?</h3><p className="mt-1">{t.title}. Read the full request below before making changes.</p></div>
             <div><h3 className="font-semibold text-primary">WHAT IS APPROVED?</h3><p className="mt-1"><strong>Approved scope:</strong> {t.approvedScope}</p></div>
             <details><summary className="min-h-11 cursor-pointer content-center font-semibold">WHAT SHOULD I CHECK?</summary>
@@ -300,9 +325,9 @@ export function TicketsView({ store, initial }: { store: Week11Store; initial?: 
             </details>
             <div><h3 className="font-semibold text-primary">WHAT DO I DO NEXT?</h3><p className="mt-1">Follow the next step for {t.key} in Current Mission (Lab {Number(t.mission.slice(1))}). {t.verification && ts.verification === "not_started" ? "Read the attached documents, then use Identity verification below." : "Compare the request with Approved scope before acting."}</p></div>
             <details><summary className="min-h-11 cursor-pointer content-center font-semibold">WHEN IS THIS TICKET DONE?</summary><p className="text-muted-foreground">Resolve the ticket only after the approved action is completed and validated, and your decision note is recorded. If you cannot safely complete it, follow Current Mission for the next decision.</p></details>
-          </div>
+          </div>}
           <KV rows={[["Requester", t.requester], ["Approver", t.approver], ["Targets", t.targets.join(", ")], ["Status", ts.status]]} />
-          <p className="mt-3 text-sm">{t.request}</p>
+          {!guided ? <p className="mt-3 text-sm">{t.request}</p> : null}
 
           <h3 className="mt-3 text-sm font-medium">Attached documents (fictional)</h3>
           <ul className="mt-1 space-y-2">{t.documents.map((d) => <li key={d.id} className="rounded-md border border-border p-2 text-sm"><span className="font-mono text-xs">{d.id}</span> <strong>{d.title}</strong><p>{d.body}</p></li>)}</ul>
@@ -315,7 +340,7 @@ export function TicketsView({ store, initial }: { store: Week11Store; initial?: 
               <li className="border-t border-border pt-3"><h3 className="mb-2 font-medium">Step 2 — Enter the HR ID to compare</h3><label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">HR ID to compare</span><input className={input} value={hr} onChange={(e) => setHr(e.target.value)} placeholder="CH-000" /></label></li>
               <li className="border-t border-border pt-3"><h3 className="mb-2 font-medium">Step 3 — Select the evidence route</h3><label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">Evidence route</span><select aria-label="Evidence route" className={input} value={route} onChange={(e) => setRoute(e.target.value as typeof route)}><option value="trusted">Directory-confirmed callback + HR ID</option><option value="request_only">Requester-supplied details only</option></select></label></li>
               <li className="border-t border-border pt-3"><h3 className="font-medium">Step 4 — Run verification</h3><button type="button" className={`${btnPrimary} mt-2`} disabled={store.busy} onClick={() => store.run({ type: "verify", ticket: t.key, route, hrId: hr })}>Run verification</button></li>
-              <li className="border-t border-border pt-3"><h3 className="font-medium">Step 5 — Read the recorded result</h3><p className="mt-2" aria-live="polite">Verification: <Badge tone={ts.verification === "passed" ? "allow" : ts.verification === "failed" ? "deny" : "neutral"}>{ts.verification}</Badge></p><p className="mt-1 text-xs text-muted-foreground">Read the simulator response and recorded result before continuing in Current Mission. Verification does not perform the requested action.</p></li>
+              <li className="border-t border-border pt-3"><h3 className="font-medium">Step 5 — Read the recorded result</h3><p className="mt-2" aria-live="polite">Verification: <Badge tone={ts.verification === "passed" ? "allow" : ts.verification === "failed" ? "deny" : "neutral"}>{ts.verification}</Badge></p><p className="mt-1 text-xs text-muted-foreground">Read the simulator response and recorded result before continuing in {guided ? "this guided step" : "Current Mission"}. Verification does not perform the requested action.</p></li>
             </ol>
           </Card>
         ) : null}

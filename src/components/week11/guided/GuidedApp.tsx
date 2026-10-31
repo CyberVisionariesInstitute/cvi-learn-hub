@@ -47,12 +47,14 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
   if (!v) return null;
   const storageKey = guidedKey(v.id);
   const [index, setIndex] = useState<number | null>(null);
+  const [subIndex, setSubIndex] = useState(0);
   const [showCaseFile, setShowCaseFile] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     const saved = parseGuided(window.localStorage.getItem(storageKey));
     setIndex(saved?.index ?? firstOpenScreen(v, store.learner));
+    try { setSubIndex(Number(window.localStorage.getItem(`${storageKey}:look`)) || 0); } catch { setSubIndex(0); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey]);
 
@@ -69,8 +71,18 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
   if (!screen) return null;
   const lab = GUIDED_LABS.find((l) => l.n === screen.lab) ?? { title: "Optional practice", why: "Explore further when you want more practice." };
   const inLab = labScreens(screen.lab);
-  const isLabStart = inLab[0]!.id === screen.id;
-  const isMissionStart = !screen.optional && GUIDED_SCREENS.find((s) => s.mission === screen.mission && !s.example)!.id === screen.id;
+  const isLabStart = inLab[0]?.id === screen.id;
+  const isMissionStart = !screen.optional && GUIDED_SCREENS.find((s) => s.mission === screen.mission && !s.example)?.id === screen.id;
+  const paged = screen.id === "L3-look";
+  const subPosition = Math.max(0, Math.min(subIndex, screen.subs.length - 1));
+  const currentSubs = paged ? screen.subs.slice(subPosition, subPosition + 1) : screen.subs;
+  const taskScreen = paged ? { ...screen, subs: currentSubs } : screen;
+  const moveSub = (n: number) => {
+    const next = Math.max(0, Math.min(n, screen.subs.length - 1));
+    setSubIndex(next);
+    try { window.localStorage.setItem(`${storageKey}:look`, String(next)); } catch { /* private mode */ }
+    requestAnimationFrame(() => { headingRef.current?.focus(); window.scrollTo({ top: 0 }); });
+  };
   const labDone = (n: number) => labScreens(n).every((s) => screenChecks(s, v, store.learner).every((c) => c.optional || c.done));
   const save = store.textSave;
   const resumed = v.state.seq > 0 || v.textRevision > 0;
@@ -83,7 +95,7 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
           <p className="mt-1 text-base text-muted-foreground">Practice data only — every person and account here is fictional.</p>
         </div>
         <p aria-live="polite" className="max-w-40 shrink-0 break-words border-l border-border pl-3 text-base">
-          {save.kind === "pending" || save.kind === "saving" ? "Saving…" : save.kind === "saved" ? `Saved ✓ ${save.at}` : save.kind === "failed" ? `Not saved — ${save.message}` : save.kind === "conflict" ? "Changed in another tab" : "All work saved"}
+          {store.busy ? "Recording action…" : save.kind === "pending" || save.kind === "saving" ? "Saving…" : save.kind === "saved" ? `Saved ✓ ${save.at}` : save.kind === "failed" ? `Not saved — ${save.message}` : save.kind === "conflict" ? "Changed in another tab" : "No pending text edits"}
         </p>
       </header>
       {save.kind === "conflict" ? <Button type="button" variant="link" onClick={() => void store.reloadAfterConflict()}>Review and reapply my text</Button> : null}
@@ -129,6 +141,21 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
         </details>
       </div>
 
+          <nav aria-label="Step navigation" className="mt-4 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-t border-border py-3">
+            <Button type="button" variant="outline" size="lg" disabled={index === 0} onClick={() => go(index - 1)}>← Back</Button>
+            <label className="min-w-0 justify-self-center">
+              <span className="sr-only">Jump to a step</span>
+              <select className="min-h-11 w-full max-w-[16rem] rounded-md border border-border bg-background px-2 text-base" value={index} onChange={(e) => go(Number(e.target.value))}>
+                <optgroup label="Required">{GUIDED_SCREENS.slice(0, REQUIRED_COUNT).map((s, i) => <option key={s.id} value={i}>{positionLabel(i)}</option>)}</optgroup>
+                <optgroup label="Optional practice">{GUIDED_SCREENS.slice(REQUIRED_COUNT).map((s, i) => <option key={s.id} value={i + REQUIRED_COUNT}>{positionLabel(i + REQUIRED_COUNT)}</option>)}</optgroup>
+              </select>
+            </label>
+            {index === REQUIRED_COUNT - 1
+              ? <Button type="button" size="lg" onClick={() => setShowCaseFile(true)}>Review my Case File</Button>
+              : index === GUIDED_SCREENS.length - 1
+                ? <Button type="button" size="lg" onClick={() => go(firstOpenScreen(v, store.learner))}>Back to my required steps</Button>
+                : <Button type="button" size="lg" onClick={() => go(index + 1)}>Continue →</Button>}
+          </nav>
       {showCaseFile ? (
         <section className="mt-4" aria-label="Case File"><CaseFileBuilder store={store} /></section>
       ) : (
@@ -157,16 +184,21 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
               </div>
             ) : <p className="mt-1">{lab.why}</p>}
 
-            {screen.example ? <WorkedExample /> : null}
-
-            <h2 className="mt-4 text-xl font-semibold">Steps</h2>
+            <h2 className="mt-4 text-xl font-semibold">{screen.example ? "Let's do one together" : "Steps"}</h2>
+            {paged ? <div className="mt-2 space-y-2">
+              <p>Review action {subPosition + 1} of {screen.subs.length} · within this step</p>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" className="min-h-11" disabled={subPosition === 0} onClick={() => moveSub(subPosition - 1)}>Previous action</Button>
+                <Button variant="outline" className="min-h-11" disabled={subPosition === screen.subs.length - 1} onClick={() => moveSub(subPosition + 1)}>Next action</Button>
+              </div>
+            </div> : null}
             <ol className="mt-2 space-y-3">
-              {screen.subs.map((sub, i) => (
+              {currentSubs.map((sub, i) => (
                 <li key={sub.step.id} className="flex gap-3">
-                  <span aria-hidden className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-reading-accent text-base font-semibold text-reading">{i + 1}</span>
+                  <span aria-hidden className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-reading-accent text-base font-semibold text-reading">{paged ? subPosition + 1 : i + 1}</span>
                   <div className="min-w-0">
                     <p className="font-medium">{sub.step.doing}{sub.step.dir ? <span className="ml-2 rounded bg-reading-border px-2 py-0.5 text-sm font-semibold uppercase">{directoryLabel(sub.step.dir)}</span> : null}</p>
-                    <p className="text-base text-reading-muted">Where: {sub.step.where}</p>
+                    <p className="text-base text-reading-muted">Where: {sub.step.where.replace("Mission Progress → Your explanations", "Your explanation below").replace("Current Mission → evidence callout", "Save your evidence below")}</p>
                     <details className="mt-1 text-base">
                       <summary className="cursor-pointer text-reading-accent">What should I see?</summary>
                       <p className="mt-1">{sub.step.lookFor}</p>
@@ -176,7 +208,8 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
                 </li>
               ))}
             </ol>
-            {screen.subs.some((s) => /test|sign in|sign-in/i.test(s.step.doing)) ? (
+            {screen.example ? <p className="mt-3"><strong>What we learned:</strong> one person, two accounts. Group grants open resources; an OU is a folder, not a permission.</p> : null}
+            {screen.mission !== "M06" && screen.subs.some((s) => /test|sign in|sign-in/i.test(s.step.doing)) ? (
               <p className="mt-4 rounded-lg border border-reading-border p-3 text-base"><strong>About DENY results:</strong> {denyCoaching}</p>
             ) : null}
             {isLabStart && !screen.optional ? (
@@ -190,47 +223,23 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
           <div className="w11-activity min-w-0">
           <section aria-label="Your task" className="min-w-0 space-y-3">
             <h2 className="font-display text-xl">Do it here</h2>
-            <ScreenTask store={store} screen={screen} />
+            <ScreenTask key={`${screen.id}:${paged ? subPosition : "all"}`} store={store} screen={taskScreen} />
           </section>
 
           <CheckYourWork store={store} screen={screen} />
           </div>
           </div>
 
-          <nav aria-label="Step navigation" className="mt-4 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-t border-border py-3">
-            <Button type="button" variant="outline" size="lg" disabled={index === 0} onClick={() => go(index - 1)}>← Back</Button>
-            <label className="min-w-0 justify-self-center">
-              <span className="sr-only">Jump to a step</span>
-              <select className="min-h-11 w-full max-w-[16rem] rounded-md border border-border bg-background px-2 text-base" value={index} onChange={(e) => go(Number(e.target.value))}>
-                <optgroup label="Required">{GUIDED_SCREENS.slice(0, REQUIRED_COUNT).map((s, i) => <option key={s.id} value={i}>{positionLabel(i)}</option>)}</optgroup>
-                <optgroup label="Optional practice">{GUIDED_SCREENS.slice(REQUIRED_COUNT).map((s, i) => <option key={s.id} value={i + REQUIRED_COUNT}>{positionLabel(i + REQUIRED_COUNT)}</option>)}</optgroup>
-              </select>
-            </label>
-            {index === REQUIRED_COUNT - 1
-              ? <Button type="button" size="lg" onClick={() => setShowCaseFile(true)}>Review my Case File</Button>
-              : index === GUIDED_SCREENS.length - 1
-                ? <Button type="button" size="lg" onClick={() => go(firstOpenScreen(v, store.learner))}>Back to my required steps</Button>
-                : <Button type="button" size="lg" onClick={() => go(index + 1)}>Continue →</Button>}
-          </nav>
+
         </>
       )}
     </div>
   );
 }
 
-function WorkedExample() {
-  return (
-    <details open className="mt-4 border-y border-reading-border py-3 text-lg">
-      <summary className="cursor-pointer font-semibold">Let's do one together first</summary>
-      <ol className="mt-2 list-decimal space-y-1 pl-6">
-        <li>Open <strong>Users</strong> in <strong>Active Directory</strong> and choose <strong>ad-alex</strong>.</li>
-        <li>Find the <strong>Person record (HR)</strong> box. It names the real (fictional) person this account belongs to.</li>
-        <li>Now switch to <strong>Cloud Identity</strong>. The tool jumps to <strong>cl-alex</strong> — a second account for the same person.</li>
-      </ol>
-      <p className="mt-2"><strong>What we learned:</strong> one person, two accounts. Each account can open different things — that's where access problems hide.</p>
-      <p className="mt-1 text-reading-muted">Your turn: follow the steps below the same way.</p>
-    </details>
-  );
+function pagedFinding(screen: GuidedScreen) {
+  const id = screen.subs[0]?.step.id;
+  return screen.id === "L3-look" && id === "M06-06" ? 0 : screen.id === "L3-look" && id === "M06-07" ? 1 : undefined;
 }
 
 function ScreenTask({ store, screen }: { store: Week11Store; screen: GuidedScreen }) {
@@ -250,7 +259,7 @@ function ScreenTask({ store, screen }: { store: Week11Store; screen: GuidedScree
 
   return (
     <>
-      {links.length ? <ToolPanel key={screen.id} store={store} links={links} mission={screen.mission} focus={screen.id.includes("check") || screen.id === "L1-test" ? "test" : screen.id.includes("fix") || screen.id.includes("change") || screen.id.includes("leave") ? "change" : "review"} /> : null}
+      {links.length ? <ToolPanel key={screen.id} store={store} compactAccount={!screen.optional} initialFinding={pagedFinding(screen)} links={links} mission={screen.mission} focus={screen.id.includes("check") || screen.id === "L1-test" ? "test" : screen.id.includes("fix") || screen.id.includes("change") || screen.id.includes("leave") ? "change" : "review"} /> : null}
       {traceIds.length ? (
         <div className="rounded-xl border border-border bg-surface-raised p-4">
           <h3 className="text-lg font-semibold">Pick a real object you inspected</h3>
@@ -284,11 +293,12 @@ function ScreenTask({ store, screen }: { store: Week11Store; screen: GuidedScree
   );
 }
 
-function ToolPanel({ store, links, mission, focus }: { store: Week11Store; links: Nav[]; mission: string; focus: "test" | "change" | "review" }) {
+function ToolPanel({ store, links, mission, focus, initialFinding, compactAccount }: { compactAccount: boolean; initialFinding?: number | undefined; store: Week11Store; links: Nav[]; mission: string; focus: "test" | "change" | "review" }) {
   const v = store.view!;
   const [active, setActive] = useState(0);
   const [fullAccount, setFullAccount] = useState(false);
-  const link = links[active]!;
+  const link = links[active];
+  if (!link) return null;
   const initialAcct = link.account ? v.state.accounts.find((a) => a.key === link.account) : undefined;
   const [dir, setDir] = useState<Directory>(initialAcct?.dir ?? link.dir ?? "AD");
   const [selected, setSelected] = useState<string | null>(initialAcct?.key ?? null);
@@ -302,7 +312,12 @@ function ToolPanel({ store, links, mission, focus }: { store: Week11Store; links
     const twin = cur ? v.state.accounts.find((a) => a.person === cur.person && a.dir === d) : undefined;
     setDir(d); setSelected(twin?.key ?? null);
   };
-  const go = (n: Nav) => { const i = links.findIndex((l) => l.view === n.view); if (i >= 0) pick(i); };
+  const go = (n: Nav) => {
+    const i = links.findIndex((l) => l.view === n.view);
+    if (i >= 0) pick(i);
+    const a = n.account ? v.state.accounts.find((x) => x.key === n.account) : undefined;
+    if (a) { setDir(a.dir); setSelected(a.key); }
+  };
   const needsDir = ["users", "groups", "ous"].includes(link.view);
   return (
     <div className="w11-guided-tool min-w-0 rounded-xl border border-border bg-surface p-3 sm:p-4">
@@ -317,17 +332,17 @@ function ToolPanel({ store, links, mission, focus }: { store: Week11Store; links
         </div>
       ) : null}
       {link.view === "users" && selected ? <Button type="button" variant="link" className="mb-2 min-h-11 px-0 text-base" aria-expanded={fullAccount} onClick={() => setFullAccount((x) => !x)}>{fullAccount ? "Show only this step's account tools" : "Show all account tools"}</Button> : null}
-      <div className="w11-tool-content" data-account-focus={fullAccount ? "all" : focus} role={links.length > 1 ? "tabpanel" : undefined}>
-        {link.view === "users" ? <UsersView store={store} dir={dir} selected={selected} onSelect={setSelected} mission={mission} go={go} /> : null}
+      <div className={`w11-tool-content ${link.view === "users" ? "w11-account-content" : ""}`} data-account-focus={fullAccount ? "all" : focus} role={links.length > 1 ? "tabpanel" : undefined}>
+        {link.view === "users" ? <UsersView store={store} dir={dir} selected={selected} onSelect={setSelected} mission={mission} go={go} guided={compactAccount} /> : null}
         {link.view === "groups" ? <GroupsView store={store} dir={dir} /> : null}
         {link.view === "ous" ? <OUsView store={store} dir={dir} /> : null}
         {link.view === "roles" ? <RolesView store={store} /> : null}
         {link.view === "resources" ? <ResourcesView /> : null}
-        {link.view === "tickets" ? <TicketsView store={store} initial={link.ticket} /> : null}
-        {link.view === "signins" ? <LogsView store={store} kind="signin" /> : null}
-        {link.view === "audit" ? <LogsView store={store} kind="audit" /> : null}
+        {link.view === "tickets" ? <TicketsView key={link.ticket} store={store} initial={link.ticket} guided /> : null}
+        {link.view === "signins" ? <LogsView store={store} kind="signin" guided /> : null}
+        {link.view === "audit" ? <LogsView store={store} kind="audit" guided /> : null}
         {link.view === "evidence" ? <EvidenceView store={store} /> : null}
-        {link.view === "report" ? <CaseFileBuilder store={store} /> : null}
+        {link.view === "report" ? <CaseFileBuilder store={store} initialFinding={initialFinding} /> : null}
         {link.view === "downloads" ? <DownloadsView store={store} /> : null}
       </div>
     </div>
