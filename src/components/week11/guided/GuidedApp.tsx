@@ -88,12 +88,12 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
       </header>
       {save.kind === "conflict" ? <Button type="button" variant="link" onClick={() => void store.reloadAfterConflict()}>Review and reapply my text</Button> : null}
 
-      <div className="mt-3 grid gap-2 border-b border-border pb-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+      <div className="mt-3 grid gap-2 border-b border-border pb-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
         <div className="min-w-0">
           <p className="text-base text-primary">{positionLabel(index)}</p>
           <p className="font-display text-xl font-semibold">{screen.optional ? "Optional practice" : lab.title}{screen.part ? ` · ${screen.part}` : ""}</p>
         </div>
-        <details className="min-w-0 sm:max-w-xl">
+        <details className="min-w-0 xl:max-w-xl">
           <summary className="min-h-11 cursor-pointer content-center text-base">Change lab or open optional practice</summary>
       <nav aria-label="Week 11 labs" className="mt-2">
         <ol className="grid gap-2 sm:grid-cols-2">

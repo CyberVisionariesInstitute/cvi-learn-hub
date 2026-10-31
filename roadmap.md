@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Week 11 horizontal layout correction: wide split workspace, compact header/introductions, synthetic desktop/tablet/mobile/keyboard/zoom checks; preserve 18 steps / 7 evidence and Week 12; preview only
+- [x] Week 11 horizontal layout correction: 1440px split workspace, compact header/introductions, 67 synthetic browser checks + enlarged-text reflow checks, 147 Week 10–12 regressions; preserve 18 steps / 7 evidence and Week 12; preview only
 
 - [x] Week 12 Week-11-style instructional flow: six-stage step guide, one-at-a-time statements/findings/sections/recommendations, resume, Stage 6 status + submission handoff; Final QA/data/exports unchanged; practice-harness desktop/390px walkthrough; not deployed
 
