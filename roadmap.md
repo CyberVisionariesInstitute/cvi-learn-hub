@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Week 11 horizontal layout correction: 1440px split workspace, compact header/introductions, 67 synthetic browser checks + enlarged-text reflow checks, 147 Week 10–12 regressions; preserve 18 steps / 7 evidence and Week 12; preview only
+
 - [x] Week 12 Week-11-style instructional flow: six-stage step guide, one-at-a-time statements/findings/sections/recommendations, resume, Stage 6 status + submission handoff; Final QA/data/exports unchanged; practice-harness desktop/390px walkthrough; not deployed
 
 - [x] Week 11 Case File four focused corrections: public section titles, three live-ID groups, core versus optional finding presence, scope/limitations distinction; 204 tests, desktop/390px fictional-store checks and protected-file fingerprints passed; preview only
