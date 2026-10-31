@@ -23,7 +23,7 @@ export interface EvidenceRow {
 export interface AttemptView {
   id: string; shortId: string; status: "active" | "archived"; revision: number; textRevision: number;
   seedVersion: string; state: SimState; learner: Learner; evidence: EvidenceRow[];
-  readiness: { mission: string; ready: boolean; missing: string[] }[];
+  readiness: { mission: string; ready: boolean; missing: string[]; required?: boolean; optional?: string[] }[];
   updatedAt: string; archived: { id: string; archivedAt: string | null }[];
   reviews: { feedback: string; scores: Record<string, number>; created_at: string }[];
 }
