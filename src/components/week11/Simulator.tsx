@@ -55,7 +55,7 @@ export function Simulator({ store, view, onView, mission, onMission }: { store: 
           <p className="text-xs text-muted-foreground">You — Junior IAM/Security Analyst (sim-junior-analyst) · attempt {v.shortId} · revision {v.revision} · scenario time (fictional) {scenarioTime(v.state.seq)}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-sm" aria-live="polite">
-          {save.kind === "saving" ? <Badge>Saving…</Badge> : save.kind === "saved" ? <Badge tone="allow">Saved at {save.at}</Badge> : save.kind === "failed" ? <Badge tone="deny">Not saved: {save.message}</Badge> : save.kind === "conflict" ? <><Badge tone="warn">Changed in another tab</Badge><button type="button" className={btn} onClick={() => void store.reloadAfterConflict()}>Review & reapply my text</button></> : null}
+          {save.kind === "saving" || save.kind === "pending" ? <Badge>Saving…</Badge> : save.kind === "saved" ? <Badge tone="allow">Saved at {save.at}</Badge> : save.kind === "failed" ? <Badge tone="deny">Not saved: {save.message}</Badge> : save.kind === "conflict" ? <><Badge tone="warn">Changed in another tab</Badge><button type="button" className={btn} onClick={() => void store.reloadAfterConflict()}>Review & reapply my text</button></> : null}
           <button type="button" className={btn} onClick={() => void store.flush()}>Save</button>
         </div>
       </div>
