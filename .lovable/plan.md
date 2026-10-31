@@ -1,37 +1,36 @@
-# Week 12 published QA — read-only results and proposed follow-up
+# Week 11 — Three Guided Labs (preview only)
 
-Overall: **GO.** No blockers. Two minor wording/status items are optional polish.
+## One decision needed first
+Week 11 completion is checked on the server against six missions and 19 evidence slots (E01–E19). Week 12 only marks a student's source as complete when that check passes, and current students' progress is measured against it.
 
-## Evidence sources (kept separate)
-- **Live (checked now, signed out, read-only):** capstone.cybervisionariesinstitute.org/cyberfoundations/week-12. cvi-learn-hub.lovable.app redirects to the same custom domain. Signed-out visitors land on "Student sign in" (`/auth?redirect=/cyberfoundations/week-12`) on desktop and at 390px. No server calls were made and there's no sideways scrolling. All 77 live code files were fetched and searched for the new wording.
-- **Source (current project):** the guide steps, Stage 3 jump fix, Stage 6 status card, two-presenter limit and readiness rules.
-- **Earlier practice page (made-up data, no server calls, now deleted):** 50 of 50 keyboard and mouse checks passed at 1280px and 390px, and all 210 tests pass. That run proves how the screens behave, **not** the live signed-in flow.
-- **Not done live:** a signed-in walkthrough. Opening Week 12 signed in can create an attempt and autosave, so it was skipped as instructed.
+- **Option A (default in this plan): keep every requirement, cut the effort.** The three labs regroup the same required work. Evidence is saved automatically right after the student's own action, tests and changes are pre-selected for the record shown, and IDs are inserted by ticking records instead of typing. No change to grading, Week 12, or existing attempts. The amount of *work* stays the same; the *friction* drops a lot.
+- **Option B: actually reduce the required work.** Fewer tickets, fewer tests and fewer evidence slots. This is an assessment change: new server rules, a decision on how in-progress and finished six-lab attempts are judged, and Week 12 readiness changes. Needs your explicit sign-off on which items are dropped.
 
-## Results
-| # | Area | Result | Evidence |
-|---|---|---|---|
-| 1 | Published version and sign-in routing | PASS | Live redirect described above |
-| 2 | DO THIS / GO HERE / LOOK FOR / WHEN DONE guide, current stage, Welcome back / Continue | PASS | Live code has the guide labels, "Continue at Stage" and the account+attempt guide key; practice run confirmed behaviour |
-| 3 | One-item pagers / Show all / Save & next section | PASS | Live code and practice run |
-| 4 | Report header and Section 8 jump buttons | PASS | Live code has the section-select event; practice run confirmed the right section opens with the cursor in its box |
-| 5 | Evidence "press Tab" cue | PASS | Live code |
-| 6 | Written/video requirements; report required for both | PASS | Live code; requirement checks unchanged in source |
-| 7 | Final QA is not the grade; flagged-word explanation; old "not a block" line gone | PASS | Live code |
-| 8 | Real case IDs (S009/A002/C009) gone from examples; made-up LIB-77 used instead | PASS | Live code |
-| 9 | Source ownership / Refresh wording | PASS | Source; refresh rules unchanged |
-| 10 | Downloads, GitHub paths, Lab Submissions / Submission Tracker handoff | PASS, with limitation | Named destination only; no verified link exists in the project |
-| 11 | Optional presenters, maximum two | PASS | Instructor box disabled at 2; the database also refuses a third |
-| 12 | Stage 6 "Where is my work?": Autosaved ✓ | MINOR | It shows ✓ in the brief pause right after typing, before the save finishes. Recommend: show ✓ only after a confirmed save. |
-| 13 | Stage 6 volunteer card: "Two volunteers will be chosen" | MINOR | Reads as guaranteed. Recommend: "Up to two volunteers may be chosen by your instructor." |
-| 14 | Live signed-in flow (saving, downloads, real source data) | LIMITATION | Not checked live. Recommend a short run with a staff test-student account. |
+The rest of this plan assumes Option A. Tell me if you want B.
 
-## Proposed follow-up (only if approved)
-1. Stage 6 status card: mark Autosaved ✓ only after a confirmed save, not while a save is pending.
-2. Volunteer card wording: change it to "Up to two volunteers may be chosen by your instructor."
-3. Run the Week 12 tests and the 390px and keyboard checks again, then wait for your go-ahead before publishing.
+## What students will see
+A new guided view at the same Week 11 address, using the same account and saved attempt.
+
+```text
+Welcome back  →  Lab 1 of 3 · Step 2 of 6  →  [Back]  [Continue]
+```
+
+1. **Who Has Access?** (old Missions 1–2) — meet the people, compare Active Directory and Cloud Identity. One worked example ("Here's how we spot that Jordan still has old access"), then a similar guided try with specific hints.
+2. **Update Someone's Access** (old Missions 3–5) — one ticket at a time: read request → make one change → re-test → see the expected result → evidence saved. DENY outcomes explained kindly.
+3. **Explain What You Found** (old Mission 6) — the existing Case File builder, with short prompts and sentence starters ("This access should be removed because ___"). Historical records (S/A/C IDs) and the student's own activity (LA-/AT-) are shown in clearly separate, labelled groups.
+
+Each screen follows: Your goal → Why it matters (short) → numbered steps → the task itself → Check your work → one Continue button. Only the records and controls for that step are shown. Case File and the classic six-lab view stay available as secondary links, so earlier work remains reachable.
+
+Look: centered reading column, 18–20px body text, light reading surface with dark text and CVI violet accents, city art only on lab intro screens. Keyboard and 390px phone friendly. Save status shows "Saving…" until confirmed.
 
 ## Technical details
-- Item 1: in `StageQA` in `src/components/week12/Week12App.tsx`, the Autosaved line counts `saveState` "idle" as saved. "idle" is also the state while an edit is waiting to save. Show ✓ only when `saveState.kind === "saved"`, and otherwise show "Saving soon".
-- Item 2 is a text-only change. The presenter limit stays enforced by the database and the instructor screen.
-- Nothing else changes: source snapshot, refresh, readiness, exports and student records stay untouched.
+- New `src/components/week11/guided/` (GuidedApp, LabIntro, StepScreen, CheckYourWork, steps map). Pure presentation map in `src/lib/week11/guided-steps.ts` linking each guided step to existing mission IDs, step indexes and evidence slots; unit tests assert every E01–E19 slot and every mission question is reachable from exactly one guided step.
+- Actions call the existing `week11.functions.ts` commands only. Auto-capture uses the existing CaptureEvidence/store contract, triggered after the student's command succeeds, with the exact record they just produced; never captures on page load or for records they didn't create.
+- No changes to `readiness.server.ts`, `tickets.server.ts`, answer key, DB functions, export filenames, Week 12 snapshot, or student rows. Progress shown from existing readiness results only.
+- Guided position is browser-local, keyed by account + attempt (same pattern as Week 12 guide).
+- `?view=classic` keeps the current simulator; guided becomes default in preview.
+- Compatibility contract (Case File fields, section keys, evidence IDs, export paths Week 12 reads) written to `docs/week11-week12-contract.md` with a test.
+- Validation: unit tests, isolated synthetic-data harness (no server writes) for all 3 labs at 1280px and 390px plus keyboard pass, existing-attempt mapping check against a synthetic six-lab attempt, export + Week 12 snapshot build test. Harness removed afterwards. Not published.
+
+## Limitations to expect
+No test against a real student account; screen-reader testing not included.
