@@ -19,7 +19,7 @@ export function LogsView({ store, kind, guided = false }: { store: Week11Store; 
   const opener = useRef<HTMLElement | null>(null);
   const fields = kind === "signin" ? SIGNIN_FIELDS : AUDIT_FIELDS;
   const [allFields, setAllFields] = useState(false);
-  const visibleFields = guided && !allFields ? (kind === "signin" ? ["event_id", "account", "outcome", "reason", "correlation_id"] : ["event_id", "activity", "target", "result", "correlation_id"]) : fields;
+  const visibleFields = guided && !allFields ? (kind === "signin" ? ["event_id", "user", "outcome", "reason", "correlation_id"] : ["event_id", "activity", "target", "result", "correlation_id"]) : fields;
   const rows: Row[] = useMemo(() => {
     const hist = (kind === "signin" ? historicalSignins : historicalAudit).map((r) => ({ ...r, __source: "HISTORICAL" }) as Row);
     const live = kind === "signin"
