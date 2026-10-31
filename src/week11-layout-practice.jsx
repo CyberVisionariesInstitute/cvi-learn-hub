@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { GuidedApp } from './components/week11/guided/GuidedApp';
+import { GuidedApp as GuidedAppBefore } from './components/week11/guided/GuidedAppBefore';
 import { createSeedState, applyCommand } from './lib/week11/engine';
 import { missions, SEED_VERSION } from './lib/week11/seed';
 import './styles.css';
@@ -12,6 +13,6 @@ function Practice() {
  flush:async()=>{},reloadAfterConflict:async()=>{},reset:async()=>{throw Error('Disabled in practice')},exportZip:async()=>{},exportLab:async()=>{},
  run:async(command)=>{const r=applyCommand(view.state,command,{attemptShort:'PRACTICE',revision:view.revision+1});if(r.state)setView(v=>({...v,state:r.state,revision:v.revision+1}));setLastResult(r.result);return r.result},
  captureEvidence:async(input)=>{setView(v=>({...v,evidence:[...v.evidence,{evidence_key:'EV-PRACTICE-'+input.slot,slot:input.slot,mission:input.mission,title:input.title,snapshot:{},content_hash:'practice',captured_revision:v.revision,created_at:'2026-10-31'}]}));setLastResult({ok:true,message:'Captured '+input.slot+'.'})}};
- return <div className="program-cyberfoundations"><GuidedApp store={store} onClassic={()=>{}} /></div>
+ const App = location.search.includes("before") ? GuidedAppBefore : GuidedApp; return <div className="program-cyberfoundations"><App store={store} onClassic={()=>{}} /></div>
 }
 createRoot(document.getElementById('practice')).render(<Practice/>);
