@@ -235,7 +235,7 @@ function ScreenTask({ store, screen }: { store: Week11Store; screen: GuidedScree
           <CaptureEvidence key={screen.id} store={store} mission={m.key} slots={slots} initialSlot={slots[0]!.slot} />
         </div>
       ) : null}
-      {store.lastResult ? <p aria-live="polite" className={`rounded-lg border p-3 text-base ${store.lastResult.ok ? "border-allow/60" : "border-amber/60"}`}>{store.lastResult.ok ? "Done: " : "Not yet: "}{store.lastResult.message}</p> : null}
+      {store.lastResult ? <p aria-live="polite" className={`rounded-lg border p-3 text-base ${store.lastResult.ok ? "border-evidence/60" : "border-amber/60"}`}>{store.lastResult.ok ? "Done: " : "Not yet: "}{store.lastResult.message}</p> : null}
     </>
   );
 }

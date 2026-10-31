@@ -541,3 +541,8 @@
     transform: none;
   }
 }
+
+/* Week 11 guided view: keep embedded simulator records readable (no tiny text). */
+.w11-guided-tool .text-xs { font-size: 0.9375rem; line-height: 1.5; }
+.w11-guided-tool .text-sm { font-size: 1rem; line-height: 1.6; }
+.w11-guided-tool .text-\[0\.7rem\] { font-size: 0.875rem; }
