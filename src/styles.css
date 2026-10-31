@@ -548,6 +548,8 @@
   overflow-wrap: anywhere;
 }
 .w11-guided .w11-guidance :is(p, li) { font-size: 1.125rem; line-height: 1.6; }
+.w11-guidance button { color: var(--reading-foreground); background: var(--reading); border-color: var(--reading-border); }
+.w11-guidance button:hover { background: var(--reading-border); }
 .w11-guided :is(h1, h2, h3, h4) { letter-spacing: 0; }
 .w11-guided-intro img { max-height: 160px; }
 .w11-guided-intro section > div.relative { min-height: 160px; padding: 1rem; }
@@ -563,7 +565,7 @@
 .w11-guided .max-h-64:is(.overflow-auto, .overflow-y-auto) { max-height: none; overflow: visible; }
 .w11-guided :is(input, textarea, select, button, a, summary) { scroll-margin-block: 1rem; }
 .w11-guided nav[aria-label="Step navigation"] button { max-width: 100%; white-space: normal; height: auto; min-height: 44px; }
-@media (max-width: 639px) {
+@media (max-width: 1023px) {
   .w11-guided nav[aria-label="Step navigation"] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .w11-guided nav[aria-label="Step navigation"] label { grid-column: 1 / -1; grid-row: 2; width: 100%; }
   .w11-guided nav[aria-label="Step navigation"] select { max-width: none; }

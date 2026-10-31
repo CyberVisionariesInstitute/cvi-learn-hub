@@ -95,7 +95,7 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
           <p className="mt-1 text-base text-muted-foreground">Practice data only — every person and account here is fictional.</p>
         </div>
         <p aria-live="polite" className="max-w-40 shrink-0 break-words border-l border-border pl-3 text-base">
-          {save.kind === "pending" || save.kind === "saving" ? "Saving…" : save.kind === "saved" ? `Saved ✓ ${save.at}` : save.kind === "failed" ? `Not saved — ${save.message}` : save.kind === "conflict" ? "Changed in another tab" : "All work saved"}
+          {store.busy ? "Recording action…" : save.kind === "pending" || save.kind === "saving" ? "Saving…" : save.kind === "saved" ? `Saved ✓ ${save.at}` : save.kind === "failed" ? `Not saved — ${save.message}` : save.kind === "conflict" ? "Changed in another tab" : "No pending text edits"}
         </p>
       </header>
       {save.kind === "conflict" ? <Button type="button" variant="link" onClick={() => void store.reloadAfterConflict()}>Review and reapply my text</Button> : null}
@@ -209,7 +209,7 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
               ))}
             </ol>
             {screen.example ? <p className="mt-3"><strong>What we learned:</strong> one person, two accounts. Group grants open resources; an OU is a folder, not a permission.</p> : null}
-            {screen.subs.some((s) => /test|sign in|sign-in/i.test(s.step.doing)) ? (
+            {screen.mission !== "M06" && screen.subs.some((s) => /test|sign in|sign-in/i.test(s.step.doing)) ? (
               <p className="mt-4 rounded-lg border border-reading-border p-3 text-base"><strong>About DENY results:</strong> {denyCoaching}</p>
             ) : null}
             {isLabStart && !screen.optional ? (
