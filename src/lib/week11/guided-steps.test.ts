@@ -51,7 +51,7 @@ describe("Week 11 guided labs map onto unchanged missions", () => {
 });
 
 describe("existing six-lab attempts resume correctly", () => {
-  const ready = (ids: string[]) => missions.map((m) => ({ mission: m.key, ready: ids.includes(m.key), missing: ids.includes(m.key) ? [] : ["x"] }));
+  const ready = (ids: string[]) => missions.map((m) => ({ mission: m.key, ready: ids.includes(m.key), missing: ids.includes(m.key) ? [] : ["x"], required: true, optional: [] }));
   it("starts a fresh attempt at Lab 1 step 1", () => {
     expect(firstOpenScreen({ evidence: [], readiness: ready([]) }, {})).toBe(0);
   });
