@@ -555,8 +555,12 @@
 .w11-tool-content > .grid:has(> .space-y-4) { grid-template-columns: minmax(0, 1fr); }
 .w11-tool-content > .grid:has(> .space-y-4) > div:first-child { display: none; }
 .w11-tool-content > .grid:has(> .space-y-4) .lg\:hidden { display: inline-flex; }
+.w11-tool-content[data-account-focus="test"] > .grid > .space-y-4 > section { display: none; }
+.w11-tool-content[data-account-focus="change"] > .grid > .space-y-4 > :is(section:nth-of-type(2), div[id]) { display: none; }
+.w11-tool-content[data-account-focus="review"] > .grid > .space-y-4 > :is(section:nth-of-type(3), div[id]) { display: none; }
+.w11-tool-content:not([data-account-focus="all"]) > .grid > .space-y-4 > div:first-child a { display: none; }
 /* Expanded ID choices follow the page scroll, rather than a nested panel. */
-.w11-guided .max-h-64.overflow-auto { max-height: none; overflow: visible; }
+.w11-guided .max-h-64:is(.overflow-auto, .overflow-y-auto) { max-height: none; overflow: visible; }
 .w11-guided :is(input, textarea, select, button, a, summary) { scroll-margin-block: 1rem; }
 @media (max-width: 639px) {
   .w11-guided nav[aria-label="Step navigation"] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }

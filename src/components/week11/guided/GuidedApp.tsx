@@ -250,7 +250,7 @@ function ScreenTask({ store, screen }: { store: Week11Store; screen: GuidedScree
 
   return (
     <>
-      {links.length ? <ToolPanel key={screen.id} store={store} links={links} mission={screen.mission} /> : null}
+      {links.length ? <ToolPanel key={screen.id} store={store} links={links} mission={screen.mission} focus={screen.id.includes("check") || screen.id === "L1-test" ? "test" : screen.id.includes("fix") || screen.id.includes("change") || screen.id.includes("leave") ? "change" : "review"} /> : null}
       {traceIds.length ? (
         <div className="rounded-xl border border-border bg-surface-raised p-4">
           <h3 className="text-lg font-semibold">Pick a real object you inspected</h3>
@@ -284,9 +284,10 @@ function ScreenTask({ store, screen }: { store: Week11Store; screen: GuidedScree
   );
 }
 
-function ToolPanel({ store, links, mission }: { store: Week11Store; links: Nav[]; mission: string }) {
+function ToolPanel({ store, links, mission, focus }: { store: Week11Store; links: Nav[]; mission: string; focus: "test" | "change" | "review" }) {
   const v = store.view!;
   const [active, setActive] = useState(0);
+  const [fullAccount, setFullAccount] = useState(false);
   const link = links[active]!;
   const initialAcct = link.account ? v.state.accounts.find((a) => a.key === link.account) : undefined;
   const [dir, setDir] = useState<Directory>(initialAcct?.dir ?? link.dir ?? "AD");
@@ -315,7 +316,8 @@ function ToolPanel({ store, links, mission }: { store: Week11Store; links: Nav[]
           {(["AD", "CLOUD"] as Directory[]).map((d) => <button key={d} type="button" aria-pressed={dir === d} onClick={() => switchDir(d)} className={`min-h-11 rounded-md border px-3 text-base font-semibold uppercase ${dir === d ? "border-primary bg-primary/15" : "border-border"}`}>{directoryLabel(d)}</button>)}
         </div>
       ) : null}
-      <div className="w11-tool-content" role={links.length > 1 ? "tabpanel" : undefined}>
+      {link.view === "users" && selected ? <Button type="button" variant="link" className="mb-2 min-h-11 px-0 text-base" aria-expanded={fullAccount} onClick={() => setFullAccount((x) => !x)}>{fullAccount ? "Show only this step's account tools" : "Show all account tools"}</Button> : null}
+      <div className="w11-tool-content" data-account-focus={fullAccount ? "all" : focus} role={links.length > 1 ? "tabpanel" : undefined}>
         {link.view === "users" ? <UsersView store={store} dir={dir} selected={selected} onSelect={setSelected} mission={mission} go={go} /> : null}
         {link.view === "groups" ? <GroupsView store={store} dir={dir} /> : null}
         {link.view === "ous" ? <OUsView store={store} dir={dir} /> : null}
