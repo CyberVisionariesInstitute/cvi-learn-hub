@@ -106,7 +106,6 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
           {isLabStart ? (
             <div className="mt-4 space-y-3">
               {screen.lab === 1 ? <Week11Hero /> : <MissionArt mission={screen.mission} />}
-              {index === 0 || resumed ? null : null}
             </div>
           ) : null}
           {resumed && index === firstOpenScreen(v, store.learner) ? (
