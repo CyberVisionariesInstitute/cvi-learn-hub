@@ -69,7 +69,7 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
   const inLab = labScreens(screen.lab);
   const isLabStart = inLab[0]!.id === screen.id;
   const isMissionStart = !screen.optional && GUIDED_SCREENS.find((s) => s.mission === screen.mission && !s.example)!.id === screen.id;
-  const labDone = (n: number) => labScreens(n).every((s) => screenChecks(s, v, store.learner).every((c) => c.optional || c.done)) && GUIDED_LABS.find((l) => l.n === n)!.missions.every((m) => v.readiness.find((r) => r.mission === m)?.ready !== false || m === "M01");
+  const labDone = (n: number) => labScreens(n).every((s) => screenChecks(s, v, store.learner).every((c) => c.optional || c.done));
   const save = store.textSave;
   const resumed = v.state.seq > 0 || v.textRevision > 0;
 
