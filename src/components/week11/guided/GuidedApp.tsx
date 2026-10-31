@@ -293,7 +293,7 @@ function ScreenTask({ store, screen }: { store: Week11Store; screen: GuidedScree
   );
 }
 
-function ToolPanel({ store, links, mission, focus, initialFinding }: { initialFinding?: number; store: Week11Store; links: Nav[]; mission: string; focus: "test" | "change" | "review" }) {
+function ToolPanel({ store, links, mission, focus, initialFinding }: { initialFinding?: number | undefined; store: Week11Store; links: Nav[]; mission: string; focus: "test" | "change" | "review" }) {
   const v = store.view!;
   const [active, setActive] = useState(0);
   const [fullAccount, setFullAccount] = useState(false);
