@@ -10,7 +10,7 @@ import type { Nav } from "@/lib/week11/guidance";
 import { denyCoaching, directoryLabel } from "@/lib/week11/instructions";
 import { missions, traceConcepts, type Directory } from "@/lib/week11/seed";
 import {
-  GUIDED_LABS, GUIDED_SCREENS, firstOpenScreen, guidedKey, labScreens, parseGuided, positionLabel, screenChecks, type GuidedScreen,
+  FIRST_OPTIONAL, GUIDED_LABS, GUIDED_SCREENS, REQUIRED_COUNT, firstOpenScreen, guidedKey, labScreens, parseGuided, positionLabel, screenChecks, type GuidedScreen,
 } from "@/lib/week11/guided-steps";
 import { CaptureEvidence } from "../CaptureEvidence";
 import { CaseFileBuilder } from "../CaseFileBuilder";
@@ -19,6 +19,16 @@ import { EvidenceView, LogsView } from "../InvestigationViews";
 import { DownloadsView } from "../DownloadsView";
 import { MissionArt, Week11Hero } from "../Visuals";
 import { traceObjectsFor } from "../Simulator";
+import { suggestRefs } from "@/lib/week11/guided-preselect";
+
+/** Sentence starters for the short required answers (student writes the rest). */
+const STARTERS: Record<string, string> = {
+  prediction: "I think Blair can / cannot read case summaries because ___.",
+  authorization: "Blair could sign in but not read, because ___.",
+  accountability: "I changed ___ because the ticket approved ___. The audit record ___ shows it.",
+  t502: "I removed ___ and added ___ because Alex moved to ___. The retests showed ___.",
+  t503: "I disabled ___ and ended ___ because Finley left. The new sign-in was ___.",
+};
 
 /** ELI5 first, then the technical name, per original mission. */
 const PLAIN: Record<string, { everyday: string; term: string; link: string }> = {
@@ -58,7 +68,8 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
   const lab = GUIDED_LABS.find((l) => l.n === screen.lab)!;
   const inLab = labScreens(screen.lab);
   const isLabStart = inLab[0]!.id === screen.id;
-  const isMissionStart = GUIDED_SCREENS.find((s) => s.mission === screen.mission)!.id === screen.id;
+  const isMissionStart = !screen.optional && GUIDED_SCREENS.find((s) => s.mission === screen.mission && !s.example)!.id === screen.id;
+  const labDone = (n: number) => labScreens(n).every((s) => screenChecks(s, v, store.learner).every((c) => c.optional || c.done)) && GUIDED_LABS.find((l) => l.n === n)!.missions.every((m) => v.readiness.find((r) => r.mission === m)?.ready !== false || m === "M01");
   const save = store.textSave;
   const resumed = v.state.seq > 0 || v.textRevision > 0;
 
@@ -76,20 +87,27 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
       {save.kind === "conflict" ? <button type="button" className="mt-2 underline" onClick={() => void store.reloadAfterConflict()}>Review and reapply my text</button> : null}
 
       <nav aria-label="Week 11 labs" className="mt-4">
-        <ol className="grid gap-2 sm:grid-cols-3">
+        <ol className="grid gap-2 sm:grid-cols-4">
           {GUIDED_LABS.map((l) => {
-            const ready = l.missions.every((m) => v.readiness.find((r) => r.mission === m)?.ready);
+            const ready = labDone(l.n);
             const current = l.n === screen.lab;
             return (
               <li key={l.n}>
                 <button type="button" aria-current={current ? "step" : undefined} onClick={() => go(GUIDED_SCREENS.findIndex((s) => s.lab === l.n))}
                   className={`min-h-11 w-full rounded-lg border px-3 py-2 text-left text-base ${current ? "border-violet bg-violet/15" : "border-border"}`}>
-                  <span className="block text-sm text-muted-foreground">Lab {l.n}{ready ? " · ✓ done" : ""}</span>
+                  <span className="block text-sm text-muted-foreground">Lab {l.n} · {l.minutes}{ready ? " · ✓ done" : ""}</span>
                   <span className="font-medium">{l.title}</span>
                 </button>
               </li>
             );
           })}
+          <li>
+            <button type="button" aria-current={screen.optional ? "step" : undefined} onClick={() => go(FIRST_OPTIONAL)}
+              className={`min-h-11 w-full rounded-lg border border-dashed px-3 py-2 text-left text-base ${screen.optional ? "border-violet bg-violet/15" : "border-border"}`}>
+              <span className="block text-sm text-muted-foreground">Not required</span>
+              <span className="font-medium">Optional practice</span>
+            </button>
+          </li>
         </ol>
       </nav>
 
@@ -103,7 +121,13 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
         <section className="mt-4" aria-label="Case File"><CaseFileBuilder store={store} /></section>
       ) : (
         <>
-          {isLabStart ? (
+          {screen.optional ? (
+            <p className="mt-4 rounded-lg border border-dashed border-border p-3 text-lg"><strong>Optional practice.</strong> This does not count toward finishing Week 11. Anything you already did here is kept and still shows in your downloads.</p>
+          ) : null}
+          {screen.example ? (
+            <p className="mt-4 rounded-lg border border-violet/50 bg-violet/10 p-3 text-lg"><strong>Worked example.</strong> Follow along — there is nothing to save on this step. Next, you'll try a similar task on your own.</p>
+          ) : null}
+          {isLabStart && !screen.optional ? (
             <div className="mt-4 space-y-3">
               {screen.lab === 1 ? <Week11Hero /> : <MissionArt mission={screen.mission} />}
             </div>
@@ -113,7 +137,7 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
           ) : null}
 
           <article className="mt-4 rounded-2xl border border-reading-border bg-reading p-5 text-lg leading-relaxed text-reading-foreground sm:p-8" aria-labelledby="w11g-goal">
-            <p className="text-base font-semibold text-reading-accent">{positionLabel(index)} · {lab.title}</p>
+            <p className="text-base font-semibold text-reading-accent">{positionLabel(index)} · {screen.optional ? "Optional practice" : lab.title}{screen.part ? ` · ${screen.part}` : ""}</p>
             <h1 id="w11g-goal" ref={headingRef} tabIndex={-1} className="mt-2 font-display text-2xl leading-snug sm:text-3xl focus:outline-none">Your goal</h1>
             <p className="mt-2 text-xl">{screen.goal}</p>
 
@@ -126,7 +150,7 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
               </div>
             ) : <p className="mt-1">{lab.why}</p>}
 
-            {index === 0 ? <WorkedExample /> : null}
+            {screen.example ? <WorkedExample /> : null}
 
             <h2 className="mt-6 text-xl font-semibold">Steps</h2>
             <ol className="mt-2 space-y-3">
@@ -162,12 +186,15 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
             <label className="hidden min-w-0 sm:block">
               <span className="sr-only">Jump to a step</span>
               <select className="min-h-11 max-w-[16rem] rounded-md border border-border bg-background px-2 text-base" value={index} onChange={(e) => go(Number(e.target.value))}>
-                {GUIDED_SCREENS.map((s, i) => <option key={s.id} value={i}>{positionLabel(i)}</option>)}
+                <optgroup label="Required">{GUIDED_SCREENS.slice(0, REQUIRED_COUNT).map((s, i) => <option key={s.id} value={i}>{positionLabel(i)}</option>)}</optgroup>
+                <optgroup label="Optional practice">{GUIDED_SCREENS.slice(REQUIRED_COUNT).map((s, i) => <option key={s.id} value={i + REQUIRED_COUNT}>{positionLabel(i + REQUIRED_COUNT)}</option>)}</optgroup>
               </select>
             </label>
-            {index < GUIDED_SCREENS.length - 1
-              ? <Button type="button" size="lg" onClick={() => go(index + 1)}>Continue →</Button>
-              : <Button type="button" size="lg" onClick={() => setShowCaseFile(true)}>Review my Case File</Button>}
+            {index === REQUIRED_COUNT - 1
+              ? <Button type="button" size="lg" onClick={() => setShowCaseFile(true)}>Review my Case File</Button>
+              : index === GUIDED_SCREENS.length - 1
+                ? <Button type="button" size="lg" onClick={() => go(firstOpenScreen(v, store.learner))}>Back to my required steps</Button>
+                : <Button type="button" size="lg" onClick={() => go(index + 1)}>Continue →</Button>}
           </nav>
         </>
       )}
@@ -226,13 +253,14 @@ function ScreenTask({ store, screen }: { store: Week11Store; screen: GuidedScree
       {questionIds.map((id) => { const q = m.questions.find((x) => x.id === id)!; return (
         <label key={id} className="block rounded-xl border border-border bg-surface-raised p-4 text-base">
           <span className="text-lg font-semibold">{q.label}</span>
-          <span className="mt-1 block text-muted-foreground">Sentence starter: "In the records I saw ___, which shows ___."</span>
+          <span className="mt-1 block text-muted-foreground">Sentence starter: "{STARTERS[id] ?? "In the records I saw ___, which shows ___."}"</span>
           <textarea className="mt-2 w-full rounded-md border border-border bg-background p-3 text-lg leading-relaxed" rows={4} maxLength={5000} value={ans[id] ?? ""} onChange={(e) => setAns(id, e.target.value)} />
         </label>); })}
       {slots.length ? (
         <div>
           <p className="mb-2 rounded-lg border border-evidence/60 bg-evidence/10 p-3 text-lg font-semibold">Save your evidence: pick the records you just created, explain them in a sentence, then save.</p>
-          <CaptureEvidence key={screen.id} store={store} mission={m.key} slots={slots} initialSlot={slots[0]!.slot} />
+          {!screen.optional && suggestRefs(slots[0]!.slot, v.state) ? <p className="mb-2 text-base text-muted-foreground">We ticked your most recent matching records to save you copying IDs. Check each one, untick anything that doesn't belong, then explain and save.</p> : null}
+          <CaptureEvidence key={screen.id} store={store} mission={m.key} slots={slots} initialSlot={slots[0]!.slot} preselect={screen.optional ? undefined : suggestRefs(slots[0]!.slot, v.state)} />
         </div>
       ) : null}
       {store.lastResult ? <p aria-live="polite" className={`rounded-lg border p-3 text-base ${store.lastResult.ok ? "border-evidence/60" : "border-amber/60"}`}>{store.lastResult.ok ? "Done: " : "Not yet: "}{store.lastResult.message}</p> : null}
@@ -292,12 +320,12 @@ function CheckYourWork({ store, screen }: { store: Week11Store; screen: GuidedSc
   const v = store.view!;
   const checks = screenChecks(screen, v, store.learner);
   const r = v.readiness.find((x) => x.mission === screen.mission)!;
-  const lastOfMission = [...GUIDED_SCREENS].reverse().find((s) => s.mission === screen.mission)!.id === screen.id;
+  const lastOfMission = !screen.optional && [...GUIDED_SCREENS.slice(0, REQUIRED_COUNT)].reverse().find((s) => s.mission === screen.mission)!.id === screen.id && r.required !== false;
   return (
     <section aria-labelledby="w11g-check" className="mt-6 rounded-2xl border border-reading-border bg-reading p-5 text-lg text-reading-foreground sm:p-6">
       <h2 id="w11g-check" className="text-xl font-semibold">Check your work</h2>
       {checks.length ? (
-        <ul className="mt-2 space-y-1">{checks.map((c) => <li key={c.id}>{c.done ? "✓" : "○"} {c.label}{c.done ? "" : " — not yet"}</li>)}</ul>
+        <ul className="mt-2 space-y-1">{checks.map((c) => <li key={c.id}>{c.done ? "✓" : "○"} {c.label}{c.done ? "" : " — not yet"}{c.optional && !screen.optional ? " (optional)" : ""}</li>)}</ul>
       ) : <p className="mt-2">Open each "What should I see?" above and compare it with what the tool shows. When they match, continue.</p>}
       {lastOfMission ? (
         r.ready ? <p className="mt-3 font-semibold">✓ Everything needed for this part is saved. Your instructor reviews your reasoning.</p> : (
