@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Week 11 final guided presentation pass: focused tickets/accounts, single-subtask historical review, top navigation; fictional browser/save-resume checks and Week 11–12 regressions; preview only
+- [x] Week 11 final guided presentation pass: focused tickets/accounts, single-subtask historical review, top navigation; 59 fictional browser checks including local save/resume, 147 Week 10–12 regressions; practice harness removed; preview only
 
 - [x] Week 11 horizontal layout correction: 1440px split workspace, compact header/introductions, 67 synthetic browser checks + enlarged-text reflow checks, 147 Week 10–12 regressions; preserve 18 steps / 7 evidence and Week 12; preview only
 
