@@ -145,11 +145,11 @@ function Dashboard({ store, onView, onMission }: { store: Week11Store; onView: (
         <ul className="grid gap-2 md:grid-cols-2">{missions.map((m) => { const r = v.readiness.find((x) => x.mission === m.key)!; return (
           <li key={m.key}><button type="button" className={`${btn} w-full text-left`} onClick={() => { onMission(m.key); onView("missions"); }}>
             <span className="font-mono text-xs">{m.lab} · {m.time}</span><span className="block font-medium">{m.title}</span>
-            <span className="mt-1 block">{r.ready ? <Badge tone="allow">✓ Evidence-ready</Badge> : <Badge>{r.missing.length} item(s) remaining</Badge>}</span>
+            <span className="mt-1 block">{r.required === false ? <Badge>Optional practice</Badge> : r.ready ? <Badge tone="allow">✓ Evidence-ready</Badge> : <Badge>{r.missing.length} item(s) remaining</Badge>}</span>
           </button></li>); })}</ul>
       </Card>
       <Card title="Your portfolio files" eyebrow="Download your Week 11 work for GitHub">
-        <p className="text-sm">{v.readiness.filter((r) => r.ready).length} of {missions.length} labs evidence-ready. Unfinished labs download marked DRAFT.</p>
+        <p className="text-sm">{v.readiness.filter((r) => r.required !== false && r.ready).length} of {v.readiness.filter((r) => r.required !== false).length} required labs evidence-ready (Labs 01, 03 and 04 are optional practice). Unfinished labs download marked DRAFT.</p>
         <button type="button" className={`${btnPrimary} mt-3`} onClick={() => onView("downloads")}>Download & GitHub</button>
       </Card>
       <Card title="Recent actions">
@@ -204,7 +204,8 @@ function MissionView({ store, mission, onMission, onView, go }: { store: Week11S
       </Card>
       <CaptureEvidence store={store} mission={m.key} slots={m.evidence} go={go} />
       <Card title="Readiness" eyebrow="Presence of required work — not a grade">
-        {r.ready ? <p className="text-sm"><Badge tone="allow">✓ Evidence-ready</Badge> Everything required is present. Your instructor reviews the reasoning.</p> : (
+        {r.required === false ? <p className="text-sm"><Badge>Optional practice</Badge> This lab does not count toward finishing Week 11. Work you do here is kept and downloaded.</p> : null}
+        {r.required === false ? null : r.ready ? <p className="text-sm"><Badge tone="allow">✓ Evidence-ready</Badge> Everything required is present. Your instructor reviews the reasoning.</p> : (
           <ul className="list-disc space-y-1 pl-5 text-sm">{r.missing.map((x) => { const n = navForMissing(m.key, x); return <li key={x}>{x} {n && n.view !== "missions" ? <button type="button" className="text-xs underline" onClick={() => go(n)}>Go there: {n.label}</button> : null}</li>; })}</ul>
         )}
         <DownloadLabButton store={store} mission={m.key} lab={m.lab} onView={onView} />

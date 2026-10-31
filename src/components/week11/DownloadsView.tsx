@@ -11,7 +11,7 @@ export function DownloadsView({ store, afterZip }: { store: Week11Store; afterZi
   const [busy, setBusy] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const name = store.learner.displayName?.trim();
-  const allReady = v.readiness.every((r) => r.ready);
+  const allReady = v.readiness.every((r) => r.ready);  // optional labs always count as ready
 
   const lab = async (key: MissionId) => {
     setBusy(key);
@@ -46,7 +46,7 @@ export function DownloadsView({ store, afterZip }: { store: Week11Store; afterZi
                 <div className="min-w-0">
                   <p className="text-sm font-medium">{m.lab} · {m.title}</p>
                   <p className="break-all font-mono text-xs text-muted-foreground">{fileOf(m.exportPath)}</p>
-                  <p className="mt-1">{r?.ready ? <Badge tone="allow">✓ Evidence-ready</Badge> : <Badge tone="warn">DRAFT · {r?.missing.length ?? 0} item(s) missing</Badge>}</p>
+                  <p className="mt-1">{r?.required === false ? <Badge>Optional practice</Badge> : r?.ready ? <Badge tone="allow">✓ Evidence-ready</Badge> : <Badge tone="warn">DRAFT · {r?.missing.length ?? 0} item(s) missing</Badge>}</p>
                   {!r?.ready && r?.missing.length ? (
                     <details className="mt-1 text-xs"><summary className="cursor-pointer">What's missing</summary>
                       <ul className="mt-1 list-disc space-y-0.5 pl-5">{r.missing.map((x) => <li key={x}>{x}</li>)}</ul>

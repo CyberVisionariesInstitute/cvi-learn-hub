@@ -10,9 +10,10 @@ const kindLabels: Record<EvidenceKind, string> = { accounts: "Account snapshot",
 const kinds: EvidenceKind[] = ["accounts", "tests", "signins", "audits", "groups", "tickets", "historical"];
 const example = "Example format — not your case answer: In a fictional example, the sign-in record shows that the account authenticated successfully. The access test records the account’s access decision for the requested resource before any changes were made.";
 
-export function CaptureEvidence({ store, mission, slots, initialSlot, compact, go }: { store: Week11Store; mission: string; slots: { slot: string; label: string }[]; initialSlot?: string | undefined; compact?: boolean; go?: (nav: Nav) => void }) {
+export function CaptureEvidence({ store, mission, slots, initialSlot, compact, go, preselect }: { store: Week11Store; mission: string; slots: { slot: string; label: string }[]; initialSlot?: string | undefined; compact?: boolean; go?: (nav: Nav) => void; /** Optional starting ticks from the student's own records; they can untick before saving. */ preselect?: Partial<Record<EvidenceKind, string[]>> | undefined }) {
   const [slot, setSlot] = useState(initialSlot && slots.some((x) => x.slot === initialSlot) ? initialSlot : slots[0]?.slot ?? "");
-  const [refs, setRefs] = useState(emptyEvidenceRefs);
+  const withPreselect = () => ({ ...emptyEvidenceRefs(), ...(preselect ?? {}) });
+  const [refs, setRefs] = useState(withPreselect);
   const [caption, setCaption] = useState("");
   const [saving, setSaving] = useState(false);
   const [submitted, setSubmitted] = useState<{ slot: string; keys: string[] } | null>(null);
@@ -25,7 +26,8 @@ export function CaptureEvidence({ store, mission, slots, initialSlot, compact, g
   // Mission switches retain the component in the existing mission page.
   useEffect(() => {
     setSlot(initialSlot && slots.some((x) => x.slot === initialSlot) ? initialSlot : slots[0]?.slot ?? "");
-    setRefs(emptyEvidenceRefs()); setCaption(""); setSubmitted(null); setNotice("");
+    setRefs(withPreselect()); setCaption(""); setSubmitted(null); setNotice("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mission, initialSlot]);
   useEffect(() => {
     if (!submitted || !evidence) return;

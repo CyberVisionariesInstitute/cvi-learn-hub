@@ -6,8 +6,15 @@
 import { effectiveAccess, type AccessTest, type SimState } from "./engine";
 import { missions, traceConcepts } from "./seed";
 import type { Learner, EvidenceRow } from "./types";
+import { isRequiredMission, isRequiredQuestion, isRequiredSlot } from "./requirements";
 
-export interface MissionReadiness { mission: string; ready: boolean; missing: string[] }
+/**
+ * `ready`/`missing` cover only the shorter required path (see requirements.ts).
+ * `optional` lists unmet optional-practice items; they never block readiness.
+ * Required items are a strict subset of the original rules, so no attempt
+ * that was ready before becomes not-ready.
+ */
+export interface MissionReadiness { mission: string; ready: boolean; missing: string[]; required: boolean; optional: string[] }
 
 const has = (s: SimState, acct: string, group: string) => s.memberships.some((m) => m.account === acct && m.group === group);
 const tested = (s: SimState, acct: string, res: string, action: string, decision: "allow" | "deny", reason?: string, after = 0) =>
@@ -24,12 +31,17 @@ const slot = (ev: EvidenceRow[], learner: Learner, id: string) => {
 export function computeReadiness(s: SimState, learner: Learner, ev: EvidenceRow[]): MissionReadiness[] {
   const out: MissionReadiness[] = [];
   const q = (m: string, id: string) => learner.missions?.[m]?.answers?.[id];
-  const push = (mission: string, missing: (string | null | false | undefined)[]) => {
-    const list = missing.filter((x): x is string => typeof x === "string");
-    out.push({ mission, ready: list.length === 0, missing: list });
+  type Item = string | null | false | undefined;
+  const clean = (xs: Item[]) => [...new Set(xs.filter((x): x is string => typeof x === "string"))];
+  /** `all` = the original full rule list; `req` = the shorter required subset. */
+  const push = (mission: string, all: Item[], req: Item[] = all) => {
+    const required = isRequiredMission(mission);
+    const missing = required ? clean(req) : [];
+    out.push({ mission, ready: missing.length === 0, missing, required, optional: clean(all).filter((x) => !missing.includes(x)) });
   };
-  const questions = (m: string) => missions.find((x) => x.key === m)!.questions
-    .filter((qq) => !filled(q(m, qq.id))).map((qq) => `Answer: "${qq.label}".`);
+  const questions = (m: string, onlyRequired = false) => missions.find((x) => x.key === m)!.questions
+    .filter((qq) => (!onlyRequired || isRequiredQuestion(m, qq.id)) && !filled(q(m, qq.id))).map((qq) => `Answer: "${qq.label}".`);
+  const reqSlot = (m: string, id: string) => (isRequiredSlot(m, id) ? slot(ev, learner, id) : null);
 
   // M01
   const trace = learner.missions?.["M01"]?.trace ?? {};
@@ -42,15 +54,16 @@ export function computeReadiness(s: SimState, learner: Learner, ev: EvidenceRow[
   const blairSignin = s.signins.find((x) => x.account === "cl-blair" && x.raw['outcome'] === "success");
   const beforeDeny = s.tests.find((t) => t.account === "cl-blair" && t.resource === "R-CASE" && t.action === "read" && t.decision === "deny" && t.reasons.includes("NO_MATCHING_GRANT"));
   const bG = grants(s, "cl-blair");
-  push("M02", [
+  const m02: Item[] = [
     !blairSignin && "Record a successful cloud sign-in for Blair.",
     !beforeDeny && "Record Blair's Case Summaries read test before any access change.",
     !bG.has("R-CASE:read") && "Blair's current access still doesn't meet the approved business request.",
     bG.has("R-CASE:update") && "Blair currently has access beyond the approved scope — check Effective access.",
     !tested(s, "cl-blair", "R-CASE", "read", "allow", undefined, beforeDeny?.seq ?? 0) && "Retest Blair's Case Summaries read after your change.",
     !tested(s, "cl-blair", "R-CASE", "update", "deny", "NO_MATCHING_GRANT") && "Add a denied update test for Blair.",
-    slot(ev, learner, "E03"), slot(ev, learner, "E04"), ...questions("M02"),
-  ]);
+  ];
+  push("M02", [...m02, slot(ev, learner, "E03"), slot(ev, learner, "E04"), ...questions("M02")],
+    [...m02, reqSlot("M02", "E03"), reqSlot("M02", "E04"), ...questions("M02", true)]);
 
   // M03
   const aj = s.accounts.find((a) => a.key === "ad-jamie");
@@ -111,6 +124,18 @@ export function computeReadiness(s: SimState, learner: Learner, ev: EvidenceRow[
   const fin = s.accounts.filter((a) => a.person === "P06");
   const t504 = s.tickets.find((t) => t.key === "T504");
   const finleyBefore = s.tests.find((t) => t.account === "cl-finley" && t.resource === "R-CASE" && t.action === "read" && t.decision === "allow");
+  const finCl = s.accounts.find((a) => a.key === "cl-finley");
+  // Shorter required path: Cloud Identity side of T502 and T503 only.
+  const m05req: Item[] = [
+    clAlex?.dept !== "DEP-AUD" && "T502: cl-alex's department is not Audit yet.",
+    has(s, "cl-alex", "GC-RESP") && "T502: cl-alex still has the old Response membership.",
+    !has(s, "cl-alex", "GC-AUD") && "T502: cl-alex is missing the approved Audit membership.",
+    (!tested(s, "cl-alex", "R-QUEUE", "read", "deny") || !tested(s, "cl-alex", "R-AUD", "export", "allow")) && "T502: retest cl-alex — Response Queue / read and Audit Evidence / export.",
+    finCl?.status !== "disabled" && "T503: cl-finley is still enabled.",
+    s.sessions.some((x) => x.account === "cl-finley" && x.status === "active") && "T503: cl-finley still has an active session.",
+    !s.signins.some((x) => x.account === "cl-finley" && x.raw['reason'] === "ACCOUNT_DISABLED") && "T503: show a new cl-finley sign-in attempt being denied.",
+    reqSlot("M05", "E13"), reqSlot("M05", "E14"), ...questions("M05", true),
+  ];
   push("M05", [
     !cj && "T501: create Jamie's cloud account for the same person.",
     cj && (cj.status !== "enabled" || cj.mfa !== "enrolled" || cj.mustChange) && "T501: Jamie's cloud account setup (MFA, credential, status) isn't complete.",
@@ -134,21 +159,23 @@ export function computeReadiness(s: SimState, learner: Learner, ev: EvidenceRow[
     !has(s, "cl-blair", "GC-AZ") && "T505: Blair doesn't yet have the approved path.",
     (!tested(s, "cl-blair", "R-VM1", "read_metadata", "allow") || !tested(s, "cl-blair", "R-VM1", "stop", "deny") || !tested(s, "cl-blair", "R-VM2", "read_metadata", "deny")) && "T505: run the three scoped tests.",
     slot(ev, learner, "E12"), slot(ev, learner, "E13"), slot(ev, learner, "E14"), slot(ev, learner, "E15"), slot(ev, learner, "E16"), ...questions("M05"),
-  ]);
+  ], m05req);
 
   // M06 — technical case file (Deliverable 4). The polished Technical Incident
   // Report and Executive Summary are Week 12 deliverables, not Week 11.
   const fs = (learner.findings ?? []).filter((f) => ["observation", "hypothesis", "conclusion", "uncertainty", "nextAction", "rationale"].every((k) => filled((f as unknown as Record<string, string>)[k], 10)) && f.refs.length > 0 && f.priority);
   const sig = new Set(fs.map((f) => [...f.refs].sort().join(",")));
   const allRefs = fs.flatMap((f) => f.refs);
-  push("M06", [
+  const m06: Item[] = [
     fs.length < 2 && "Complete at least two findings with every reasoning field, a priority and raw-event references.",
     fs.length >= 2 && sig.size < 2 && "Your two findings reference identical events — make them distinct.",
     !allRefs.includes("S009") && !allRefs.includes("A002") && "Reference the correlated sign-in/audit records you investigated.",
     !filled(learner.comparison?.text) || !(learner.comparison?.refs?.length) ? "Record one benign/ambiguous comparison with its source records." : null,
     !filled(learner.report?.liveChain) && "Describe one live simulator audit/access chain from your earlier missions.",
     !filled(learner.report?.limitations) && "Write the explicit simulation/environment limitations section.",
-    slot(ev, learner, "E17"), slot(ev, learner, "E18"), slot(ev, learner, "E19"), ...questions("M06"),
-  ]);
+  ];
+  // The starting hypothesis now lives in Finding 1, so the separate question is optional.
+  push("M06", [...m06, slot(ev, learner, "E17"), slot(ev, learner, "E18"), slot(ev, learner, "E19"), ...questions("M06")],
+    [...m06, reqSlot("M06", "E17"), reqSlot("M06", "E18"), reqSlot("M06", "E19"), ...questions("M06", true)]);
   return out;
 }

@@ -92,15 +92,14 @@ export function ticketOutcome(s: SimState, key: string, target: "resolved" | "es
       break;
     }
     case "T502": {
-      const p = s.people.find((x) => x.key === "P01");
-      const ad = acct(s, "ad-alex");
+      // Shorter beginner path: the Cloud Identity side is required; the Active
+      // Directory side (ad-alex OU/groups) is optional practice.
       const cl = acct(s, "cl-alex");
       unmet.push(
-        (p?.dept !== "DEP-AUD" || ad?.dept !== "DEP-AUD" || cl?.dept !== "DEP-AUD") && "The department attribute is not Audit on the person record and both accounts.",
-        ad?.ou !== "OU-AUD" && "Alex's AD account has not moved to the Audit OU.",
-        (has(s, "ad-alex", "GA-RESP") || has(s, "cl-alex", "GC-RESP")) && "Alex still has Response operational memberships in one or both directories.",
+        cl?.dept !== "DEP-AUD" && "cl-alex's department attribute is not Audit.",
+        has(s, "cl-alex", "GC-RESP") && "cl-alex still has the Response operational membership.",
+        !has(s, "cl-alex", "GC-AUD") && "cl-alex is missing the approved Audit membership.",
         !has(s, "ad-alex", "GA-ALL") && "Alex lost the staff membership the handbook depends on.",
-        (!has(s, "ad-alex", "GA-AUD") || !has(s, "cl-alex", "GC-AUD")) && "Alex is missing the approved Audit memberships.",
       );
       break;
     }
