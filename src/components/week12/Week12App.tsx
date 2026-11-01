@@ -39,7 +39,7 @@ function Week12Workspace({ store, stage, onStage }: { store: LoadedStore; stage:
   const stageChecks = qa.checks.filter((x) => x.stage === stage);
   return (
     <div className="w12-guided mx-auto max-w-[1440px] space-y-4 px-3 py-4 sm:px-6">
-      <A id="w12-top"><header className="grid min-w-0 gap-3 border-b border-border pb-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+      <A id="w12-top"><header className="grid min-w-0 gap-3 border-b border-border pb-3 xl:grid-cols-[minmax(0,1fr)_auto]">
         <div className="min-w-0">
           <p className="text-sm font-medium text-primary">CyberFoundations · Week 12 · Portfolio Deliverable 5</p>
           <h1 className="font-display text-2xl">Communications Capstone</h1>
@@ -49,7 +49,7 @@ function Week12Workspace({ store, stage, onStage }: { store: LoadedStore; stage:
             <SaveStatus store={store} />
           </div>
         </div>
-        <details className="w12-intro min-w-0 sm:w-56"><summary className="cursor-pointer text-primary">Broadcast Tower · Ivy</summary><Week12Visual stage="hero" /></details>
+        <details className="w12-intro min-w-0 xl:w-56"><summary className="cursor-pointer text-primary">Broadcast Tower · Ivy</summary><Week12Visual stage="hero" /></details>
       </header></A>
       <SourceBanner store={store} />
       <Week12Resume stage={stage} guide={guide} onStage={onStage} execOption={store.execOption} />
