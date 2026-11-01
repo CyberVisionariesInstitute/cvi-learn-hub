@@ -1,4 +1,5 @@
 import type React from "react";
+import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useId, useMemo, useState } from "react";
 import { Badge, btn, btnPrimary, Card, input, Select, TextArea } from "@/components/week11/ui";
@@ -10,7 +11,7 @@ import type { Week12Store } from "@/lib/week12/useWeek12";
 import { Week12Visual } from "./Week12Visual";
 import { useGuidePrefs, Week12Guide, Week12Resume } from "./Week12Guide";
 
-const A = ({ id, children, className = "" }: { id: string; children: React.ReactNode; className?: string }) => <div id={id} tabIndex={-1} className={`scroll-mt-64 outline-none ${className}`}>{children}</div>;
+const A = ({ id, children, className = "" }: { id: string; children: React.ReactNode; className?: string }) => <div id={id} tabIndex={-1} className={`scroll-mt-4 outline-none ${className}`}>{children}</div>;
 
 export const STAGES = [
   { n: 1, title: "Review your case file", doing: "Read your own Week 11 Case File (from Lab 3) and sort each statement: is it a fact, evidence, a finding, an interpretation, an unknown, or a recommendation?", proves: "Every source statement has a label. There are no right-answer marks — this is to sharpen your thinking." },
@@ -22,69 +23,59 @@ export const STAGES = [
 ] as const;
 
 export function Week12App({ store, stage, onStage }: { store: Week12Store; stage: number; onStage: (n: number) => void }) {
-  const v = store.view!;
-  const c = store.content!;
-  const qa = useMemo(() => computeQA(v.snapshot, c, store.execOption), [v.snapshot, c, store.execOption]);
-  const st = STAGES[stage - 1]!;
-  const stageChecks = qa.checks.filter((x) => x.stage === stage);
-  const guide = useGuidePrefs(v.id);
+  const v = store.view;
+  const c = store.content;
+  const qa = useMemo(() => v && c ? computeQA(v.snapshot, c, store.execOption) : null, [v, c, store.execOption]);
+  const guide = useGuidePrefs(v?.id ?? "");
   useEffect(() => { window.scrollTo({ top: 0 }); }, [stage]);
-
+  const st = STAGES[stage - 1];
+  if (!v || !c || !qa || !st) return null;
+  const stageChecks = qa.checks.filter((x) => x.stage === stage);
   return (
-    <div className="mx-auto max-w-6xl space-y-4 px-3 py-5 sm:px-6">
-      <A id="w12-top"><Card eyebrow="CyberFoundations · Week 12 · Final capstone" title="Communications Capstone — Portfolio Deliverable 5">
-        <p className="text-sm">You already did the investigation in Week 11. This week you <strong>communicate</strong> it: a Technical Incident Report plus one executive communication (written or video). Don't add new incident facts — work from your own case file.</p>
-        <p className="mt-2 text-sm"><strong>Your starting point:</strong> the Case File you built in Week 11 Lab 3 (Explain What You Found), with the same signed-in account. Week 12 uses a saved copy of it. <Link {...WEEK11_CASE_FILE_LINK} className="font-medium text-primary underline">Open Week 11 Lab 3</Link></p>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-          {v.snapshot.sourceComplete ? <Badge tone="allow">Source: Week 11 Case File complete</Badge> : <Badge tone="warn">DRAFT SOURCE</Badge>}
-          <Badge tone="info">Week 11 attempt {v.snapshot.sourceShortId}</Badge>
-          <SaveStatus store={store} />
+    <div className="w12-guided mx-auto max-w-[1440px] space-y-4 px-3 py-4 sm:px-6">
+      <A id="w12-top"><header className="grid min-w-0 gap-3 border-b border-border pb-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-primary">CyberFoundations · Week 12 · Portfolio Deliverable 5</p>
+          <h1 className="font-display text-2xl">Communications Capstone</h1>
+          <p className="mt-1 max-w-prose">Turn your Week 11 Lab 3 Case File into a technical report and one executive communication.</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {v.snapshot.sourceComplete ? <Badge tone="allow">Source: Week 11 Case File complete</Badge> : <Badge tone="warn">DRAFT SOURCE</Badge>}
+            <SaveStatus store={store} />
+          </div>
         </div>
-        <Week12Visual stage="hero" />
-      </Card></A>
-
+        <details className="w12-intro min-w-0 sm:w-56"><summary className="cursor-pointer text-primary">Broadcast Tower · Ivy</summary><Week12Visual stage="hero" /></details>
+      </header></A>
       <SourceBanner store={store} />
-
       <Week12Resume stage={stage} guide={guide} onStage={onStage} execOption={store.execOption} />
-
-      <nav aria-label="Week 12 stages" className="overflow-x-hidden">
-        <ol className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+      <nav aria-label="Week 12 stages">
+        <ol className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
           {STAGES.map((s) => {
             const checks = qa.checks.filter((x) => x.stage === s.n);
             const done = checks.length > 0 && checks.every((x) => x.ok);
-            return (
-              <li key={s.n} className="min-w-0">
-                <button type="button" aria-current={s.n === stage ? "step" : undefined} onClick={() => onStage(s.n)}
-                  className={`${btn} w-full min-w-0 text-left text-xs ${s.n === stage ? "border-primary bg-primary/20" : ""}`}>
-                  <span className="block font-mono text-[0.7rem] text-muted-foreground">Stage {s.n}{done ? " ✓" : ""}</span>
-                  <span className="block truncate">{s.title}</span>
-                </button>
-              </li>
-            );
+            return <li key={s.n} className="min-w-0"><Button type="button" variant="outline" aria-current={s.n === stage ? "step" : undefined} onClick={() => onStage(s.n)} className={`${btn} h-auto w-full min-w-0 whitespace-normal text-left ${s.n === stage ? "border-primary bg-primary/20" : ""}`}><span className="block">{s.n}. {s.title}{done ? " ✓" : ""}</span></Button></li>;
           })}
         </ol>
       </nav>
-
-      <Week12Visual stage={st.n} />
-
-      <div className="rounded-xl border border-border bg-surface p-3 text-sm">
-        <p><strong>Stage {st.n}: {st.title}.</strong> {st.doing}</p>
-        <p className="mt-1 text-xs text-muted-foreground"><strong>What proves success?</strong> {st.proves}</p>
-        {stageChecks.length ? <ul className="mt-1 space-y-0.5 text-xs">{stageChecks.map((x) => <li key={x.id}>{x.ok ? "✓" : "◌"} {x.label}</li>)}</ul> : null}
-      </div>
-
-      <Week12Guide stage={st.n} title={st.title} execOption={store.execOption} guide={guide} onStage={onStage} stageReady={stageChecks.length > 0 && stageChecks.every((x) => x.ok)} />
-
-      {stage === 1 ? <StageReview store={store} /> : null}
-      {stage === 2 ? <StageFindings store={store} /> : null}
-      {stage === 3 ? <StageReport store={store} /> : null}
-      {stage === 4 ? <StageExec store={store} /> : null}
-      {stage === 5 ? <StageRecs store={store} /> : null}
-      {stage === 6 ? <StageQA store={store} qa={qa} onStage={onStage} /> : null}
-
-      <div className="flex flex-wrap justify-between gap-2">
-        <button type="button" className={btn} disabled={stage === 1} onClick={() => onStage(stage - 1)}>← Previous stage</button>
-        {stage < 6 ? <button type="button" className={btnPrimary} onClick={() => onStage(stage + 1)}>Next: {STAGES[stage]!.title} →</button> : null}
+      <nav aria-label="Between-stage navigation" className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-border pb-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-2"><Button type="button" className={btn} disabled={stage === 1} onClick={() => onStage(stage - 1)}>← Back a stage</Button><span>Stage {stage} of 6</span></div>
+        <Button type="button" className={`${btnPrimary} h-auto whitespace-normal`} disabled={stage === 6} onClick={() => onStage(stage + 1)}>Continue to Stage {stage + 1} →</Button>
+      </nav>
+      <div className="grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+        <aside className="w12-guidance min-w-0 space-y-4">
+          <div><h2 className="font-display text-xl">{st.title}</h2><p className="mt-2 max-w-prose">{st.doing}</p><details className="mt-2"><summary className="cursor-pointer">Stage success checks</summary><p className="mt-2">{st.proves}</p>{stageChecks.length ? <ul className="mt-2 space-y-1">{stageChecks.map((x) => <li key={x.id}>{x.ok ? "✓" : "◌"} {x.label}</li>)}</ul> : null}</details></div>
+          <Week12Guide stage={st.n} title={st.title} execOption={store.execOption} guide={guide} onStage={onStage} stageReady={stageChecks.length > 0 && stageChecks.every((x) => x.ok)} />
+          <div className="w12-stage-art"><Week12Visual stage={st.n} /></div>
+          <p><Link {...WEEK11_CASE_FILE_LINK} className="text-primary underline">Open Week 11 Lab 3</Link> · same account, saved Case File. Week 12 never changes Week 11.</p>
+        </aside>
+        <main className="w12-activity min-w-0" aria-label={`Stage ${stage} activity`}>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2"><p className="font-medium">Your current work</p><SaveStatus store={store} /></div>
+          {stage === 1 ? <StageReview store={store} /> : null}
+          {stage === 2 ? <StageFindings store={store} /> : null}
+          {stage === 3 ? <StageReport store={store} /> : null}
+          {stage === 4 ? <StageExec store={store} /> : null}
+          {stage === 5 ? <StageRecs store={store} /> : null}
+          {stage === 6 ? <StageQA store={store} qa={qa} onStage={onStage} /> : null}
+        </main>
       </div>
     </div>
   );
@@ -94,8 +85,8 @@ function SaveStatus({ store }: { store: Week12Store }) {
   const s = store.saveState;
   return (
     <span role="status" aria-live="polite" className="text-xs text-muted-foreground">
-      {s.kind === "pending" ? "Saving…" : s.kind === "saving" ? "Saving…" : s.kind === "saved" ? `Saved ${s.at}` : s.kind === "failed" ? `Not saved: ${s.message}` : s.kind === "conflict"
-        ? <>Changed in another tab. <button type="button" className="underline" onClick={() => void store.reloadAfterConflict()}>Save my version</button></> : "Autosaves as you type"}
+      {s.kind === "pending" ? "Waiting to save…" : s.kind === "saving" ? "Saving…" : s.kind === "saved" ? `Saved ${s.at}` : s.kind === "failed" ? `Not saved: ${s.message}` : s.kind === "conflict"
+        ? <>Changed in another tab. <Button type="button" className="underline" onClick={() => void store.reloadAfterConflict()}>Save my version</Button></> : "Autosaves as you type"}
     </span>
   );
 }
@@ -118,10 +109,10 @@ function SourceBanner({ store }: { store: Week12Store }) {
         <p><Link {...WEEK11_CASE_FILE_LINK} className="font-medium text-primary underline">Open Week 11 Lab 3 to finish it</Link> — then come back here.</p>
       </> : null}
       {v.sourceChange ? <p><strong>Source changed.</strong> {v.sourceChange.detail}</p> : null}
-      {!confirm ? <button type="button" className={btn} onClick={() => setConfirm(true)}>Refresh from Week 11…</button> : (
+      {!confirm ? <Button type="button" className={btn} onClick={() => setConfirm(true)}>Refresh from Week 11…</Button> : (
         <div className="space-y-2 rounded-md border border-border bg-background p-2">
           <p>This replaces the Week 11 source shown in Week 12 with your current Week 11 case file. Your Week 12 writing stays, but references to evidence that no longer exists will be flagged.</p>
-          <div className="flex flex-wrap gap-2"><button type="button" className={btnPrimary} onClick={doRefresh}>Yes, refresh source</button><button type="button" className={btn} onClick={() => setConfirm(false)}>Cancel</button></div>
+          <div className="flex flex-wrap gap-2"><Button type="button" className={btnPrimary} onClick={doRefresh}>Yes, refresh source</Button><Button type="button" className={btn} onClick={() => setConfirm(false)}>Cancel</Button></div>
         </div>
       )}
       {msg ? <p role="status">{msg}</p> : null}
@@ -159,6 +150,22 @@ function SourcePanel({ store }: { store: Week12Store }) {
   );
 }
 
+function FocusedSource({ store, findingKey, section }: { store: Week12Store; findingKey?: string; section?: string }) {
+  const s = store.view?.snapshot;
+  if (!s) return null;
+  const findings = findingKey ? s.findings.filter(f => f.key === findingKey) : s.findings;
+  return <details className="border-b border-border pb-3"><summary className="cursor-pointer font-medium">Week 11 source for this task · read-only</summary>
+    <div className="mt-3 max-w-prose space-y-3" aria-label="Read-only Week 11 source">
+      <p>Saved Case File from Lab 3 · attempt {s.sourceShortId}. These are source notes, not the writing boxes below.</p>
+      {section ? <p><strong>Current report task:</strong> {section}. Use only the source details relevant to it.</p> : null}
+      {findings.map(f => <details key={f.key} open={Boolean(findingKey)}><summary className="cursor-pointer">{f.key} · {f.title}</summary><p className="mt-2"><strong>Observation:</strong> {f.observation}</p><p><strong>Conclusion:</strong> {f.conclusion}</p><p><strong>Uncertainty:</strong> {f.uncertainty}</p><p className="break-words font-mono">Historical scenario IDs: {f.refs.join(', ') || 'None cited'}</p></details>)}
+      {section?.includes('Limitations') ? <p><strong>Week 11 limitations:</strong> {s.report.limitations || 'Not written yet.'}</p> : null}
+      <details><summary className="cursor-pointer">Saved evidence IDs and captions</summary><ul className="mt-2 space-y-2">{s.evidence.map(e => <li key={e.key} className="break-words"><strong className="font-mono">{e.key}</strong> · {e.slot} · {e.title}<p>{s.captions[e.key] || 'No caption saved.'}</p></li>)}</ul><p className="mt-2">The source copy contains evidence IDs and captions, not raw log records. <Link {...WEEK11_CASE_FILE_LINK} className="text-primary underline">Inspect exact records in Week 11 Lab 3</Link>. Select <strong>Show all record fields</strong> there to compare UTC timestamps and other details; scenario dates are fictional. Nearby times alone do not prove a connection.</p></details>
+      <details><summary className="cursor-pointer">Your simulated activity · separate from historical records</summary><p className="mt-2 whitespace-pre-wrap break-words">{s.report.liveChain || 'No live activity chain saved.'}</p><p>LA-/AT- IDs describe your own simulated actions and results. Historical scenario records are separate.</p></details>
+    </div>
+  </details>;
+}
+
 const LABEL_HELP: Record<ClassLabel, string> = {
   fact: "Directly recorded in a log or the directory — no judgement added.",
   evidence: "A specific record ID you can point to (an EV-… key or an event ID from your source).",
@@ -172,12 +179,12 @@ const LABEL_HELP: Record<ClassLabel, string> = {
 function Pager({ id, noun, index, total, onIndex, labels }: { id: string; noun: string; index: number; total: number; onIndex: (i: number) => void; labels?: string[] }) {
   if (total === 0) return null;
   return (
-    <div id={id} tabIndex={-1} className="flex scroll-mt-64 flex-wrap items-center gap-2 outline-none" role="group" aria-label={`Choose ${noun}`}>
-      <button type="button" className={btn} disabled={index === 0} onClick={() => onIndex(index - 1)}>← Previous {noun}</button>
+    <div id={id} tabIndex={-1} className="flex scroll-mt-4 flex-wrap items-center gap-2 outline-none" role="group" aria-label={`Choose ${noun}`}>
+      <Button type="button" className={btn} disabled={index === 0} onClick={() => onIndex(index - 1)}>← Previous {noun}</Button>
       <select aria-label={`${noun[0]!.toUpperCase()}${noun.slice(1)}`} className="min-h-11 max-w-full rounded-md border border-border bg-background px-2 text-sm" value={index} onChange={(e) => onIndex(Number(e.target.value))}>
         {Array.from({ length: total }, (_, i) => <option key={i} value={i}>{labels?.[i] ?? `${noun} ${i + 1}`} ({i + 1} of {total})</option>)}
       </select>
-      <button type="button" className={btn} disabled={index >= total - 1} onClick={() => onIndex(index + 1)}>Next {noun} →</button>
+      <Button type="button" className={btn} disabled={index >= total - 1} onClick={() => onIndex(index + 1)}>Next {noun} →</Button>
     </div>
   );
 }
@@ -199,8 +206,8 @@ function StageReview({ store }: { store: Week12Store }) {
     </li>
   );
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <A id="w12-source"><SourcePanel store={store} /></A>
+    <div className="space-y-4">
+      <A id="w12-source"><details><summary className="cursor-pointer font-medium">Inspect your Week 11 source · read-only</summary><SourcePanel store={store} /></details></A>
       <A id="w12-classify"><Card eyebrow={`${done} of ${items.length} labelled`} title="Classify your source statements">
         <p className="mb-2 text-xs text-muted-foreground">This is a learning review activity. There are no right-answer marks and it is not part of Final QA.</p>
         <A id="w12-labels"><details className="mb-2 text-xs"><summary className="cursor-pointer">What do the labels mean?</summary>
@@ -219,7 +226,7 @@ function StageReview({ store }: { store: Week12Store }) {
           <>
             <Pager id="w12-statement-picker" noun="statement" index={cur} total={items.length} onIndex={setIdx} labels={items.map((i, n) => `Statement ${n + 1}${c.classify[i.id] ? " ✓" : ""}`)} />
             <ul className="mt-2 space-y-2">{all ? items.map(row) : row(items[cur]!)}</ul>
-            <button type="button" className={`${btn} mt-2 text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one statement at a time" : "Show all statements"}</button>
+            <Button type="button" className={`${btn} mt-2 text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one statement at a time" : "Show all statements"}</Button>
           </>
         )}
       </Card></A>
@@ -281,7 +288,7 @@ function StageFindings({ store }: { store: Week12Store }) {
     const linked = f.statement.trim().length >= 20 && f.evidenceRefs.some((r) => valid.has(r));
     return (
       <Card key={f.key} title={`Finding ${f.key}`} eyebrow={f.sourceFindingKey ? `From Week 11 ${f.sourceFindingKey}` : "New finding"}
-        actions={<button type="button" className={`${btn} min-h-9 py-1 text-xs`} onClick={() => { store.update((p) => ({ ...p, findings: p.findings.filter((_, j) => j !== i) })); setIdx(Math.max(0, i - 1)); }}>Remove</button>}>
+        actions={<Button type="button" className={`${btn} min-h-9 py-1 text-xs`} onClick={() => { store.update((p) => ({ ...p, findings: p.findings.filter((_, j) => j !== i) })); setIdx(Math.max(0, i - 1)); }}>Remove</Button>}>
         <div className="space-y-3">
           <A id={all ? `w12-f-statement-${i}` : "w12-f-statement"}><TextArea label="Report-ready finding statement" help='Say what the records show. Starter: "The records show…"' value={f.statement} onChange={(x) => setF(i, { statement: x })} max={3000} /></A>
           <A id={all ? `w12-f-refs-${i}` : "w12-f-refs"}><RefsInput value={f.evidenceRefs} onChange={(x) => setF(i, { evidenceRefs: x })} valid={valid} /></A>
@@ -296,17 +303,18 @@ function StageFindings({ store }: { store: Week12Store }) {
   };
   return (
     <div className="space-y-4">
-      <A id="w12-language"><Card title="Defensible language" eyebrow="Say only what your evidence shows">
+      <A id="w12-language"><details><summary className="cursor-pointer font-medium">Defensible language · examples</summary><div className="mt-2">
         <ul className="list-disc space-y-1 pl-5 text-sm">
           <li>Prefer "The records show…", "This is consistent with…", "We could not confirm…".</li>
           <li>Name the record. Fictional format example: "Door log entries LIB-70 to LIB-77 show eight openings after closing time."</li>
           <li>Separate what happened from what it might mean, and state your confidence.</li>
         </ul>
-      </Card></A>
+      </div></details></A>
+      <FocusedSource store={store} findingKey={c.findings[cur]?.sourceFindingKey} />
       {c.findings.length ? <Pager id="w12-finding-picker" noun="finding" index={cur} total={c.findings.length} onIndex={(i) => { setIdx(i); setAll(false); }} labels={c.findings.map((f, n) => `Finding ${n + 1} · ${f.key}`)} /> : <A id="w12-finding-picker"><p className="text-sm text-muted-foreground">No findings yet. Add one below.</p></A>}
       {all ? c.findings.map(card) : c.findings[cur] ? card(c.findings[cur]!, cur) : null}
-      {c.findings.length > 1 ? <button type="button" className={`${btn} text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one finding at a time" : "Show all findings"}</button> : null}
-      <div><button type="button" className={btn} onClick={add} disabled={c.findings.length >= 12}>+ Add another evidence-supported finding</button>
+      {c.findings.length > 1 ? <Button type="button" className={`${btn} text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one finding at a time" : "Show all findings"}</Button> : null}
+      <div><Button type="button" className={btn} onClick={add} disabled={c.findings.length >= 12}>+ Add another evidence-supported finding</Button>
       <p className="mt-1 text-xs text-muted-foreground">Only add another finding if it is supported by evidence already captured in your Week 11 Case File. Week 12 is not a new investigation.</p></div>
       <CoachList store={store} flags={flags} />
     </div>
@@ -363,11 +371,12 @@ function StageReport({ store }: { store: Week12Store }) {
   const cur = clamp(idx, REPORT_STEPS.length);
   return (
     <div className="space-y-4">
+      <FocusedSource store={store} section={REPORT_STEPS[cur]?.title} />
       <Pager id="w12-report-picker" noun="section" index={cur} total={REPORT_STEPS.length} onIndex={(i) => { setIdx(i); setAll(false); }} labels={REPORT_STEPS.map((s) => `${s.n === "Header" ? "Header" : `${s.n}.`} ${s.title}${filled(s) ? " ✓" : ""}`)} />
       <A id="w12-report-section">{all ? <div className="space-y-4">{REPORT_STEPS.map(section)}</div> : section(REPORT_STEPS[cur]!, cur)}</A>
       <div className="flex flex-wrap gap-2">
-        {!all && cur < REPORT_STEPS.length - 1 ? <button type="button" className={btnPrimary} onClick={() => setIdx(cur + 1)}>Save &amp; next section →</button> : null}
-        <button type="button" className={`${btn} text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one section at a time" : "Show all sections"}</button>
+        {!all && cur < REPORT_STEPS.length - 1 ? <Button type="button" className={btnPrimary} onClick={() => setIdx(cur + 1)}>Next report section →</Button> : null}
+        <Button type="button" className={`${btn} text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one section at a time" : "Show all sections"}</Button>
       </div>
       <p className="text-xs text-muted-foreground">Your typing autosaves. Moving between sections never deletes anything.</p>
       <CoachList store={store} flags={flags} />
@@ -458,7 +467,7 @@ function StageRecs({ store }: { store: Week12Store }) {
     const issues = recommendationIssues(r, keys);
     return (
       <Card key={r.key} title={`Recommendation ${r.key}`} eyebrow={issues.length ? `${issues.length} quality check(s) to fix` : "✓ Actionable"}
-        actions={<button type="button" className={`${btn} min-h-9 py-1 text-xs`} onClick={() => { store.update((p) => ({ ...p, recommendations: p.recommendations.filter((_, j) => j !== i) })); setIdx(Math.max(0, i - 1)); }}>Remove</button>}>
+        actions={<Button type="button" className={`${btn} min-h-9 py-1 text-xs`} onClick={() => { store.update((p) => ({ ...p, recommendations: p.recommendations.filter((_, j) => j !== i) })); setIdx(Math.max(0, i - 1)); }}>Remove</Button>}>
         <div className="space-y-3">
           <A id={`w12-r-action${sfx(i)}`}><TextArea label="What — the specific action" help='Name exactly what changes, on which account, group or control. Starter: "Within [timeframe], [team] will…"' value={r.action} onChange={(x) => setR(i, { action: x })} rows={2} max={1500} /></A>
           <A id={`w12-r-meta${sfx(i)}`}><div className="grid gap-3 sm:grid-cols-2">
@@ -481,14 +490,15 @@ function StageRecs({ store }: { store: Week12Store }) {
   };
   return (
     <div className="space-y-4">
-      <A id="w12-recs-format"><Card title="From vague to actionable" eyebrow="These go inside your technical report">
+      <A id="w12-recs-format"><details><summary className="cursor-pointer font-medium">From vague to actionable · format example</summary><div className="mt-2">
         <p className="text-sm">"Improve security" or "monitor logs" can't be acted on. Fictional format example — unrelated to your case, don't copy it: <em>"Replace the shared café Wi-Fi password within 14 days and give each staff member their own login. Owner: Café manager. Priority: Medium. Success measure: no shared password remains in use."</em></p>
         <p className="mt-2 text-sm">You do not need to return to Stage 3. Recommendations you complete here will automatically appear in Section 7 of your exported Technical Incident Report. You need at least one that shows "✓ Actionable".</p>
-      </Card></A>
+      </div></details></A>
+      <details><summary className="cursor-pointer font-medium">Your Stage 2 findings · reference only</summary><ul className="mt-2 space-y-2">{c.findings.map(f => <li key={f.key}><strong>{f.key}:</strong> {f.statement}</li>)}</ul></details>
       {c.recommendations.length ? <Pager id="w12-rec-picker" noun="recommendation" index={cur} total={c.recommendations.length} onIndex={(i) => { setIdx(i); setAll(false); }} labels={c.recommendations.map((r, n) => `Recommendation ${n + 1} · ${r.key}${recommendationIssues(r, keys).length ? "" : " ✓"}`)} /> : <A id="w12-rec-picker"><p className="text-sm text-muted-foreground">No recommendations yet. Choose "+ Add recommendation".</p></A>}
       {all ? c.recommendations.map(card) : c.recommendations[cur] ? card(c.recommendations[cur]!, cur) : null}
-      {c.recommendations.length > 1 ? <button type="button" className={`${btn} text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one recommendation at a time" : "Show all recommendations"}</button> : null}
-      <div><button type="button" className={btn} onClick={add} disabled={c.recommendations.length >= 12}>+ Add recommendation</button></div>
+      {c.recommendations.length > 1 ? <Button type="button" className={`${btn} text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one recommendation at a time" : "Show all recommendations"}</Button> : null}
+      <div><Button type="button" className={btn} onClick={add} disabled={c.recommendations.length >= 12}>+ Add recommendation</Button></div>
     </div>
   );
 }
@@ -519,7 +529,7 @@ function StageQA({ store, qa, onStage }: { store: Week12Store; qa: ReturnType<ty
         <ul className="space-y-2">{qa.checks.map((x) => (
           <li key={x.id} className="rounded-md border border-border p-2 text-sm">
             <div className="flex flex-wrap items-center justify-between gap-2"><span>{x.ok ? "✓" : "◌"} {x.label}</span>
-              {!x.ok ? <button type="button" className={`${btn} min-h-9 py-1 text-xs`} onClick={() => onStage(x.stage)}>Go to Stage {x.stage}</button> : null}</div>
+              {!x.ok ? <Button type="button" className={`${btn} min-h-9 py-1 text-xs`} onClick={() => onStage(x.stage)}>Go to Stage {x.stage}</Button> : null}</div>
             {!x.ok && x.missing.length ? <ul className="mt-1 list-disc pl-5 text-xs">{x.missing.map((m) => <li key={m} className="break-words">{m}</li>)}</ul> : null}
             {!x.ok && x.id === "language" ? <p className="mt-1 text-xs">Reword each flagged sentence, or add an evidence note in the yellow box on that stage. Either fix clears it.</p> : null}
           </li>
@@ -551,11 +561,11 @@ function StageQA({ store, qa, onStage }: { store: Week12Store; qa: ReturnType<ty
         <ul className="mt-3 grid gap-2">{paths.map((p) => (
           <li key={p} className="grid min-w-0 gap-2 rounded-md border border-border p-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
             <span className="break-all font-mono text-xs">{p}</span>
-            <button type="button" className={`${btn} text-xs`} disabled={busy !== null} onClick={() => one(p)}>{busy === p ? "Preparing…" : "Download file"}</button>
+            <Button type="button" className={`${btn} text-xs`} disabled={busy !== null} onClick={() => one(p)}>{busy === p ? "Preparing…" : "Download file"}</Button>
           </li>
         ))}</ul>
         {!store.execOption ? <p className="mt-2 text-xs">Choose your executive communication in Stage 4 to add its file.</p> : null}
-        <button type="button" className={`${btnPrimary} mt-3 w-full sm:w-auto`} disabled={busy !== null} onClick={zip}>{busy === "zip" ? "Preparing…" : "Download complete Week 12 ZIP"}</button>
+        <Button type="button" className={`${btnPrimary} mt-3 w-full sm:w-auto`} disabled={busy !== null} onClick={zip}>{busy === "zip" ? "Preparing…" : "Download complete Week 12 ZIP"}</Button>
         <p className="mt-1 text-xs text-muted-foreground">File name: <span className="font-mono">{week12ZipName(!qa.ready)}</span></p>
         <p className="mt-2 min-h-5 text-sm" role="status" aria-live="polite">{status}</p>
         <A id="w12-github"><ol className="mt-3 space-y-1 text-sm">

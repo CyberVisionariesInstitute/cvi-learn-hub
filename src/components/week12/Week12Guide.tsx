@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { useEffect, useId, useState } from "react";
 import { Badge, btn, btnPrimary } from "@/components/week11/ui";
 import { useSession } from "@/hooks/useSession";
@@ -28,11 +29,13 @@ export function useGoTo(stage: number, onStage: (n: number) => void) {
     const focus = () => {
       const el = document.getElementById(target.anchor);
       if (!el) return;
+      let parent: HTMLElement | null = el;
+      while (parent) { if (parent instanceof HTMLDetailsElement) parent.open = true; parent = parent.parentElement; }
       el.scrollIntoView({ behavior: "smooth", block: "start" });
       const field = el.matches("input,textarea,select,button") ? el : el.querySelector<HTMLElement>("input,textarea,select,button,summary");
       (field ?? el).focus({ preventScroll: true });
     };
-    const select = () => { if (target.section !== undefined) window.dispatchEvent(new CustomEvent("w12:select-section", { detail: target.section })); };
+    const select = () => { window.dispatchEvent(new CustomEvent("w12:focus-task", { detail: target.anchor })); if (target.section !== undefined) window.dispatchEvent(new CustomEvent("w12:select-section", { detail: target.section })); };
     if (target.stage !== stage) { onStage(target.stage); setTimeout(() => { select(); setTimeout(focus, 60); }, 150); }
     else { select(); setTimeout(focus, 60); }
   };
@@ -61,24 +64,24 @@ export function Week12Guide({ stage, title, execOption, guide, onStage, stageRea
   const checked = pref?.completed.includes(step.id) ?? false;
   const last = p.current === steps.length - 1;
   return (
-    <section className="sticky top-2 z-20 min-w-0 rounded-xl border border-primary/50 bg-surface-raised p-3 text-sm shadow-lg" aria-label="Current stage guide">
+    <section className="min-w-0 border-t border-border pt-3 text-base" aria-label="Current stage guide">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
         <div className="min-w-0">
           <p className="font-display text-xs text-primary">Current Stage {stage} of 6 · Step {p.current + 1} of {steps.length}</p>
           <h2 className="font-display text-base [overflow-wrap:anywhere]">{title}</h2>
           {!open ? <p className="mt-1 text-xs text-muted-foreground [overflow-wrap:anywhere]">Next step: {step.doing}</p> : null}
         </div>
-        <button type="button" className={`${btn} text-xs`} aria-expanded={open} aria-controls={panelId} onClick={() => setOpen((o) => !o)}>{open ? "Hide guide" : "Show guide"}</button>
+        <Button type="button" className={`${btn} text-xs`} aria-expanded={open} aria-controls={panelId} onClick={() => setOpen((o) => !o)}>{open ? "Hide guide" : "Show guide"}</Button>
       </div>
       {open ? (
-        <div id={panelId} className="mt-2 max-h-[60dvh] min-w-0 overflow-y-auto [overflow-wrap:anywhere]">
+        <div id={panelId} className="mt-2 min-w-0 [overflow-wrap:anywhere]">
           <p className="text-xs text-muted-foreground">{p.completed} checked complete · {p.remaining} remaining · personal checklist on this browser only — not Final QA or a grade.</p>
           <div className="my-2 flex flex-wrap items-center gap-2" role="group" aria-label="Choose the step you're working on">
-            <button type="button" className={btn} disabled={p.current === 0} onClick={() => setStep(p.current - 1)}>← Previous</button>
+            <Button type="button" className={btn} disabled={p.current === 0} onClick={() => setStep(p.current - 1)}>← Previous guide step</Button>
             <select aria-label="Step" className="min-h-11 max-w-full rounded-md border border-border bg-background px-2 text-xs" value={p.current} onChange={(e) => setStep(Number(e.target.value))}>
               {steps.map((s, i) => <option key={s.id} value={i}>Step {i + 1}{pref?.completed.includes(s.id) ? " ✓" : ""}</option>)}
             </select>
-            <button type="button" className={btn} disabled={last} onClick={() => setStep(p.current + 1)}>Next →</button>
+            <Button type="button" className={btn} disabled={last} onClick={() => setStep(p.current + 1)}>Next guide step →</Button>
           </div>
           {stage === 4 && !execOption && steps.length === 1 ? <p className="mb-2 text-xs text-muted-foreground">Your written or video steps appear here after you choose an option.</p> : null}
           <dl className="max-w-prose space-y-2">
@@ -87,19 +90,19 @@ export function Week12Guide({ stage, title, execOption, guide, onStage, stageRea
             <div><dt className="text-xs font-semibold text-primary">LOOK FOR</dt><dd className="mt-0.5">{step.lookFor}</dd></div>
             <div><dt className="text-xs font-semibold text-primary">WHEN DONE</dt><dd className="mt-0.5">{step.whenDone}</dd></div>
           </dl>
-          <div className="mt-2 flex flex-wrap gap-2">{step.links.map((l) => <button key={l.anchor + l.stage} type="button" className={`${btn} h-auto whitespace-normal text-left text-xs`} onClick={() => go(l)}>Open {l.label}{l.stage !== stage ? ` (Stage ${l.stage})` : ""}</button>)}</div>
+          <div className="mt-2 flex flex-wrap gap-2">{step.links.map((l) => <Button key={l.anchor + l.stage} type="button" className={`${btn} h-auto whitespace-normal text-left text-xs`} onClick={() => go(l)}>Open {l.label}{l.stage !== stage ? ` (Stage ${l.stage})` : ""}</Button>)}</div>
           <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-border pt-2">
             <label className="flex min-h-11 items-center gap-2 text-xs"><input type="checkbox" checked={checked} onChange={(e) => mark(step.id, e.target.checked)} />I have completed this step</label>
-            {!last ? <button type="button" className={btn} onClick={() => { mark(step.id, true); setStep(p.current + 1); }}>Done — next step</button>
-              : stage < 6 ? <button type="button" className={btnPrimary} onClick={() => { mark(step.id, true); onStage(stage + 1); }}>Done — go to Stage {stage + 1}</button>
-              : <button type="button" className={btn} onClick={() => mark(step.id, true)}>Check this step complete</button>}
+            {!last ? <Button type="button" className={btn} onClick={() => { mark(step.id, true); setStep(p.current + 1); }}>Done — next step</Button>
+              : stage < 6 ? <Button type="button" className={btnPrimary} onClick={() => { mark(step.id, true); onStage(stage + 1); }}>Done — go to Stage {stage + 1}</Button>
+              : <Button type="button" className={btn} onClick={() => mark(step.id, true)}>Check this step complete</Button>}
             {stageReady ? <Badge tone="allow">Stage QA items ✓</Badge> : null}
           </div>
           {step.help ? <details className="mt-2 text-xs"><summary className="cursor-pointer">Need help?</summary><p className="mt-1 max-w-prose text-muted-foreground">{step.help}</p></details> : null}
           <details className="mt-2 text-xs"><summary className="cursor-pointer">Why this matters</summary><p className="mt-1 max-w-prose text-muted-foreground">{WHY[stage]}</p></details>
           <details className="mt-2 text-xs"><summary className="cursor-pointer">Terms</summary><p className="mt-1 max-w-prose text-muted-foreground">Evidence is a specific record ID (EV-…, or an event ID from your source). A finding is a conclusion your evidence supports. Uncertainty is what the records cannot show. An executive is a leader who decides but does not read logs. A recommendation is an action with an owner and a deadline.</p></details>
           <details className="mt-2 text-xs"><summary className="cursor-pointer">Troubleshooting</summary><div className="mt-1 max-w-prose space-y-1 text-muted-foreground"><p>Your typing autosaves — watch the save status at the top. Moving between steps, findings or sections never deletes your work.</p><p>If an ID shows "✕ not in source", copy it again from Stage 1. If your Week 11 work changed, use "Refresh from Week 11…" — it never happens automatically.</p></div></details>
-          <details className="mt-2 text-xs"><summary className="cursor-pointer">All steps in this stage</summary><ol className="mt-1 space-y-1">{steps.map((s, i) => <li key={s.id}><button type="button" className="min-h-11 w-full rounded px-1 text-left hover:bg-surface" aria-current={i === p.current ? "step" : undefined} onClick={() => setStep(i)}>{pref?.completed.includes(s.id) ? "✓" : i === p.current ? "→" : "○"} {i + 1}. {s.doing}</button></li>)}</ol></details>
+          <details className="mt-2 text-xs"><summary className="cursor-pointer">All steps in this stage</summary><ol className="mt-1 space-y-1">{steps.map((s, i) => <li key={s.id}><Button type="button" className="min-h-11 w-full rounded px-1 text-left hover:bg-surface" aria-current={i === p.current ? "step" : undefined} onClick={() => setStep(i)}>{pref?.completed.includes(s.id) ? "✓" : i === p.current ? "→" : "○"} {i + 1}. {s.doing}</Button></li>)}</ol></details>
         </div>
       ) : null}
     </section>
@@ -124,12 +127,9 @@ export function Week12Resume({ stage, guide, onStage, execOption }: { stage: num
   useEffect(() => { if (ready && initial === null) setInitial(prefs.lastStage ?? 0); }, [ready, initial, prefs.lastStage]);
   const resume = initial && initial !== stage ? initial : null;
   return (
-    <section className="rounded-xl border border-border bg-surface p-3 text-sm" aria-label="Week 12 orientation">
-      <p className="font-display text-xs text-primary">{resume ? "Welcome back" : "Week 12 path"}</p>
-      <ol className="mt-1 flex flex-wrap gap-x-2 text-xs text-muted-foreground"><li>Stage 1 Review →</li><li>2 Findings →</li><li>3 Technical report →</li><li>4 Executive communication →</li><li>5 Recommendations →</li><li>6 Final QA &amp; GitHub</li></ol>
-      <p className="mt-2"><strong>Current stage:</strong> Stage {stage}. <strong>Next step:</strong> {nextAction}</p>
-      {resume ? <button type="button" className={`${btnPrimary} mt-2`} onClick={() => onStage(resume)}>Continue at Stage {resume}</button> : null}
-      <p className="mt-1 text-xs text-muted-foreground">Work one step at a time using the guide below. Your writing autosaves to your account.</p>
+    <section className="flex min-w-0 flex-wrap items-center gap-2 text-sm" aria-label="Week 12 orientation">
+      {resume ? <><strong>Welcome back.</strong><Button type="button" className={btnPrimary} onClick={() => onStage(resume)}>Resume Stage {resume}</Button></> : null}
+      <details><summary className="cursor-pointer">Your six-stage path &amp; next guide step</summary><p className="mt-2 max-w-prose">Review → Findings → Technical report → Executive communication → Recommendations → Final QA &amp; GitHub</p><p className="mt-2 max-w-prose"><strong>Current stage:</strong> {stage}. <strong>Next guide step:</strong> {nextAction}</p></details>
     </section>
   );
 }

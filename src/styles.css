@@ -571,3 +571,19 @@
   .w11-guided nav[aria-label="Step navigation"] select { max-width: none; }
   .w11-guided nav[aria-label="Step navigation"] button { white-space: normal; height: auto; min-height: 44px; }
 }
+
+/* Week 12 presentation scope: readable writing, short guidance, no scroll traps. */
+.w12-guided { font-size: 1rem; line-height: 1.6; }
+.w12-guided :is(.text-xs, .text-sm, .text-\[0\.7rem\]) { font-size: 1rem; line-height: 1.6; }
+.w12-guided :is(p, li, label, legend, summary, h1, h2, h3) { overflow-wrap: anywhere; letter-spacing: 0; }
+.w12-guided .w12-guidance :is(p, dd) { font-size: 1.125rem; line-height: 1.65; }
+.w12-guided :is(input, textarea, select) { font-size: 1.125rem; }
+.w12-guided button { height: auto; min-height: 44px; white-space: normal; }
+.w12-guided :is(input, textarea, select, button, a, summary) { scroll-margin-block: 1rem; }
+.w12-guided .w12-activity section { border-radius: 0; border-inline: 0; border-top: 0; background: transparent; padding: 0 0 1rem; }
+.w12-guided .w12-activity section > div:first-child { min-width: 0; }
+.w12-guided .w12-activity :is(p, textarea) { max-width: 70ch; }
+.w12-guided .w12-stage-art img { max-height: 240px; }
+.w12-guided .w12-intro img { max-height: 160px; }
+.w12-guided [hidden] { display: none; }
+@media (max-width: 1279px) { .w12-guided .w12-stage-art { max-width: 320px; } }
