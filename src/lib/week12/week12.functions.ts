@@ -41,7 +41,7 @@ async function snapshotFor(db: Admin, w11: W11Row) {
   const [{ computeReadiness }, { buildSnapshot, snapshotHash }] = await Promise.all([import("@/lib/week11/readiness.server"), import("./source.server")]);
   const { data: ev } = await db.from("w11_evidence" as never).select("evidence_key,slot,mission,title,snapshot,content_hash,captured_revision,created_at").eq("attempt_id", w11.id).order("created_at");
   const evidence = (ev ?? []) as never[];
-  const m06 = computeReadiness(w11.state, w11.learner ?? {}, evidence).find((r) => r.mission === "M06") ?? { ready: false, missing: ["Lab 06 case file not started."] };
+  const m06 = computeReadiness(w11.state, w11.learner ?? {}, evidence).find((r) => r.mission === "M06") ?? { ready: false, missing: ["Week 11 Case File (Lab 3) not started."] };
   const snap = buildSnapshot(w11, evidence, m06);
   return { snap, hash: snapshotHash(snap) };
 }

@@ -29,3 +29,8 @@ Pinned by `src/lib/week11/guided-steps.test.ts`.
 - M01, M03, M04 and all other M05 items are optional practice: `readiness[].required === false`, `ready === true`, unmet items in `optional`.
 - Week 12 still uses only M06 readiness for `sourceComplete`; every Week 12 field above is still required.
 - Required rules are a strict subset of the old rules, so no previously ready attempt becomes not-ready.
+
+## Navigation handoff (2026-11-01)
+- Week 12 links back with `/cyberfoundations/week-11?lab=3` (navigation only; opens guided Lab 3 unless the saved position is already in Lab 3). Classic mode is unaffected.
+- Week 11 Case File and Download & GitHub link forward to `/cyberfoundations/week-12` and state that opening Week 12 or downloading is not submitting.
+- After a student-triggered refresh, `fillEmptyFromSource` fills only still-empty Week 12 fields (findings list, analyst, limitations) through normal autosave; it never overwrites student writing.

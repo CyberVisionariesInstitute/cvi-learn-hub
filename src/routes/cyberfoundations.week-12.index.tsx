@@ -42,7 +42,7 @@ function Week12Page() {
         : store.blocked ? (
           <div className="mx-auto max-w-2xl space-y-3 p-8 text-sm" role="alert">
             <h1 className="font-display text-xl">Week 12 starts from your Week 11 case file</h1>
-            <p>We couldn't find a Week 11 attempt for your account. Week 12 turns your own Week 11 Lab 06 IAM Investigation Case File into your final report, so open Week 11 first and work through the missions.</p>
+            <p>We couldn't find a Week 11 attempt for your account. Week 12 turns your own Week 11 Case File into your final report. Open Week 11 with this same account and work through the three guided labs — Lab 3 builds the Case File. Then come back here.</p>
             <Link to="/cyberfoundations/week-11" className="inline-block rounded-md border border-primary/70 bg-primary/20 px-4 py-2 font-medium">Open Week 11</Link>
           </div>
         )

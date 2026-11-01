@@ -91,6 +91,24 @@ export function seedContent(s: SourceSnapshot): W12Content {
   return c;
 }
 
+/**
+ * After a student-triggered refresh, fill ONLY Week 12 fields that are still
+ * empty (e.g. Week 12 was started before any Week 11 findings existed).
+ * Never overwrites student writing. Returns null when nothing changes.
+ */
+export function fillEmptyFromSource(c: W12Content, s: SourceSnapshot): W12Content | null {
+  const seed = seedContent(s);
+  let changed = false;
+  const next: W12Content = { ...c, report: { ...c.report } };
+  if (!c.report.analyst.trim() && seed.report.analyst) { next.report.analyst = seed.report.analyst; changed = true; }
+  if (!c.report.limitations.trim() && seed.report.limitations.trim()) { next.report.limitations = seed.report.limitations; changed = true; }
+  if (c.findings.length === 0 && seed.findings.length) { next.findings = seed.findings; changed = true; }
+  return changed ? next : null;
+}
+
+/** Where students fix their Week 11 Case File: guided Lab 3 (classic Lab 06). */
+export const WEEK11_CASE_FILE_LINK = { to: "/cyberfoundations/week-11", search: { lab: 3 } } as const;
+
 /* --------------------------- Classification items -------------------------- */
 
 export interface ClassItem { id: string; source: string; text: string }
@@ -240,7 +258,7 @@ export function computeQA(snap: SourceSnapshot, raw: W12Content, opt: ExecOption
   const goodRecs = c.recommendations.filter((r) => recommendationIssues(r, keys).length === 0);
   const badRefs = [...new Set(c.findings.flatMap((f) => f.evidenceRefs).filter((r) => !refs.has(r)))];
   const checks: QACheck[] = [
-    { id: "source", stage: 1, label: "Week 11 Lab 06 source is complete", ok: snap.sourceComplete, missing: snap.sourceComplete ? [] : ["DRAFT SOURCE — finish these in Week 11 Lab 06, then use Refresh from Week 11:", ...snap.sourceMissing] },
+    { id: "source", stage: 1, label: "Week 11 Case File (Lab 3) is complete", ok: snap.sourceComplete, missing: snap.sourceComplete ? [] : ["DRAFT SOURCE — finish these in Week 11 Lab 3 (Explain What You Found), then use Refresh from Week 11:", ...snap.sourceMissing] },
     { id: "name", stage: 3, label: "Your name is on the report", ok: Boolean(c.report.analyst.trim()), missing: c.report.analyst.trim() ? [] : ["Add your name as analyst."] },
     { id: "sections", stage: 3, label: "Report sections present", ok: REPORT_FIELDS.every(([k]) => c.report[k].trim().length >= (k === "title" ? 5 : 20)), missing: REPORT_FIELDS.filter(([k]) => c.report[k].trim().length < (k === "title" ? 5 : 20)).map(([, l]) => l) },
     { id: "findings", stage: 2, label: "At least two evidence-linked findings", ok: linked.length >= 2, missing: [...(linked.length >= 2 ? [] : [`${linked.length} of 2 findings have a statement and a valid evidence/event reference.`]), ...(badRefs.length ? [`These references aren't in your Week 11 source: ${badRefs.join(", ")}`] : [])] },

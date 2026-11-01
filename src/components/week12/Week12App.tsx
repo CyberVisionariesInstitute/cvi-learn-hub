@@ -1,9 +1,10 @@
 import type React from "react";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useId, useMemo, useState } from "react";
 import { Badge, btn, btnPrimary, Card, input, Select, TextArea } from "@/components/week11/ui";
 import {
   CLASS_LABELS, classItems, coachFlags, computeQA, execMissing, parseDuration, parseRefs, recommendationIssues, validRefs, validateVideoUrl,
-  week12Paths, week12ZipName, writtenWords, WEEK11_CASE_FILE_PATH, type ClassLabel, type CoachFlag, type W12Content, type Week12File,
+  week12Paths, week12ZipName, writtenWords, WEEK11_CASE_FILE_PATH, WEEK11_CASE_FILE_LINK, type ClassLabel, type CoachFlag, type W12Content, type Week12File,
 } from "@/lib/week12/model";
 import type { Week12Store } from "@/lib/week12/useWeek12";
 import { Week12Visual } from "./Week12Visual";
@@ -12,7 +13,7 @@ import { useGuidePrefs, Week12Guide, Week12Resume } from "./Week12Guide";
 const A = ({ id, children, className = "" }: { id: string; children: React.ReactNode; className?: string }) => <div id={id} tabIndex={-1} className={`scroll-mt-64 outline-none ${className}`}>{children}</div>;
 
 export const STAGES = [
-  { n: 1, title: "Review your case file", doing: "Read your own Week 11 Lab 06 case file and sort each statement: is it a fact, evidence, a finding, an interpretation, an unknown, or a recommendation?", proves: "Every source statement has a label. There are no right-answer marks — this is to sharpen your thinking." },
+  { n: 1, title: "Review your case file", doing: "Read your own Week 11 Case File (from Lab 3) and sort each statement: is it a fact, evidence, a finding, an interpretation, an unknown, or a recommendation?", proves: "Every source statement has a label. There are no right-answer marks — this is to sharpen your thinking." },
   { n: 2, title: "Strengthen your findings", doing: "Rewrite your findings in report-ready, defensible language and keep each one linked to Week 11 evidence or event IDs.", proves: "At least two findings with a clear statement and a valid evidence/event reference; any high-certainty words reviewed." },
   { n: 3, title: "Technical incident report", doing: "Build the technical report section by section for a technical reader.", proves: "Every report section is filled in, including limitations and your name." },
   { n: 4, title: "Executive communication", doing: "Choose ONE: a written Executive Summary (about 250–400 words) or a video Executive Briefing (about 2–3 minutes, link only). Both are equal.", proves: "Your chosen option is complete. Drafts of the other option are kept but not counted." },
@@ -33,8 +34,9 @@ export function Week12App({ store, stage, onStage }: { store: Week12Store; stage
     <div className="mx-auto max-w-6xl space-y-4 px-3 py-5 sm:px-6">
       <A id="w12-top"><Card eyebrow="CyberFoundations · Week 12 · Final capstone" title="Communications Capstone — Portfolio Deliverable 5">
         <p className="text-sm">You already did the investigation in Week 11. This week you <strong>communicate</strong> it: a Technical Incident Report plus one executive communication (written or video). Don't add new incident facts — work from your own case file.</p>
+        <p className="mt-2 text-sm"><strong>Your starting point:</strong> the Case File you built in Week 11 Lab 3 (Explain What You Found), with the same signed-in account. Week 12 uses a saved copy of it. <Link {...WEEK11_CASE_FILE_LINK} className="font-medium text-primary underline">Open Week 11 Lab 3</Link></p>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-          {v.snapshot.sourceComplete ? <Badge tone="allow">Source: Week 11 Lab 06 complete</Badge> : <Badge tone="warn">DRAFT SOURCE</Badge>}
+          {v.snapshot.sourceComplete ? <Badge tone="allow">Source: Week 11 Case File complete</Badge> : <Badge tone="warn">DRAFT SOURCE</Badge>}
           <Badge tone="info">Week 11 attempt {v.snapshot.sourceShortId}</Badge>
           <SaveStatus store={store} />
         </div>
@@ -110,7 +112,11 @@ function SourceBanner({ store }: { store: Week12Store }) {
   };
   return (
     <div className="space-y-2 rounded-xl border border-amber/60 bg-amber/10 p-3 text-sm" role="note">
-      {showDraft ? <p><strong>DRAFT SOURCE.</strong> Your Week 11 Lab 06 case file wasn't complete when Week 12 copied it. You can keep working here, but Week 12 can't be final-ready until Lab 06 is complete in Week 11 and you refresh the source.</p> : null}
+      {showDraft ? <>
+        <p><strong>DRAFT SOURCE.</strong> Your Week 11 Case File wasn't finished when Week 12 copied it. You can keep working here — your Week 12 writing is saved. Week 12 can be final-ready only after you finish the Case File in Week 11 Lab 3 and choose "Refresh from Week 11…" below.</p>
+        {v.snapshot.sourceMissing.length ? <details><summary className="cursor-pointer">Still missing in Week 11 ({v.snapshot.sourceMissing.length})</summary><ul className="mt-1 list-disc space-y-0.5 pl-5">{v.snapshot.sourceMissing.map((x) => <li key={x}>{x}</li>)}</ul></details> : null}
+        <p><Link {...WEEK11_CASE_FILE_LINK} className="font-medium text-primary underline">Open Week 11 Lab 3 to finish it</Link> — then come back here.</p>
+      </> : null}
       {v.sourceChange ? <p><strong>Source changed.</strong> {v.sourceChange.detail}</p> : null}
       {!confirm ? <button type="button" className={btn} onClick={() => setConfirm(true)}>Refresh from Week 11…</button> : (
         <div className="space-y-2 rounded-md border border-border bg-background p-2">
@@ -128,10 +134,10 @@ function SourceBanner({ store }: { store: Week12Store }) {
 function SourcePanel({ store }: { store: Week12Store }) {
   const s = store.view!.snapshot;
   return (
-    <Card eyebrow="Read-only · from your Week 11 Lab 06 case file" title="Your Week 11 source">
+    <Card eyebrow="Read-only · from your Week 11 Case File (Lab 3)" title="Your Week 11 source">
       <p className="text-xs text-muted-foreground">Copied from attempt {s.sourceShortId}{s.sourceStatus === "archived" ? " (archived)" : ""}. In your portfolio this is <span className="break-all font-mono">{WEEK11_CASE_FILE_PATH}</span>.</p>
       <div className="mt-2 space-y-2 text-sm">
-        {s.findings.length === 0 ? <p className="text-muted-foreground">No findings were written in Week 11 yet.</p> : null}
+        {s.findings.length === 0 ? <p className="text-muted-foreground">No findings were written in Week 11 yet. Add them in <Link {...WEEK11_CASE_FILE_LINK} className="text-primary underline">Week 11 Lab 3</Link>, then choose "Refresh from Week 11…".</p> : null}
         {s.findings.map((f) => (
           <details key={f.key} className="rounded-md border border-border p-2"><summary className="cursor-pointer font-medium">{f.key} · {f.title || "Untitled finding"} <span className="font-mono text-xs text-muted-foreground">{f.refs.join(", ")}</span></summary>
             <dl className="mt-1 space-y-1 text-xs">{(["observation", "hypothesis", "conclusion", "uncertainty", "nextAction", "rationale"] as const).map((k) => f[k] ? <div key={k}><dt className="font-medium">{k}</dt><dd className="whitespace-pre-wrap break-words">{f[k]}</dd></div> : null)}</dl>
@@ -209,7 +215,7 @@ function StageReview({ store }: { store: Week12Store }) {
             <li><strong>Recommendation:</strong> "Ask the badge owner's manager to confirm the visit."</li>
           </ul>
         </details></A>
-        {items.length === 0 ? <p className="text-sm text-muted-foreground">Nothing to classify yet — write findings in Week 11 Lab 06 with this same account, then come back and choose "Refresh from Week 11…".</p> : (
+        {items.length === 0 ? <p className="text-sm text-muted-foreground">Nothing to classify yet — write findings in Week 11 Lab 3 with this same account, then come back and choose "Refresh from Week 11…".</p> : (
           <>
             <Pager id="w12-statement-picker" noun="statement" index={cur} total={items.length} onIndex={setIdx} labels={items.map((i, n) => `Statement ${n + 1}${c.classify[i.id] ? " ✓" : ""}`)} />
             <ul className="mt-2 space-y-2">{all ? items.map(row) : row(items[cur]!)}</ul>

@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { historicalAudit, historicalSignins, reportSections } from "@/lib/week11/seed";
@@ -87,15 +88,15 @@ export function CaseFileBuilder({ store, onView, initialFinding }: { initialFind
   ];
   return <div className="min-w-0 max-w-3xl space-y-5 [overflow-wrap:anywhere]">
     <header className="space-y-3 border-b border-border pb-5">
-      <p className="text-xs text-primary">Lab 06 · Portfolio Deliverable 4</p>
+      <p className="text-xs text-primary">Lab 3 Case File (classic Lab 06) · Portfolio Deliverable 4</p>
       <h2 className="font-display text-xl">Cloud Heights IAM Investigation Case File</h2>
       <p className="max-w-prose text-sm font-medium">You are not writing the polished incident report yet.</p>
       <p className="max-w-prose text-sm"><strong>Week 11:</strong> Build your technical Case File and document what the evidence supports.</p>
       <p className="max-w-prose text-sm"><strong>Week 12:</strong> Turn this Case File into the polished Technical Incident Report and executive communication.</p>
-      <details><summary className="min-h-11 cursor-pointer content-center text-sm focus-visible:outline focus-visible:outline-primary">How Lab 6 connects to earlier labs</summary><div className="max-w-prose space-y-2 text-sm">
-        <p>Labs 1–5: administer, test, and collect evidence.</p><p>Lab 6: investigate the records and assemble Portfolio Deliverable 4.</p>
+      <details><summary className="min-h-11 cursor-pointer content-center text-sm focus-visible:outline focus-visible:outline-primary">How the Case File connects to earlier labs</summary><div className="max-w-prose space-y-2 text-sm">
+        <p>Labs 1–2 (classic Labs 1–5): administer, test, and collect evidence.</p><p>Lab 3 (classic Lab 6): investigate the records and assemble Portfolio Deliverable 4.</p>
       </div></details>
-      <p className="max-w-prose border-l-2 border-primary pl-3 text-xs">Your completed Week 11 Case File becomes the source for Week 12. Use the same signed-in account for Week 12 so your Case File can be found.</p>
+      <p className="max-w-prose border-l-2 border-primary pl-3 text-xs">Your completed Week 11 Case File becomes the source for Week 12. Use the same signed-in account for Week 12 so your Case File can be found. Opening Week 12 does not submit anything — you still download and upload your work to GitHub. <Link to="/cyberfoundations/week-12" className="font-medium text-primary underline">Continue to Week 12</Link></p>
       <nav aria-label="Case File progress"><ol className="grid grid-cols-2 gap-1">{path.map((title, i) => {
         const done = [v.evidence.length > 0, review.twoFindings && (learner.findings ?? []).slice(0, 2).every((f) => findingPresence(f).every(Boolean)), Boolean(learner.comparison?.refs.length && learner.comparison.text.trim()), Boolean(rep.liveChain?.trim()), review.sections && Boolean(rep.limitations?.trim()), false, false][i];
         return <li key={title}><Button variant={currentPath === i ? "secondary" : "ghost"} aria-current={currentPath === i ? "step" : undefined} className="min-h-11 h-auto w-full justify-start whitespace-normal text-left text-xs" onClick={() => go(i > 4 ? i + 1 : i)}>{i + 1}. {title}{done ? " ✓" : ""}</Button></li>;
