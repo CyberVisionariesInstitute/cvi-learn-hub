@@ -43,7 +43,7 @@ const PLAIN: Record<string, { everyday: string; term: string; link: string }> = 
 
 const VIEW_LABELS: Record<string, string> = { users: "Users", groups: "Groups", ous: "Organizational Units", roles: "Roles & Access", resources: "Resources", tickets: "Help Desk / IAM Tickets", signins: "Sign-in Logs", audit: "Audit Logs", evidence: "Evidence Tray", report: "Case File", downloads: "Download & GitHub" };
 
-export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic: () => void }) {
+export function GuidedApp({ store, onClassic, startLab }: { store: Week11Store; onClassic: () => void; startLab?: 1 | 2 | 3 | undefined }) {
   const v = store.view;
   if (!v) return null;
   const storageKey = guidedKey(v.id);
@@ -54,7 +54,10 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
 
   useEffect(() => {
     const saved = parseGuided(window.localStorage.getItem(storageKey));
-    setIndex(saved?.index ?? firstOpenScreen(v, store.learner));
+    // A link such as Week 12's "Open Week 11 Lab 3" opens that lab directly (navigation only, never a write).
+    const labStart = startLab ? GUIDED_SCREENS.findIndex((s) => s.lab === startLab && !s.optional) : -1;
+    const savedOrOpen = saved?.index ?? firstOpenScreen(v, store.learner);
+    setIndex(labStart >= 0 && GUIDED_SCREENS[savedOrOpen]?.lab !== startLab ? labStart : savedOrOpen);
     try { setSubIndex(Number(window.localStorage.getItem(`${storageKey}:look`)) || 0); } catch { setSubIndex(0); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey]);
