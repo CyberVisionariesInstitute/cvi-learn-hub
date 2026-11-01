@@ -573,7 +573,7 @@
 }
 
 /* Week 12 presentation scope: readable writing, short guidance, no scroll traps. */
-.w12-guided { font-size: 1rem; line-height: 1.6; }
+.w12-guided { --primary: var(--violet); --ring: var(--violet); font-size: 1rem; line-height: 1.6; }
 .w12-guided :is(.text-xs, .text-sm, .text-\[0\.7rem\]) { font-size: 1rem; line-height: 1.6; }
 .w12-guided :is(p, li, label, legend, summary, h1, h2, h3) { overflow-wrap: anywhere; letter-spacing: 0; }
 .w12-guided .w12-guidance :is(p, dd) { font-size: 1.125rem; line-height: 1.65; }

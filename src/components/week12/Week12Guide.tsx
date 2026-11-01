@@ -31,7 +31,7 @@ export function useGoTo(stage: number, onStage: (n: number) => void) {
       if (!el) return;
       let parent: HTMLElement | null = el;
       while (parent) { if (parent instanceof HTMLDetailsElement) parent.open = true; parent = parent.parentElement; }
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      el.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
       const field = el.matches("input,textarea,select,button") ? el : el.querySelector<HTMLElement>("input,textarea,select,button,summary");
       (field ?? el).focus({ preventScroll: true });
     };
