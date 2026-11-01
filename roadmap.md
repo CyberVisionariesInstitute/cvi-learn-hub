@@ -33,3 +33,4 @@
 - [x] Week 12 tests + preview walkthrough (written & video, 390px), no publish
 
 - [x] Week 11 three guided labs (preview only, Option A: requirements unchanged)
+- [x] Week 12: show nonblocking unknown-reference advisory in Final QA; align guide done-condition (preview only)
