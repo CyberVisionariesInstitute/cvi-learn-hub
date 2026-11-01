@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { fillEmptyFromSource, type ExecOption, type W12Content, type Week12File, type Week12View } from "./model";
 import { exportWeek12, exportWeek12File, refreshWeek12Source, saveWeek12Draft, setWeek12Volunteer, startOrResumeWeek12 } from "./week12.functions";
+import { createSaveQueue, requireConfirmedSave } from "./save-queue";
 
 export type SaveState = { kind: "idle" } | { kind: "pending" } | { kind: "saving" } | { kind: "saved"; at: string } | { kind: "failed"; message: string } | { kind: "conflict" };
 
@@ -45,19 +46,28 @@ export function useWeek12() {
       .catch((e: Error) => setLoadError(e.message || "Could not open Week 12."));
   }, [start, adopt]);
 
-  const flush = useCallback(async () => {
-    if (!dirty.current || !latest.current.content) return;
+  const saveOne = useCallback(async () => {
+    if (!dirty.current || !latest.current.content) return true;
     if (timer.current) { clearTimeout(timer.current); timer.current = null; }
     setSaveState({ kind: "saving" });
     const payload = latest.current;
     try {
       const r = await save({ data: { expectedTextRevision: rev.current, execOption: payload.execOption, content: payload.content as never } });
-      if ("conflict" in r && r.conflict) { setSaveState({ kind: "conflict" }); return; }
-      rev.current = r.textRevision!;
-      if (latest.current === payload) dirty.current = false;
-      setSaveState({ kind: "saved", at: new Date(r.savedAt!).toLocaleTimeString() });
-    } catch (e) { setSaveState({ kind: "failed", message: (e as Error).message || "Not saved." }); }
+      if ("conflict" in r && r.conflict) { setSaveState({ kind: "conflict" }); return false; }
+      if (r.textRevision === undefined || !r.savedAt) throw new Error("Save confirmation was missing.");
+      rev.current = r.textRevision;
+      if (latest.current === payload) {
+        dirty.current = false;
+        setSaveState({ kind: "saved", at: new Date(r.savedAt).toLocaleTimeString() });
+      } else setSaveState({ kind: "pending" });
+      return true;
+    } catch (e) { setSaveState({ kind: "failed", message: (e as Error).message || "Not saved." }); return false; }
   }, [save]);
+  const saveOneRef = useRef(saveOne);
+  saveOneRef.current = saveOne;
+  const queue = useRef<ReturnType<typeof createSaveQueue> | null>(null);
+  if (!queue.current) queue.current = createSaveQueue(() => saveOneRef.current(), () => dirty.current);
+  const flush = useCallback(() => queue.current?.() ?? Promise.resolve(true), []);
 
   const schedule = useCallback(() => {
     dirty.current = true;
@@ -95,7 +105,7 @@ export function useWeek12() {
   }, [start, flush]);
 
   const refreshSource = useCallback(async () => {
-    await flush();
+    await requireConfirmedSave(flush);
     const r = await refresh({ data: { confirm: "REFRESH" } });
     setView(r.view);
     // Only empty Week 12 fields are filled; saved through normal autosave so the status stays truthful.
@@ -110,14 +120,14 @@ export function useWeek12() {
   }, [vol]);
 
   const downloadZip = useCallback(async () => {
-    await flush();
+    await requireConfirmedSave(flush);
     const r = await zip();
     download(new Blob([Uint8Array.from(atob(r.zipBase64), (c) => c.charCodeAt(0))], { type: "application/zip" }), r.filename);
     return r;
   }, [zip, flush]);
 
   const downloadFile = useCallback(async (f: Week12File) => {
-    await flush();
+    await requireConfirmedSave(flush);
     const r = await file({ data: { file: f } });
     download(new Blob([r.content], { type: f.endsWith(".json") ? "application/json" : "text/markdown;charset=utf-8" }), r.filename);
     return r;

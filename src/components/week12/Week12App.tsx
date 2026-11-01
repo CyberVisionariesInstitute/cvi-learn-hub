@@ -375,7 +375,6 @@ function StageReport({ store }: { store: Week12Store }) {
       <Pager id="w12-report-picker" noun="section" index={cur} total={REPORT_STEPS.length} onIndex={(i) => { setIdx(i); setAll(false); }} labels={REPORT_STEPS.map((s) => `${s.n === "Header" ? "Header" : `${s.n}.`} ${s.title}${filled(s) ? " ✓" : ""}`)} />
       <A id="w12-report-section">{all ? <div className="space-y-4">{REPORT_STEPS.map(section)}</div> : section(REPORT_STEPS[cur]!, cur)}</A>
       <div className="flex flex-wrap gap-2">
-        {!all && cur < REPORT_STEPS.length - 1 ? <Button type="button" className={btnPrimary} onClick={() => setIdx(cur + 1)}>Next report section →</Button> : null}
         <Button type="button" className={`${btn} text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one section at a time" : "Show all sections"}</Button>
       </div>
       <p className="text-xs text-muted-foreground">Your typing autosaves. Moving between sections never deletes anything.</p>
