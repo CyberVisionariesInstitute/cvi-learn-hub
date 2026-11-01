@@ -88,7 +88,7 @@ describe("Week 12 readiness", () => {
     c.findings[1]!.evidenceRefs = ["EV-999999-001"];
     const q = computeQA(s, c, "written");
     expect(q.checks.find((x) => x.id === "findings")!.ok).toBe(false);
-    expect(q.checks.find((x) => x.id === "findings")!.missing.join(" ")).toContain("EV-999999-001");
+    expect(q.checks.find((x) => x.id === "findings")!.advisory!.join(" ")).toContain("EV-999999-001");
   });
   it("documents the existing advisory-only invalid-reference behavior without changing readiness", () => {
     const s = snap();
@@ -98,7 +98,26 @@ describe("Week 12 readiness", () => {
     first.evidenceRefs.push("LIB-NOT-IN-SOURCE");
     const qa = computeQA(s, c, "written");
     expect(qa.ready).toBe(true);
-    expect(qa.checks.find(x => x.id === "findings")?.missing).toContain("These references aren't in your Week 11 source: LIB-NOT-IN-SOURCE");
+    const f = qa.checks.find(x => x.id === "findings")!;
+    expect(f.ok).toBe(true);
+    expect(f.missing).toEqual([]);
+    expect(f.advisory!.join(" ")).toContain("LIB-NOT-IN-SOURCE");
+  });
+  it("all-valid references produce no advisory", () => {
+    const s = snap();
+    const f = computeQA(s, full(s, "written"), "written").checks.find(x => x.id === "findings")!;
+    expect(f.ok).toBe(true);
+    expect(f.advisory).toEqual([]);
+  });
+  it("incomplete findings stay blocking while advisory lists the unknown ID", () => {
+    const s = snap();
+    const c = full(s, "written");
+    c.findings[1]!.evidenceRefs = ["EV-999999-001"];
+    const q = computeQA(s, c, "written");
+    const f = q.checks.find(x => x.id === "findings")!;
+    expect(q.ready).toBe(false);
+    expect(f.missing[0]).toContain("1 of 2");
+    expect(f.advisory!.join(" ")).toContain("EV-999999-001");
   });
   it("normal input parsing canonicalizes lowercase known IDs before validation", async () => {
     const { parseRefs } = await import("./model");

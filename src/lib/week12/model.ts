@@ -238,7 +238,8 @@ export function execMissing(c: W12Content, opt: ExecOption): string[] {
 
 /* ---------------------------------- QA ------------------------------------- */
 
-export interface QACheck { id: string; label: string; ok: boolean; missing: string[]; stage: number }
+/** `advisory` notes never affect `ok`/readiness; shown even when a check passes. */
+export interface QACheck { id: string; label: string; ok: boolean; missing: string[]; stage: number; advisory?: string[] }
 
 const REPORT_FIELDS: [keyof W12Report, string][] = [
   ["title", "Report title"], ["purpose", "Purpose / incident context"], ["scope", "Scope"], ["evidenceReviewed", "Evidence reviewed"],
@@ -261,7 +262,7 @@ export function computeQA(snap: SourceSnapshot, raw: W12Content, opt: ExecOption
     { id: "source", stage: 1, label: "Week 11 Case File (Lab 3) is complete", ok: snap.sourceComplete, missing: snap.sourceComplete ? [] : ["DRAFT SOURCE — finish these in Week 11 Lab 3 (Explain What You Found), then use Refresh from Week 11:", ...snap.sourceMissing] },
     { id: "name", stage: 3, label: "Your name is on the report", ok: Boolean(c.report.analyst.trim()), missing: c.report.analyst.trim() ? [] : ["Add your name as analyst."] },
     { id: "sections", stage: 3, label: "Report sections present", ok: REPORT_FIELDS.every(([k]) => c.report[k].trim().length >= (k === "title" ? 5 : 20)), missing: REPORT_FIELDS.filter(([k]) => c.report[k].trim().length < (k === "title" ? 5 : 20)).map(([, l]) => l) },
-    { id: "findings", stage: 2, label: "At least two evidence-linked findings", ok: linked.length >= 2, missing: [...(linked.length >= 2 ? [] : [`${linked.length} of 2 findings have a statement and a valid evidence/event reference.`]), ...(badRefs.length ? [`These references aren't in your Week 11 source: ${badRefs.join(", ")}`] : [])] },
+    { id: "findings", stage: 2, label: "At least two evidence-linked findings", ok: linked.length >= 2, missing: linked.length >= 2 ? [] : [`${linked.length} of 2 findings have a statement and a valid evidence/event reference.`], advisory: badRefs.length ? [`Check these IDs — they aren't in your Week 11 source: ${badRefs.join(", ")}. Fix or remove them in Stage 2.`] : [] },
     { id: "language", stage: 2, label: "High-certainty wording reviewed", ok: flags.every((f) => f.reviewed), missing: flags.filter((f) => !f.reviewed).map((f) => `"${f.term}" in ${f.fieldLabel} — reword or add your evidence note.`) },
     { id: "limitations", stage: 3, label: "Limitations / unknowns stated", ok: c.report.limitations.trim().length >= 20, missing: c.report.limitations.trim().length >= 20 ? [] : ["Describe what the evidence cannot tell you."] },
     { id: "recommendations", stage: 5, label: "At least one actionable recommendation", ok: goodRecs.length >= 1, missing: goodRecs.length ? [] : c.recommendations.length ? recommendationIssues(c.recommendations[0]!, keys).map((x) => `Recommendation ${c.recommendations[0]!.key}: ${x}`) : ["Add a recommendation."] },

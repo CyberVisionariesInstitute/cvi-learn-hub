@@ -568,6 +568,7 @@ function StageQA({ store, qa, onStage }: { store: LoadedStore; qa: ReturnType<ty
             <div className="flex flex-wrap items-center justify-between gap-2"><span>{x.ok ? "✓" : "◌"} {x.label}</span>
               {!x.ok ? <Button type="button" className={`${btn} min-h-9 py-1 text-xs`} onClick={() => onStage(x.stage)}>Go to Stage {x.stage}</Button> : null}</div>
             {!x.ok && x.missing.length ? <ul className="mt-1 list-disc pl-5 text-xs">{x.missing.map((m) => <li key={m} className="break-words">{m}</li>)}</ul> : null}
+            {x.advisory?.length ? <div className="mt-1 rounded border border-border bg-muted/40 p-2 text-xs"><p className="font-medium">Citation review — recommended, not required to pass{x.ok ? "" : " (fix the items above first)"}</p><ul className="list-disc pl-5">{x.advisory.map((m) => <li key={m} className="break-words">{m}</li>)}</ul>{x.ok ? <Button type="button" className={`${btn} mt-1 min-h-9 py-1 text-xs`} onClick={() => onStage(x.stage)}>Review IDs in Stage {x.stage}</Button> : null}</div> : null}
             {!x.ok && x.id === "language" ? <p className="mt-1 text-xs">Reword each flagged sentence, or add an evidence note in the yellow box on that stage. Either fix clears it.</p> : null}
           </li>
         ))}</ul>
