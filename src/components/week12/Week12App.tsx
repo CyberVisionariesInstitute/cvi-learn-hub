@@ -386,12 +386,26 @@ function StageReport({ store }: { store: Week12Store }) {
 
 /* --------------------------------- Stage 4 -------------------------------- */
 
+/** Navigation-only task position. Anchors reveal their item before focus. */
+function useTaskPosition(anchors: string[]) {
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    const on = (event: Event) => { const anchor = (event as CustomEvent<string>).detail; const i = anchors.indexOf(anchor === "w12-github" ? "w12-download" : anchor); if (i >= 0) setIndex(i); };
+    window.addEventListener("w12:focus-task", on);
+    return () => window.removeEventListener("w12:focus-task", on);
+  }, [anchors.join(",")]);
+  return [index, setIndex] as const;
+}
+
 function StageExec({ store }: { store: Week12Store }) {
   const c = store.content!;
   const opt = store.execOption;
   const w = c.written, vid = c.video;
   const setW = (k: keyof typeof w) => (x: string) => store.update((p) => ({ ...p, written: { ...p.written, [k]: x } }));
   const setV = (patch: Partial<typeof vid>) => store.update((p) => ({ ...p, video: { ...p.video, ...patch } }));
+  const writtenKeys = ["whatHappened", "whyMatters", "whatFound", "nextSteps", "uncertain"] as const;
+  const videoAnchors = ["url", "meta", "check", "outline", "reflection"] as const;
+  const [task, setTask] = useTaskPosition(opt === "video" ? videoAnchors.map(k => `w12-v-${k}`) : writtenKeys.map(k => `w12-w-${k}`));
   const missing = execMissing(c, opt);
   const words = writtenWords(w);
   const urlErr = vid.url ? validateVideoUrl(vid.url) : null;
@@ -404,7 +418,7 @@ function StageExec({ store }: { store: Week12Store }) {
         <legend className="mb-2 text-sm font-medium">Choose one executive communication — both are equally weighted</legend>
         {([["written", "A. Written Executive Summary", "About 250–400 words in total across the five boxes."], ["video", "B. Video Executive Briefing", "About 2–3 minutes. Paste a link (no uploads), plus a short outline and reflection."]] as const).map(([val, t, d]) => (
           <label key={val} className={`cursor-pointer rounded-xl border p-3 ${opt === val ? "border-primary bg-primary/10" : "border-border"}`}>
-            <input type="radio" name="exec" className="mr-2" checked={opt === val} onChange={() => store.chooseExec(val)} />
+            <input type="radio" name="exec" className="mr-2" checked={opt === val} onChange={() => { store.chooseExec(val); setTask(0); }} />
             <span className="font-medium">{t}</span><span className="mt-1 block text-xs text-muted-foreground">{d}</span>
           </label>
         ))}
@@ -414,30 +428,32 @@ function StageExec({ store }: { store: Week12Store }) {
       {opt === "written" ? (
         <A id="w12-exec-form"><Card title="Written Executive Summary" eyebrow={`${words} words · target about 250–400`}>
           <p className="mb-2 text-xs text-muted-foreground">Write for a leader with no IT background. The word count covers all five boxes together.</p>
-          <div className="space-y-3">
-            <A id="w12-w-whatHappened"><TextArea label="What happened?" help="Two or three plain-language sentences." value={w.whatHappened} onChange={setW("whatHappened")} max={3000} /></A>
-            <A id="w12-w-whyMatters"><TextArea label="Why does it matter?" help="Business impact in plain language — no jargon." value={w.whyMatters} onChange={setW("whyMatters")} max={3000} /></A>
-            <A id="w12-w-whatFound"><TextArea label="What did we find?" help="Your Stage 2 findings, said simply." value={w.whatFound} onChange={setW("whatFound")} max={3000} /></A>
-            <A id="w12-w-nextSteps"><TextArea label="What should happen next?" help="The main actions from your Stage 5 recommendations." value={w.nextSteps} onChange={setW("nextSteps")} max={3000} /></A>
-            <A id="w12-w-uncertain"><TextArea label="What remains uncertain? (if material)" help="Only include open questions a leader needs to know about. Leave empty if none." value={w.uncertain} onChange={setW("uncertain")} max={3000} /></A>
+          <Pager id="w12-writing-picker" noun="writing prompt" index={clamp(task, 5)} total={5} onIndex={setTask} labels={["What happened?", "Why does it matter?", "What did we find?", "What should happen next?", "What remains uncertain?"]} />
+          <div className="mt-3 space-y-3">
+            <A className={task === 0 ? "" : "hidden"} id="w12-w-whatHappened"><TextArea label="What happened?" help="Two or three plain-language sentences." value={w.whatHappened} onChange={setW("whatHappened")} max={3000} /></A>
+            <A className={task === 1 ? "" : "hidden"} id="w12-w-whyMatters"><TextArea label="Why does it matter?" help="Business impact in plain language — no jargon." value={w.whyMatters} onChange={setW("whyMatters")} max={3000} /></A>
+            <A className={task === 2 ? "" : "hidden"} id="w12-w-whatFound"><TextArea label="What did we find?" help="Your Stage 2 findings, said simply." value={w.whatFound} onChange={setW("whatFound")} max={3000} /></A>
+            <A className={task === 3 ? "" : "hidden"} id="w12-w-nextSteps"><TextArea label="What should happen next?" help="The main actions from your Stage 5 recommendations." value={w.nextSteps} onChange={setW("nextSteps")} max={3000} /></A>
+            <A className={task === 4 ? "" : "hidden"} id="w12-w-uncertain"><TextArea label="What remains uncertain? (if material)" help="Only include open questions a leader needs to know about. Leave empty if none." value={w.uncertain} onChange={setW("uncertain")} max={3000} /></A>
           </div>
         </Card></A>
       ) : null}
 
       {opt === "video" ? (
         <A id="w12-exec-form"><Card title="Video Executive Briefing" eyebrow="Link only · about 2–3 minutes">
-          <div className="space-y-3">
-            <A id="w12-v-url"><label className="block"><span className="text-sm font-medium">Video link (https)</span>
+          <Pager id="w12-video-picker" noun="video prompt" index={clamp(task, 5)} total={5} onIndex={setTask} labels={["Video link", "Platform and duration", "Playback check", "Outline", "Reflection"]} />
+          <div className="mt-3 space-y-3">
+            <A className={task === 0 ? "" : "hidden"} id="w12-v-url"><label className="block"><span className="text-sm font-medium">Video link (https)</span>
               <input className={`${input} mt-1`} type="url" inputMode="url" value={vid.url} maxLength={500} onChange={(e) => setV({ url: e.target.value })} aria-invalid={Boolean(urlErr)} />
               {urlErr ? <span className="text-xs" role="alert">{urlErr}</span> : null}</label></A>
-            <A id="w12-v-meta"><div className="grid gap-3 sm:grid-cols-2">
+            <A className={task === 1 ? "" : "hidden"} id="w12-v-meta"><div className="grid gap-3 sm:grid-cols-2">
               <label className="block"><span className="text-sm font-medium">Platform</span><input className={`${input} mt-1`} placeholder="YouTube (unlisted), Google Drive, Loom…" value={vid.platform} maxLength={80} onChange={(e) => setV({ platform: e.target.value })} /></label>
               <label className="block"><span className="text-sm font-medium">Duration</span><input className={`${input} mt-1`} placeholder="2:30" value={vid.duration} maxLength={20} onChange={(e) => setV({ duration: e.target.value })} />
                 <span className="text-xs text-muted-foreground">{dur !== null ? `${Math.floor(dur / 60)}:${String(dur % 60).padStart(2, "0")}` : "Use m:ss"}</span></label>
             </div></A>
-            <A id="w12-v-check"><label className="flex min-h-11 items-start gap-2 text-sm"><input type="checkbox" className="mt-1" checked={vid.accessChecked} onChange={(e) => setV({ accessChecked: e.target.checked })} /> I opened the link in a private/signed-out window and it plays for anyone with the link.</label></A>
-            <A id="w12-v-outline"><TextArea label="Outline / speaker notes" help="Bullet lines — one per point you make. At least 3 lines." value={vid.outline} onChange={(x) => setV({ outline: x })} rows={5} max={4000} /></A>
-            <A id="w12-v-reflection"><TextArea label="Reflection — how did you adapt this for leadership?" help="About 2–4 sentences (at least 20 words)." value={vid.reflection} onChange={(x) => setV({ reflection: x })} rows={3} max={2000} /></A>
+            <A className={task === 2 ? "" : "hidden"} id="w12-v-check"><label className="flex min-h-11 items-start gap-2 text-sm"><input type="checkbox" className="mt-1" checked={vid.accessChecked} onChange={(e) => setV({ accessChecked: e.target.checked })} /> I opened the link in a private/signed-out window and it plays for anyone with the link.</label></A>
+            <A className={task === 3 ? "" : "hidden"} id="w12-v-outline"><TextArea label="Outline / speaker notes" help="Bullet lines — one per point you make. At least 3 lines." value={vid.outline} onChange={(x) => setV({ outline: x })} rows={5} max={4000} /></A>
+            <A className={task === 4 ? "" : "hidden"} id="w12-v-reflection"><TextArea label="Reflection — how did you adapt this for leadership?" help="About 2–4 sentences (at least 20 words)." value={vid.reflection} onChange={(x) => setV({ reflection: x })} rows={3} max={2000} /></A>
             <p className="text-xs text-muted-foreground">The outline and short reflection are submission notes, not an additional essay. They do not need to be included in your recorded briefing.</p>
           </div>
         </Card></A>
@@ -511,6 +527,8 @@ function StageQA({ store, qa, onStage }: { store: Week12Store; qa: ReturnType<ty
   const [status, setStatus] = useState<string | null>(null);
   const [downloaded, setDownloaded] = useState<string | null>(null);
   const paths = week12Paths(store.execOption);
+  const qaAnchors = ["w12-qa", "w12-status", "w12-download", "w12-submit"];
+  const [task, setTask] = useTaskPosition(qaAnchors);
   const one = async (path: string) => {
     setBusy(path);
     try { const r = await store.downloadFile(path.replace(/^week-12\//, "") as Week12File); setStatus(`Downloaded ${r.filename}${r.draft ? " (DRAFT)" : ""}.`); }
@@ -524,7 +542,8 @@ function StageQA({ store, qa, onStage }: { store: Week12Store; qa: ReturnType<ty
   const saved = store.saveState.kind === "saved" || store.saveState.kind === "idle";
   return (
     <div className="space-y-4">
-      <A id="w12-qa"><Card title="Final QA" eyebrow={qa.ready ? "✓ Ready — your download won't be marked DRAFT" : "Fix these, then download"}>
+      <Pager id="w12-final-picker" noun="final action" index={task} total={4} onIndex={setTask} labels={["Final QA", "Where is my work?", "Download & GitHub", "Submit for instructor review"]} />
+      <A className={task === 0 ? "" : "hidden"} id="w12-qa"><Card title="Final QA" eyebrow={qa.ready ? "✓ Ready — your download won't be marked DRAFT" : "Fix these, then download"}>
         <p className="mb-2 text-xs text-muted-foreground">Final QA checks that your work is complete. It is not your instructor's grade.</p>
         <ul className="space-y-2">{qa.checks.map((x) => (
           <li key={x.id} className="rounded-md border border-border p-2 text-sm">
@@ -536,7 +555,7 @@ function StageQA({ store, qa, onStage }: { store: Week12Store; qa: ReturnType<ty
         ))}</ul>
       </Card></A>
 
-      <A id="w12-status"><Card title="Where is my work?" eyebrow="Five different things">
+      <A className={task === 1 ? "" : "hidden"} id="w12-status"><Card title="Where is my work?" eyebrow="Five different things">
         <ul className="space-y-1 text-sm">
           <li>{saved ? "✓" : "◌"} <strong>Autosaved</strong> — your writing is stored in your account on this site.</li>
           <li>{qa.ready ? "✓" : "◌"} <strong>Final-ready</strong> — every Final QA item passes.</li>
@@ -546,7 +565,7 @@ function StageQA({ store, qa, onStage }: { store: Week12Store; qa: ReturnType<ty
         </ul>
       </Card></A>
 
-      <A id="w12-download"><Card title="Download & GitHub" eyebrow="Downloading is not submitting">
+      <A className={task === 2 ? "" : "hidden"} id="w12-download"><Card title="Download & GitHub" eyebrow="Downloading is not submitting">
         <p className="text-sm">These files are built from your saved Week 12 work. Your work is not submitted when you download the ZIP. You must upload the Week 12 files to your GitHub portfolio and complete the course submission process.</p>
         <div className="mt-2 rounded-md border border-border p-2 text-sm">
           <p className="font-medium">Your final package includes</p>
@@ -576,7 +595,7 @@ function StageQA({ store, qa, onStage }: { store: Week12Store; qa: ReturnType<ty
         </ol></A>
       </Card></A>
 
-      <A id="w12-submit"><Card title="Submit for instructor review" eyebrow="Last step · outside this site">
+      <A className={task === 3 ? "" : "hidden"} id="w12-submit"><Card title="Submit for instructor review" eyebrow="Last step · outside this site">
         <ol className="space-y-1 text-sm">
           <li>1. Copy the web address of your GitHub repository (the page that shows <span className="font-mono">week-11/</span> and <span className="font-mono">week-12/</span>).</li>
           <li>2. Open your course's <strong>Lab Submissions / Submission Tracker</strong>.</li>
@@ -585,11 +604,13 @@ function StageQA({ store, qa, onStage }: { store: Week12Store; qa: ReturnType<ty
         <p className="mt-2 text-xs text-muted-foreground">This site does not record submissions. Use the Lab Submissions / Submission Tracker link your instructor shared with the course.</p>
       </Card></A>
 
-      <Card title="Optional: volunteer to present live" eyebrow="Not graded · not part of QA">
+      <details><summary className="cursor-pointer">Optional live presentation · not graded</summary><Card title="Optional: volunteer to present live" eyebrow="Not graded · not part of QA">
         <p className="text-sm">Two volunteers will be chosen by your instructor to present live. Volunteering has no effect on your grade or readiness.</p>
         <label className="mt-2 flex items-center gap-2 text-sm"><input type="checkbox" checked={v.volunteerStatus === "volunteered"} onChange={(e) => void store.setVolunteer(e.target.checked)} /> I'd like to be considered for a live presentation.</label>
         {v.presenterSelected ? <p className="mt-1 text-sm" role="status">Your instructor has selected you to present.</p> : null}
       </Card>
+
+      </details>
 
       {v.reviews.length ? (
         <Card title="Instructor feedback">{v.reviews.map((r) => <p key={r.created_at} className="whitespace-pre-wrap text-sm">{r.feedback}</p>)}</Card>
