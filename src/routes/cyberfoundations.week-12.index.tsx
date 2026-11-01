@@ -3,6 +3,7 @@ import { DemoLabShell } from "@/components/demo-lab/DemoLabShell";
 import { cyberfoundations } from "@/lib/demo-lab/programs";
 import { Week12App, STAGES } from "@/components/week12/Week12App";
 import { useWeek12 } from "@/lib/week12/useWeek12";
+import { WEEK11_CASE_FILE_LINK } from "@/lib/week12/model";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Search { stage?: number | undefined }
@@ -38,12 +39,12 @@ function Week12Page() {
   const store = useWeek12();
   return (
     <DemoLabShell themeClass={cyberfoundations.themeClass}>
-      {store.loadError ? <p role="alert" className="mx-auto max-w-3xl p-8 text-sm">Could not open Week 12: {store.loadError}. Refresh to try again; nothing was changed.</p>
+      {store.loadError ? <div role="alert" className="mx-auto max-w-3xl space-y-2 px-6 py-4 text-sm"><h1 className="font-display text-xl">Week 12 could not open</h1><p>{store.loadError} Reload this page to try again. A failed read is not missing work.</p><Link {...WEEK11_CASE_FILE_LINK} className="text-primary underline">Open Week 11 Lab 3</Link></div>
         : store.blocked ? (
           <div className="mx-auto max-w-2xl space-y-3 p-8 text-sm" role="alert">
             <h1 className="font-display text-xl">Week 12 starts from your Week 11 case file</h1>
             <p>We couldn't find a Week 11 attempt for your account. Week 12 turns your own Week 11 Case File into your final report. Open Week 11 with this same account and work through the three guided labs — Lab 3 builds the Case File. Then come back here.</p>
-            <Link to="/cyberfoundations/week-11" className="inline-block rounded-md border border-primary/70 bg-primary/20 px-4 py-2 font-medium">Open Week 11</Link>
+            <Link {...WEEK11_CASE_FILE_LINK} className="inline-block rounded-md border border-primary/70 bg-primary/20 px-4 py-2 font-medium">Open Week 11 Lab 3</Link>
           </div>
         )
         : !store.view || !store.content ? <p className="mx-auto max-w-3xl p-8 text-sm" role="status">Opening your Week 12 Communications Capstone…</p>

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { WEEK12_FILES, type ExecOption, type SourceSnapshot, type W12Content, type Week12View } from "./model";
+import { assertRefreshVersion, checkedSourceRead } from "./source-read.server";
 
 /**
  * Week 12 server operations. The owner is always the authenticated session
@@ -25,21 +26,21 @@ async function isStaff(supabase: { from: (t: "user_roles") => any }, userId: str
 }
 
 async function loadW12(db: Admin, userId: string) {
-  const { data } = await db.from("w12_attempts" as never).select("*").eq("owner_user_id", userId).eq("status", "active").maybeSingle();
+  const data = checkedSourceRead(await db.from("w12_attempts" as never).select("*").eq("owner_user_id", userId).eq("status", "active").maybeSingle(), "Could not load your saved Week 12 work. Try again.");
   return data as W12Row | null;
 }
 
 /** The student's own current Week 11 source: active attempt, else most recent archived. */
 async function currentW11(db: Admin, userId: string) {
-  const { data: active } = await db.from("w11_attempts" as never).select("*").eq("owner_user_id", userId).eq("status", "active").maybeSingle();
+  const active = checkedSourceRead(await db.from("w11_attempts" as never).select("*").eq("owner_user_id", userId).eq("status", "active").maybeSingle(), "Could not check your Week 11 source. Try again.");
   if (active) return active as W11Row;
-  const { data: arch } = await db.from("w11_attempts" as never).select("*").eq("owner_user_id", userId).eq("status", "archived").order("archived_at", { ascending: false }).limit(1).maybeSingle();
+  const arch = checkedSourceRead(await db.from("w11_attempts" as never).select("*").eq("owner_user_id", userId).eq("status", "archived").order("archived_at", { ascending: false }).limit(1).maybeSingle(), "Could not check your archived Week 11 source. Try again.");
   return (arch as W11Row | null) ?? null;
 }
 
 async function snapshotFor(db: Admin, w11: W11Row) {
   const [{ computeReadiness }, { buildSnapshot, snapshotHash }] = await Promise.all([import("@/lib/week11/readiness.server"), import("./source.server")]);
-  const { data: ev } = await db.from("w11_evidence" as never).select("evidence_key,slot,mission,title,snapshot,content_hash,captured_revision,created_at").eq("attempt_id", w11.id).order("created_at");
+  const ev = checkedSourceRead(await db.from("w11_evidence" as never).select("evidence_key,slot,mission,title,snapshot,content_hash,captured_revision,created_at").eq("attempt_id", w11.id).order("created_at"), "Could not load your Week 11 evidence. Source refresh was not applied; try again.");
   const evidence = (ev ?? []) as never[];
   const m06 = computeReadiness(w11.state, w11.learner ?? {}, evidence).find((r) => r.mission === "M06") ?? { ready: false, missing: ["Week 11 Case File (Lab 3) not started."] };
   const snap = buildSnapshot(w11, evidence, m06);
@@ -49,14 +50,17 @@ async function snapshotFor(db: Admin, w11: W11Row) {
 async function view(db: Admin, row: W12Row): Promise<Week12View> {
   const { detectSourceChange } = await import("./source.server");
   const { normalizeContent } = await import("./model");
-  const cur = await currentW11(db, row.owner_user_id);
+  let cur: W11Row | null = null;
+  let sourceLoadError: string | undefined;
+  try { cur = await currentW11(db, row.owner_user_id); }
+  catch (e) { sourceLoadError = e instanceof Error ? e.message : "Could not check your Week 11 source. Try again."; }
   const { data: rev } = await db.from("w12_reviews" as never).select("feedback,scores,created_at").eq("attempt_id", row.id).order("created_at", { ascending: false });
   let change = detectSourceChange({ sourceId: row.source_w11_attempt_id, textRevision: row.source_text_revision, stateRevision: row.source_state_revision }, cur);
   if (!change && row.source_snapshot.sourceStatus === "archived") change = { kind: "archived", detail: "Week 12 is using your most recent archived Week 11 attempt because no active attempt was found." };
   return {
     id: row.id, textRevision: row.text_revision, execOption: row.exec_option, content: normalizeContent(row.content), snapshot: row.source_snapshot,
     snapshotHash: row.source_snapshot_hash, capturedAt: row.source_captured_at, updatedAt: row.updated_at, volunteerStatus: row.volunteer_status,
-    presenterSelected: row.presenter_selected, sourceChange: change, reviews: (rev ?? []) as Week12View["reviews"],
+    presenterSelected: row.presenter_selected, sourceChange: change, ...(sourceLoadError ? { sourceLoadError } : {}), reviews: (rev ?? []) as Week12View["reviews"],
   };
 }
 
@@ -110,20 +114,24 @@ export const saveWeek12Draft = createServerFn({ method: "POST" })
 /** Student-triggered only: replace the frozen source with the current Week 11 case file. Week 12 writing is kept. */
 export const refreshWeek12Source = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ confirm: z.literal("REFRESH") }).parse(d))
-  .handler(async ({ context }) => {
+  .inputValidator((d: unknown) => z.object({ confirm: z.literal("REFRESH"), expectedTextRevision: z.number().int().min(0), expectedSnapshotHash: z.string().min(1).max(128) }).parse(d))
+  .handler(async ({ data, context }) => {
     const db = await admin();
     const row = await loadW12(db, context.userId);
     if (!row) throw new Error("No Week 12 attempt.");
+    assertRefreshVersion(row, data);
     const w11 = await currentW11(db, context.userId);
     if (!w11) throw new Error("No Week 11 attempt found.");
     const { snap, hash } = await snapshotFor(db, w11);
-    const { error } = await db.from("w12_attempts" as never).update({
+    const { data: updated, error } = await db.from("w12_attempts" as never).update({
       source_w11_attempt_id: w11.id, source_snapshot: snap, source_snapshot_hash: hash, source_text_revision: w11.text_revision,
       source_state_revision: w11.state_revision, source_captured_at: new Date().toISOString(),
-    } as never).eq("id", row.id);
+    } as never).eq("id", row.id).eq("text_revision", data.expectedTextRevision).eq("source_snapshot_hash", data.expectedSnapshotHash).select("id");
     if (error) throw new Error("Refresh failed; your Week 12 work is unchanged.");
-    return { view: await view(db, (await loadW12(db, context.userId))!) };
+    if (!updated || !(updated as unknown[]).length) throw new Error("Week 12 changed while refreshing. Source was not refreshed; your writing is kept. Reload and review before trying again.");
+    const refreshed = await loadW12(db, context.userId);
+    if (!refreshed) throw new Error("Could not reopen Week 12 after refresh. Reload to check the saved source; your writing was kept.");
+    return { view: await view(db, refreshed) };
   });
 
 export const setWeek12Volunteer = createServerFn({ method: "POST" })

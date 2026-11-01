@@ -292,5 +292,7 @@ export interface Week12View {
   id: string; textRevision: number; execOption: ExecOption; content: W12Content; snapshot: SourceSnapshot;
   snapshotHash: string; capturedAt: string; updatedAt: string; volunteerStatus: "none" | "volunteered" | "withdrawn"; presenterSelected: boolean;
   sourceChange: null | { kind: "edited" | "reset" | "archived"; detail: string };
+  /** Current-source checks can fail without hiding the already saved Week 12 draft. */
+  sourceLoadError?: string;
   reviews: { feedback: string; scores: Record<string, number>; created_at: string }[];
 }

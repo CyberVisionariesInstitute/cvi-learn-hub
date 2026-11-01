@@ -45,7 +45,6 @@ function Week12Workspace({ store, stage, onStage }: { store: LoadedStore; stage:
           <h1 className="font-display text-2xl">Communications Capstone</h1>
           <p className="mt-1 max-w-prose">Turn your Week 11 Lab 3 Case File into a technical report and one executive communication.</p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            {v.snapshot.sourceComplete ? <Badge tone="allow">Source: Week 11 Case File complete</Badge> : <Badge tone="warn">DRAFT SOURCE</Badge>}
             <SaveStatus store={store} />
           </div>
         </div>
@@ -101,28 +100,41 @@ function SourceBanner({ store }: { store: LoadedStore }) {
   const v = store.view;
   const [confirm, setConfirm] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const showDraft = !v.snapshot.sourceComplete;
-  if (!showDraft && !v.sourceChange) return null;
+  const loadError = error || v.sourceLoadError;
+  const unsafeSave = ["pending", "saving", "failed", "conflict"].includes(store.saveState.kind);
   const doRefresh = async () => {
-    try { await store.refreshSource(); setMsg("Source refreshed from Week 11. Your Week 12 writing was kept — check your evidence references still match."); setConfirm(false); }
-    catch (e) { setMsg((e as Error).message); }
+    setRefreshing(true); setError(null); setMsg(null);
+    try { await store.refreshSource(); setMsg("Source refreshed. Your Week 12 writing was kept; check your references."); setConfirm(false); }
+    catch (e) { setError(e instanceof Error ? e.message : "Could not refresh the source. Try again."); }
+    finally { setRefreshing(false); }
   };
   return (
-    <div className="space-y-2 rounded-xl border border-amber/60 bg-amber/10 p-3 text-sm" role="note">
-      {showDraft ? <>
-        <p><strong>DRAFT SOURCE.</strong> Your Week 11 Case File wasn't finished when Week 12 copied it. You can keep working here — your Week 12 writing is saved. Week 12 can be final-ready only after you finish the Case File in Week 11 Lab 3 and choose "Refresh from Week 11…" below.</p>
-        {v.snapshot.sourceMissing.length ? <details><summary className="cursor-pointer">Still missing in Week 11 ({v.snapshot.sourceMissing.length})</summary><ul className="mt-1 list-disc space-y-0.5 pl-5">{v.snapshot.sourceMissing.map((x) => <li key={x}>{x}</li>)}</ul></details> : null}
-        <p><Link {...WEEK11_CASE_FILE_LINK} className="font-medium text-primary underline">Open Week 11 Lab 3 to finish it</Link> — then come back here.</p>
-      </> : null}
-      {v.sourceChange ? <p><strong>Source changed.</strong> {v.sourceChange.detail}</p> : null}
-      {!confirm ? <Button type="button" className={btn} onClick={() => setConfirm(true)}>Refresh from Week 11…</Button> : (
-        <div className="space-y-2 rounded-md border border-border bg-background p-2">
-          <p>This replaces the Week 11 source shown in Week 12 with your current Week 11 case file. Your Week 12 writing stays, but references to evidence that no longer exists will be flagged.</p>
-          <div className="flex flex-wrap gap-2"><Button type="button" className={btnPrimary} onClick={doRefresh}>Yes, refresh source</Button><Button type="button" className={btn} onClick={() => setConfirm(false)}>Cancel</Button></div>
+    <section aria-label="Week 11 source status" className={`border-y px-2 py-2 text-sm ${showDraft || v.sourceChange || loadError ? "border-amber/60 bg-amber/10" : "border-border"}`}>
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1">
+        <p className="min-w-0"><strong>{showDraft ? "Incomplete Week 11 source" : "Week 11 source complete"}</strong>{v.sourceChange ? ` · ${v.sourceChange.kind === "edited" ? "Newer Week 11 work available" : v.sourceChange.kind === "reset" ? "Different Week 11 attempt available" : "Archived source"}` : ""}{showDraft ? " — finish Lab 3, then refresh." : v.sourceChange ? " — review before refreshing." : " · using your saved copy."}</p>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <Link {...WEEK11_CASE_FILE_LINK} className="text-primary underline">Open Week 11 Lab 3</Link>
+          <Button type="button" className={btn} disabled={refreshing} onClick={() => { setConfirm(true); setMsg(null); }}>Refresh from Week 11…</Button>
         </div>
-      )}
-      {msg ? <p role="status">{msg}</p> : null}
-    </div>
+      </div>
+      {loadError ? <p role="alert" className="mt-1 font-medium">Week 11 source check failed: {loadError} Your saved source and Week 12 writing are kept. Use Refresh from Week 11… to retry explicitly.</p> : null}
+      {showDraft || v.sourceChange ? <details className="mt-1"><summary className="cursor-pointer">Source details{showDraft ? ` · ${v.snapshot.sourceMissing.length} missing item(s)` : ""}</summary>
+        <div className="mt-2 max-w-prose space-y-2">
+          <p>{showDraft ? "You can draft here, but Final QA stays blocked until your Week 11 Case File is complete and you explicitly refresh this copy." : "Week 12 keeps a frozen copy of your Case File; changes in Week 11 do not automatically replace it."} Your writing is kept; its save status is shown separately.</p>
+          {v.sourceChange ? <p>{v.sourceChange.detail}</p> : null}
+          {showDraft && v.snapshot.sourceMissing.length ? <ul className="list-disc space-y-1 pl-5">{v.snapshot.sourceMissing.map(x => <li key={x}>{x}</li>)}</ul> : null}
+        </div>
+      </details> : null}
+      {confirm ? <div className="mt-2 max-w-prose space-y-2 border-t border-border pt-2">
+        <p>Replace only the Week 11 source copy? Your Week 12 writing stays. Empty starting fields may fill from your Case File; check that your evidence references still match.</p>
+        {unsafeSave ? <p role="status">Wait for a confirmed save before refreshing. Resolve any save failure or conflict first.</p> : null}
+        <div className="flex flex-wrap gap-2"><Button type="button" className={btnPrimary} disabled={unsafeSave || refreshing} onClick={() => void doRefresh()}>{refreshing ? "Refreshing source…" : "Yes, refresh source"}</Button><Button type="button" className={btn} disabled={refreshing} onClick={() => setConfirm(false)}>Cancel</Button></div>
+      </div> : null}
+      {msg ? <p role="status" className="mt-1">{msg}</p> : null}
+    </section>
   );
 }
 
