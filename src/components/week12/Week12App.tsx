@@ -22,7 +22,13 @@ export const STAGES = [
   { n: 6, title: "Final QA & portfolio export", doing: "Check the list, fix anything missing, then download your Week 12 files and upload them to your GitHub portfolio.", proves: "All QA checks pass, so your download is not marked DRAFT." },
 ] as const;
 
+type LoadedStore = Week12Store & { view: NonNullable<Week12Store["view"]>; content: W12Content };
 export function Week12App({ store, stage, onStage }: { store: Week12Store; stage: number; onStage: (n: number) => void }) {
+  if (!store.view || !store.content) return null;
+  return <Week12Workspace store={{ ...store, view: store.view, content: store.content }} stage={stage} onStage={onStage} />;
+}
+
+function Week12Workspace({ store, stage, onStage }: { store: LoadedStore; stage: number; onStage: (n: number) => void }) {
   const v = store.view;
   const c = store.content;
   const qa = useMemo(() => v && c ? computeQA(v.snapshot, c, store.execOption) : null, [v, c, store.execOption]);
@@ -58,7 +64,7 @@ export function Week12App({ store, stage, onStage }: { store: Week12Store; stage
       </nav>
       <nav aria-label="Between-stage navigation" className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-border pb-3">
         <div className="flex min-w-0 flex-wrap items-center gap-2"><Button type="button" className={btn} disabled={stage === 1} onClick={() => onStage(stage - 1)}>← Back a stage</Button><span>Stage {stage} of 6</span></div>
-        <Button type="button" className={`${btnPrimary} h-auto whitespace-normal`} disabled={stage === 6} onClick={() => onStage(stage + 1)}>Continue to Stage {stage + 1} →</Button>
+        <Button type="button" className={`${btnPrimary} h-auto whitespace-normal`} disabled={stage === 6} onClick={() => onStage(stage + 1)}>{stage === 6 ? "Final stage" : `Continue to Stage ${stage + 1} →`}</Button>
       </nav>
       <div className="grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <aside className="w12-guidance min-w-0 space-y-4">
@@ -81,7 +87,7 @@ export function Week12App({ store, stage, onStage }: { store: Week12Store; stage
   );
 }
 
-function SaveStatus({ store }: { store: Week12Store }) {
+function SaveStatus({ store }: { store: LoadedStore }) {
   const s = store.saveState;
   return (
     <span role="status" aria-live="polite" className="text-xs text-muted-foreground">
@@ -91,8 +97,8 @@ function SaveStatus({ store }: { store: Week12Store }) {
   );
 }
 
-function SourceBanner({ store }: { store: Week12Store }) {
-  const v = store.view!;
+function SourceBanner({ store }: { store: LoadedStore }) {
+  const v = store.view;
   const [confirm, setConfirm] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const showDraft = !v.snapshot.sourceComplete;
@@ -122,8 +128,8 @@ function SourceBanner({ store }: { store: Week12Store }) {
 
 /* --------------------------------- Stage 1 -------------------------------- */
 
-function SourcePanel({ store }: { store: Week12Store }) {
-  const s = store.view!.snapshot;
+function SourcePanel({ store }: { store: LoadedStore }) {
+  const s = store.view.snapshot;
   return (
     <Card eyebrow="Read-only · from your Week 11 Case File (Lab 3)" title="Your Week 11 source">
       <p className="text-xs text-muted-foreground">Copied from attempt {s.sourceShortId}{s.sourceStatus === "archived" ? " (archived)" : ""}. In your portfolio this is <span className="break-all font-mono">{WEEK11_CASE_FILE_PATH}</span>.</p>
@@ -150,7 +156,7 @@ function SourcePanel({ store }: { store: Week12Store }) {
   );
 }
 
-function FocusedSource({ store, findingKey, section }: { store: Week12Store; findingKey?: string; section?: string }) {
+function FocusedSource({ store, findingKey, section }: { store: LoadedStore; findingKey?: string | undefined; section?: string | undefined }) {
   const s = store.view?.snapshot;
   if (!s) return null;
   const findings = findingKey ? s.findings.filter(f => f.key === findingKey) : s.findings;
@@ -181,7 +187,7 @@ function Pager({ id, noun, index, total, onIndex, labels }: { id: string; noun: 
   return (
     <div id={id} tabIndex={-1} className="flex scroll-mt-4 flex-wrap items-center gap-2 outline-none" role="group" aria-label={`Choose ${noun}`}>
       <Button type="button" className={btn} disabled={index === 0} onClick={() => onIndex(index - 1)}>← Previous {noun}</Button>
-      <select aria-label={`${noun[0]!.toUpperCase()}${noun.slice(1)}`} className="min-h-11 max-w-full rounded-md border border-border bg-background px-2 text-sm" value={index} onChange={(e) => onIndex(Number(e.target.value))}>
+      <select aria-label={`${noun.charAt(0).toUpperCase()}${noun.slice(1)}`} className="min-h-11 max-w-full rounded-md border border-border bg-background px-2 text-sm" value={index} onChange={(e) => onIndex(Number(e.target.value))}>
         {Array.from({ length: total }, (_, i) => <option key={i} value={i}>{labels?.[i] ?? `${noun} ${i + 1}`} ({i + 1} of {total})</option>)}
       </select>
       <Button type="button" className={btn} disabled={index >= total - 1} onClick={() => onIndex(index + 1)}>Next {noun} →</Button>
@@ -190,9 +196,9 @@ function Pager({ id, noun, index, total, onIndex, labels }: { id: string; noun: 
 }
 const clamp = (i: number, n: number) => Math.min(Math.max(i, 0), Math.max(n - 1, 0));
 
-function StageReview({ store }: { store: Week12Store }) {
-  const items = classItems(store.view!.snapshot);
-  const c = store.content!;
+function StageReview({ store }: { store: LoadedStore }) {
+  const items = classItems(store.view.snapshot);
+  const c = store.content;
   const done = items.filter((i) => c.classify[i.id]).length;
   const [idx, setIdx] = useState(() => Math.max(0, items.findIndex((i) => !c.classify[i.id])));
   const [all, setAll] = useState(false);
@@ -225,7 +231,7 @@ function StageReview({ store }: { store: Week12Store }) {
         {items.length === 0 ? <p className="text-sm text-muted-foreground">Nothing to classify yet — write findings in Week 11 Lab 3 with this same account, then come back and choose "Refresh from Week 11…".</p> : (
           <>
             <Pager id="w12-statement-picker" noun="statement" index={cur} total={items.length} onIndex={setIdx} labels={items.map((i, n) => `Statement ${n + 1}${c.classify[i.id] ? " ✓" : ""}`)} />
-            <ul className="mt-2 space-y-2">{all ? items.map(row) : row(items[cur]!)}</ul>
+            <ul className="mt-2 space-y-2">{all ? items.map(row) : items[cur] ? row(items[cur]) : null}</ul>
             <Button type="button" className={`${btn} mt-2 text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one statement at a time" : "Show all statements"}</Button>
           </>
         )}
@@ -255,7 +261,7 @@ function RefsInput({ value, onChange, valid }: { value: string[]; onChange: (v: 
   );
 }
 
-function CoachList({ store, flags }: { store: Week12Store; flags: CoachFlag[] }) {
+function CoachList({ store, flags }: { store: LoadedStore; flags: CoachFlag[] }) {
   if (!flags.length) return null;
   return (
     <A id="w12-coach"><div className="space-y-2 rounded-md border border-amber/60 bg-amber/10 p-2 text-sm" role="note">
@@ -264,7 +270,7 @@ function CoachList({ store, flags }: { store: Week12Store; flags: CoachFlag[] })
       {flags.map((f) => (
         <label key={f.id} className="block">
           <span className="text-xs">{f.reviewed ? "✓" : "◌"} "<strong>{f.term}</strong>" in {f.fieldLabel}</span>
-          <input className={`${input} mt-1`} placeholder="Evidence note (format only): 'Record XYZ-1 shows …'" value={store.content!.acks[f.id] ?? ""}
+          <input className={`${input} mt-1`} placeholder="Evidence note (format only): 'Record XYZ-1 shows …'" value={store.content.acks[f.id] ?? ""}
             onChange={(e) => store.update((p) => ({ ...p, acks: { ...p.acks, [f.id]: e.target.value } }))} />
         </label>
       ))}
@@ -272,9 +278,9 @@ function CoachList({ store, flags }: { store: Week12Store; flags: CoachFlag[] })
   );
 }
 
-function StageFindings({ store }: { store: Week12Store }) {
-  const c = store.content!;
-  const valid = validRefs(store.view!.snapshot);
+function StageFindings({ store }: { store: LoadedStore }) {
+  const c = store.content;
+  const valid = validRefs(store.view.snapshot);
   const flags = coachFlags(c, store.execOption).filter((f) => f.field.startsWith("finding:"));
   const [idx, setIdx] = useState(0);
   const [all, setAll] = useState(false);
@@ -312,7 +318,7 @@ function StageFindings({ store }: { store: Week12Store }) {
       </div></details></A>
       <FocusedSource store={store} findingKey={c.findings[cur]?.sourceFindingKey} />
       {c.findings.length ? <Pager id="w12-finding-picker" noun="finding" index={cur} total={c.findings.length} onIndex={(i) => { setIdx(i); setAll(false); }} labels={c.findings.map((f, n) => `Finding ${n + 1} · ${f.key}`)} /> : <A id="w12-finding-picker"><p className="text-sm text-muted-foreground">No findings yet. Add one below.</p></A>}
-      {all ? c.findings.map(card) : c.findings[cur] ? card(c.findings[cur]!, cur) : null}
+      {all ? c.findings.map(card) : c.findings[cur] ? card(c.findings[cur], cur) : null}
       {c.findings.length > 1 ? <Button type="button" className={`${btn} text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one finding at a time" : "Show all findings"}</Button> : null}
       <div><Button type="button" className={btn} onClick={add} disabled={c.findings.length >= 12}>+ Add another evidence-supported finding</Button>
       <p className="mt-1 text-xs text-muted-foreground">Only add another finding if it is supported by evidence already captured in your Week 11 Case File. Week 12 is not a new investigation.</p></div>
@@ -338,10 +344,10 @@ const REPORT_STEPS: { n: string; title: string; keys?: ReportKey[]; auto?: "find
 ];
 const REPORT_FIELD_LABELS: Partial<Record<ReportKey, string>> = { title: "Report title", analyst: "Analyst (your name)" };
 
-function StageReport({ store }: { store: Week12Store }) {
-  const r = store.content!.report;
+function StageReport({ store }: { store: LoadedStore }) {
+  const r = store.content.report;
   const set = (k: ReportKey) => (x: string) => store.update((p) => ({ ...p, report: { ...p.report, [k]: x } }));
-  const flags = coachFlags(store.content!, store.execOption).filter((f) => f.field.startsWith("report:"));
+  const flags = coachFlags(store.content, store.execOption).filter((f) => f.field.startsWith("report:"));
   const [idx, setIdx] = useState(0);
   const [all, setAll] = useState(false);
   useEffect(() => {
@@ -349,7 +355,7 @@ function StageReport({ store }: { store: Week12Store }) {
     window.addEventListener("w12:select-section", on);
     return () => window.removeEventListener("w12:select-section", on);
   }, []);
-  const filled = (s: (typeof REPORT_STEPS)[number]) => s.auto === "findings" ? store.content!.findings.length > 0 : s.auto === "recs" ? store.content!.recommendations.length > 0 : (s.keys ?? []).every((k) => r[k].trim().length >= (k === "title" ? 5 : k === "analyst" ? 1 : 20));
+  const filled = (s: (typeof REPORT_STEPS)[number]) => s.auto === "findings" ? store.content.findings.length > 0 : s.auto === "recs" ? store.content.recommendations.length > 0 : (s.keys ?? []).every((k) => r[k].trim().length >= (k === "title" ? 5 : k === "analyst" ? 1 : 20));
   const section = (s: (typeof REPORT_STEPS)[number], i: number) => (
     <Card key={s.n} eyebrow={s.n === "Header" ? `Section ${i + 1} of ${REPORT_STEPS.length}` : `Section ${i + 1} of ${REPORT_STEPS.length} · Report section ${s.n}`} title={s.title}>
       <p className="text-sm"><strong>What belongs here?</strong> {s.belongs}</p>
@@ -357,7 +363,7 @@ function StageReport({ store }: { store: Week12Store }) {
       {s.starter ? <p className="mt-1 text-xs text-muted-foreground"><strong>Sentence starter:</strong> "{s.starter}"</p> : null}
       {s.auto ? (
         <div className="mt-2 rounded-md border border-border p-2 text-sm">
-          {s.auto === "findings" ? <>Pulled in from Stage 2 ({store.content!.findings.length} written).</> : <>Built in Stage 5 ({store.content!.recommendations.length} written). Write recommendations in Stage 5, not in other report sections.</>}
+          {s.auto === "findings" ? <>Pulled in from Stage 2 ({store.content.findings.length} written).</> : <>Built in Stage 5 ({store.content.recommendations.length} written). Write recommendations in Stage 5, not in other report sections.</>}
           <p className="mt-1 text-xs text-muted-foreground">You do not need to copy and paste these sections. Findings from Stage 2 and recommendations from Stage 5 are inserted automatically into your exported Technical Incident Report.</p>
         </div>
       ) : s.n === "Header" ? (
@@ -373,7 +379,7 @@ function StageReport({ store }: { store: Week12Store }) {
     <div className="space-y-4">
       <FocusedSource store={store} section={REPORT_STEPS[cur]?.title} />
       <Pager id="w12-report-picker" noun="section" index={cur} total={REPORT_STEPS.length} onIndex={(i) => { setIdx(i); setAll(false); }} labels={REPORT_STEPS.map((s) => `${s.n === "Header" ? "Header" : `${s.n}.`} ${s.title}${filled(s) ? " ✓" : ""}`)} />
-      <A id="w12-report-section">{all ? <div className="space-y-4">{REPORT_STEPS.map(section)}</div> : section(REPORT_STEPS[cur]!, cur)}</A>
+      <A id="w12-report-section">{all ? <div className="space-y-4">{REPORT_STEPS.map(section)}</div> : REPORT_STEPS[cur] ? section(REPORT_STEPS[cur], cur) : null}</A>
       <div className="flex flex-wrap gap-2">
         <Button type="button" className={`${btn} text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one section at a time" : "Show all sections"}</Button>
       </div>
@@ -396,8 +402,8 @@ function useTaskPosition(anchors: string[]) {
   return [index, setIndex] as const;
 }
 
-function StageExec({ store }: { store: Week12Store }) {
-  const c = store.content!;
+function StageExec({ store }: { store: LoadedStore }) {
+  const c = store.content;
   const opt = store.execOption;
   const w = c.written, vid = c.video;
   const setW = (k: keyof typeof w) => (x: string) => store.update((p) => ({ ...p, written: { ...p.written, [k]: x } }));
@@ -413,6 +419,7 @@ function StageExec({ store }: { store: Week12Store }) {
   return (
     <div className="space-y-4">
       <p className="rounded-md border border-border p-2 text-sm">Your Technical Incident Report (Stage 3) is required for everyone. In this stage you add ONE executive communication on top of it.</p>
+      <details><summary className="cursor-pointer font-medium">Your findings and recommendations · reference only</summary><div className="mt-2 space-y-2">{c.findings.map(f => <p key={f.key}><strong>{f.key}:</strong> {f.statement}</p>)}{c.recommendations.map(r => <p key={r.key}><strong>{r.key}:</strong> {r.action}</p>)}</div></details>
       <A id="w12-exec-choice"><fieldset className="grid gap-3 sm:grid-cols-2">
         <legend className="mb-2 text-sm font-medium">Choose one executive communication — both are equally weighted</legend>
         {([["written", "A. Written Executive Summary", "About 250–400 words in total across the five boxes."], ["video", "B. Video Executive Briefing", "About 2–3 minutes. Paste a link (no uploads), plus a short outline and reflection."]] as const).map(([val, t, d]) => (
@@ -466,8 +473,8 @@ function StageExec({ store }: { store: Week12Store }) {
 
 /* --------------------------------- Stage 5 -------------------------------- */
 
-function StageRecs({ store }: { store: Week12Store }) {
-  const c = store.content!;
+function StageRecs({ store }: { store: LoadedStore }) {
+  const c = store.content;
   const keys = c.findings.map((f) => f.key);
   const [idx, setIdx] = useState(0);
   const [all, setAll] = useState(false);
@@ -511,7 +518,7 @@ function StageRecs({ store }: { store: Week12Store }) {
       </div></details></A>
       <details><summary className="cursor-pointer font-medium">Your Stage 2 findings · reference only</summary><ul className="mt-2 space-y-2">{c.findings.map(f => <li key={f.key}><strong>{f.key}:</strong> {f.statement}</li>)}</ul></details>
       {c.recommendations.length ? <Pager id="w12-rec-picker" noun="recommendation" index={cur} total={c.recommendations.length} onIndex={(i) => { setIdx(i); setAll(false); }} labels={c.recommendations.map((r, n) => `Recommendation ${n + 1} · ${r.key}${recommendationIssues(r, keys).length ? "" : " ✓"}`)} /> : <A id="w12-rec-picker"><p className="text-sm text-muted-foreground">No recommendations yet. Choose "+ Add recommendation".</p></A>}
-      {all ? c.recommendations.map(card) : c.recommendations[cur] ? card(c.recommendations[cur]!, cur) : null}
+      {all ? c.recommendations.map(card) : c.recommendations[cur] ? card(c.recommendations[cur], cur) : null}
       {c.recommendations.length > 1 ? <Button type="button" className={`${btn} text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one recommendation at a time" : "Show all recommendations"}</Button> : null}
       <div><Button type="button" className={btn} onClick={add} disabled={c.recommendations.length >= 12}>+ Add recommendation</Button></div>
     </div>
@@ -520,8 +527,8 @@ function StageRecs({ store }: { store: Week12Store }) {
 
 /* --------------------------------- Stage 6 -------------------------------- */
 
-function StageQA({ store, qa, onStage }: { store: Week12Store; qa: ReturnType<typeof computeQA>; onStage: (n: number) => void }) {
-  const v = store.view!;
+function StageQA({ store, qa, onStage }: { store: LoadedStore; qa: ReturnType<typeof computeQA>; onStage: (n: number) => void }) {
+  const v = store.view;
   const [busy, setBusy] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [downloaded, setDownloaded] = useState<string | null>(null);
@@ -556,7 +563,7 @@ function StageQA({ store, qa, onStage }: { store: Week12Store; qa: ReturnType<ty
 
       <A className={task === 1 ? "" : "hidden"} id="w12-status"><Card title="Where is my work?" eyebrow="Five different things">
         <ul className="space-y-1 text-sm">
-          <li>{saved ? "✓" : "◌"} <strong>Autosaved</strong> — your writing is stored in your account on this site.</li>
+          <li>{saved ? "✓" : "◌"} <strong>{saved ? "Autosaved" : "Not yet saved"}</strong> — {saved ? "your writing is stored in your account on this site." : "wait for confirmation or resolve the save message above."}</li>
           <li>{qa.ready ? "✓" : "◌"} <strong>Final-ready</strong> — every Final QA item passes.</li>
           <li>{downloaded ? "✓" : "◌"} <strong>Downloaded</strong> — you have the ZIP on your computer{downloaded ? ` (${downloaded}, this visit)` : ""}.</li>
           <li>◌ <strong>Uploaded</strong> — the week-12 folder is in your GitHub repository. Only you can confirm this.</li>
