@@ -4,6 +4,7 @@ import { AUDIT_FIELDS, historicalAudit, historicalAuditTsv, historicalContext, h
 import type { Week11Store } from "@/lib/week11/useWeek11";
 import { Badge, btn, btnPrimary, Card, input, TableWrap, TextArea } from "./ui";
 import { summarizeSnapshot } from "@/lib/week11/snapshot-summary";
+import { COMPACT_FIELDS, RECORD_FIELDS_LABEL, RECORD_FIELDS_SHOWN, recordFieldsCue } from "@/lib/week11/field-cue";
 import { CaseFileBuilder } from "./CaseFileBuilder";
 
 type Row = Record<string, string> & { __source: string };
@@ -19,7 +20,8 @@ export function LogsView({ store, kind, guided = false }: { store: Week11Store; 
   const opener = useRef<HTMLElement | null>(null);
   const fields = kind === "signin" ? SIGNIN_FIELDS : AUDIT_FIELDS;
   const [allFields, setAllFields] = useState(false);
-  const visibleFields = guided && !allFields ? (kind === "signin" ? ["event_id", "user", "outcome", "reason", "correlation_id"] : ["event_id", "activity", "target", "result", "correlation_id"]) : fields;
+  const visibleFields = guided && !allFields ? COMPACT_FIELDS[kind] : fields;
+  const fieldCue = recordFieldsCue(kind);
   const rows: Row[] = useMemo(() => {
     const hist = (kind === "signin" ? historicalSignins : historicalAudit).map((r) => ({ ...r, __source: "HISTORICAL" }) as Row);
     const live = kind === "signin"
@@ -75,7 +77,8 @@ export function LogsView({ store, kind, guided = false }: { store: Week11Store; 
           <label><span className="mb-1 block text-xs text-muted-foreground">Correlation ID</span><input className={input} value={corr} onChange={(e) => { setCorr(e.target.value.trim()); setPage(0); }} /></label>
           <label><span className="mb-1 block text-xs text-muted-foreground">{kind === "signin" ? "Outcome" : "Result"}</span><select className={input} value={result} onChange={(e) => { setResult(e.target.value); setPage(0); }}><option value="">any</option>{(kind === "signin" ? ["success", "failure"] : ["success", "refused", "accepted"]).map((o) => <option key={o} value={o}>{o}</option>)}</select></label>
           </div><p className="mt-2 text-base">Outcome is a sign-in result; audit result is whether an action was accepted. A correlation ID links records, but does not prove cause. Open a raw record for time, actor, device and before/after values.</p></details>
-          <Button type="button" variant="outline" className="min-h-11" aria-pressed={allFields} onClick={() => setAllFields(!allFields)}>{allFields ? "Show essential fields" : "Show all record fields"}</Button>
+          {allFields ? <p className="max-w-prose text-base">{RECORD_FIELDS_SHOWN}</p> : <p className="max-w-prose text-base"><strong>{fieldCue.lead}</strong> Select <strong>{fieldCue.label}</strong>{fieldCue.detail}</p>}
+          <Button type="button" variant="outline" className="min-h-11" aria-pressed={allFields} onClick={() => setAllFields(!allFields)}>{allFields ? RECORD_FIELDS_LABEL.close : RECORD_FIELDS_LABEL.open}</Button>
         </div> : (
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
           <label><span className="mb-1 block text-xs text-muted-foreground">Search (literal, any field)</span><input className={input} value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} /></label>
