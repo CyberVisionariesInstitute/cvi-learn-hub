@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { missions, type MissionId } from "@/lib/week11/seed";
 import type { Week11Store } from "@/lib/week11/useWeek11";
@@ -58,7 +59,7 @@ export function DownloadsView({ store, afterZip }: { store: Week11Store; afterZi
             );
           })}
         </ul>
-        <p className="mt-3 text-xs text-muted-foreground">Lab 06 is the IAM Investigation Case File (Portfolio Deliverable 4) — a technical case file. Week 12 uses it as source material for the professional report and presentation.</p>
+        <p className="mt-3 text-xs text-muted-foreground">Lab 06 is the IAM Investigation Case File (Portfolio Deliverable 4) — a technical case file. Week 12 uses it as source material for the professional report and presentation. Downloading is not submitting: upload to GitHub and complete your course submission. When ready, <Link to="/cyberfoundations/week-12" className="font-medium text-primary underline">continue to Week 12</Link> with this same account.</p>
       </Card>
 
       <Card title="How to add your Week 11 work to your GitHub portfolio">

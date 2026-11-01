@@ -108,7 +108,6 @@ export function fillEmptyFromSource(c: W12Content, s: SourceSnapshot): W12Conten
 
 /** Where students fix their Week 11 Case File: guided Lab 3 (classic Lab 06). */
 export const WEEK11_CASE_FILE_LINK = { to: "/cyberfoundations/week-11", search: { lab: 3 } } as const;
-export const WEEK11_CASE_FILE_NAME = "Week 11 Case File (Lab 3 · Explain What You Found)";
 
 /* --------------------------- Classification items -------------------------- */
 
