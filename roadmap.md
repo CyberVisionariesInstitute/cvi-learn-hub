@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Week 11 Lab 3 timestamp cue: visible "Show all record fields" prompt beside the record-table control and at the Case File comparison/correlation substeps; 7 cue tests + 147 Week 10–12 regressions, 13 synthetic browser checks (1440/1366/820/390, enlarged text, keyboard, classic); practice route removed; preview only
+
+
 - [x] Week 11 final guided presentation pass: focused tickets/accounts, single-subtask historical review, top navigation; 59 fictional browser checks including local save/resume, 147 Week 10–12 regressions; practice harness removed; preview only
 
 - [x] Week 11 horizontal layout correction: 1440px split workspace, compact header/introductions, 67 synthetic browser checks + enlarged-text reflow checks, 147 Week 10–12 regressions; preserve 18 steps / 7 evidence and Week 12; preview only
