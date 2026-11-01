@@ -22,3 +22,6 @@
 - Week 11 guided layout uses a responsive guidance/activity grid, top step navigation, and opt-in focused shared views; historical-review subtask position is attempt-local browser state, never learner data — why: prioritize the current task while preserving classic mode and learner contracts.
 - Week 11 record-field cue wording and the compact log-table column list live together in `src/lib/week11/field-cue.ts`, imported by both the log table and the guided guidance column — why: beginner prompts must keep naming a control and fields that actually exist, and stay presentation-only.
 - Week 12 ↔ Week 11 links use `?lab=3` for navigation only, and source refresh may fill only empty Week 12 fields via `fillEmptyFromSource` — why: students reach the right lab without risking their Week 12 writing.
+
+- Week 12 uses a scoped wide guidance/activity layout with navigation-only focused executive/final-action pagers and adjacent read-only source disclosures; approved artwork is compact — why: reduce cognitive load without changing learner payloads or QA.
+- Week 12 browser saves are serialized and refresh/download require confirmed saves; save status cannot show saved while newer edits remain — why: prevent stale exports and source refresh during failed or conflicting writes.

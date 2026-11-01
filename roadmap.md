@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Week 12 wide guided visual pass and Week 11 integration follow-through: before/after fictional six-stage inspection, 53 browser checks (1366/1440/820/390 + enlarged text, keyboard, local drafts/refresh, simulated downloads), 163 regression tests; serialized confirmed saves protect refresh/download; harness removed; preview only. Authenticated saves/import and screen reader not tested.
 
 - [x] Week 11 Lab 3 timestamp cue: visible "Show all record fields" prompt beside the record-table control and at the Case File comparison/correlation substeps; 7 cue tests + 147 Week 10–12 regressions, 13 synthetic browser checks (1440/1366/820/390, enlarged text, keyboard, classic); practice route removed; preview only
 

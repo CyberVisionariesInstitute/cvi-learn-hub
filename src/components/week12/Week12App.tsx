@@ -1,4 +1,5 @@
 import type React from "react";
+import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useId, useMemo, useState } from "react";
 import { Badge, btn, btnPrimary, Card, input, Select, TextArea } from "@/components/week11/ui";
@@ -10,7 +11,7 @@ import type { Week12Store } from "@/lib/week12/useWeek12";
 import { Week12Visual } from "./Week12Visual";
 import { useGuidePrefs, Week12Guide, Week12Resume } from "./Week12Guide";
 
-const A = ({ id, children, className = "" }: { id: string; children: React.ReactNode; className?: string }) => <div id={id} tabIndex={-1} className={`scroll-mt-64 outline-none ${className}`}>{children}</div>;
+const A = ({ id, children, className = "" }: { id: string; children: React.ReactNode; className?: string }) => <div id={id} tabIndex={-1} className={`scroll-mt-4 outline-none ${className}`}>{children}</div>;
 
 export const STAGES = [
   { n: 1, title: "Review your case file", doing: "Read your own Week 11 Case File (from Lab 3) and sort each statement: is it a fact, evidence, a finding, an interpretation, an unknown, or a recommendation?", proves: "Every source statement has a label. There are no right-answer marks — this is to sharpen your thinking." },
@@ -21,87 +22,83 @@ export const STAGES = [
   { n: 6, title: "Final QA & portfolio export", doing: "Check the list, fix anything missing, then download your Week 12 files and upload them to your GitHub portfolio.", proves: "All QA checks pass, so your download is not marked DRAFT." },
 ] as const;
 
+type LoadedStore = Week12Store & { view: NonNullable<Week12Store["view"]>; content: W12Content };
 export function Week12App({ store, stage, onStage }: { store: Week12Store; stage: number; onStage: (n: number) => void }) {
-  const v = store.view!;
-  const c = store.content!;
-  const qa = useMemo(() => computeQA(v.snapshot, c, store.execOption), [v.snapshot, c, store.execOption]);
-  const st = STAGES[stage - 1]!;
-  const stageChecks = qa.checks.filter((x) => x.stage === stage);
-  const guide = useGuidePrefs(v.id);
+  if (!store.view || !store.content) return null;
+  return <Week12Workspace store={{ ...store, view: store.view, content: store.content }} stage={stage} onStage={onStage} />;
+}
+
+function Week12Workspace({ store, stage, onStage }: { store: LoadedStore; stage: number; onStage: (n: number) => void }) {
+  const v = store.view;
+  const c = store.content;
+  const qa = useMemo(() => v && c ? computeQA(v.snapshot, c, store.execOption) : null, [v, c, store.execOption]);
+  const guide = useGuidePrefs(v?.id ?? "");
   useEffect(() => { window.scrollTo({ top: 0 }); }, [stage]);
-
+  const st = STAGES[stage - 1];
+  if (!v || !c || !qa || !st) return null;
+  const stageChecks = qa.checks.filter((x) => x.stage === stage);
   return (
-    <div className="mx-auto max-w-6xl space-y-4 px-3 py-5 sm:px-6">
-      <A id="w12-top"><Card eyebrow="CyberFoundations · Week 12 · Final capstone" title="Communications Capstone — Portfolio Deliverable 5">
-        <p className="text-sm">You already did the investigation in Week 11. This week you <strong>communicate</strong> it: a Technical Incident Report plus one executive communication (written or video). Don't add new incident facts — work from your own case file.</p>
-        <p className="mt-2 text-sm"><strong>Your starting point:</strong> the Case File you built in Week 11 Lab 3 (Explain What You Found), with the same signed-in account. Week 12 uses a saved copy of it. <Link {...WEEK11_CASE_FILE_LINK} className="font-medium text-primary underline">Open Week 11 Lab 3</Link></p>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-          {v.snapshot.sourceComplete ? <Badge tone="allow">Source: Week 11 Case File complete</Badge> : <Badge tone="warn">DRAFT SOURCE</Badge>}
-          <Badge tone="info">Week 11 attempt {v.snapshot.sourceShortId}</Badge>
-          <SaveStatus store={store} />
+    <div className="w12-guided mx-auto max-w-[1440px] space-y-4 px-3 py-4 sm:px-6">
+      <A id="w12-top"><header className="grid min-w-0 gap-3 border-b border-border pb-3 xl:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-primary">CyberFoundations · Week 12 · Portfolio Deliverable 5</p>
+          <h1 className="font-display text-2xl">Communications Capstone</h1>
+          <p className="mt-1 max-w-prose">Turn your Week 11 Lab 3 Case File into a technical report and one executive communication.</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {v.snapshot.sourceComplete ? <Badge tone="allow">Source: Week 11 Case File complete</Badge> : <Badge tone="warn">DRAFT SOURCE</Badge>}
+            <SaveStatus store={store} />
+          </div>
         </div>
-        <Week12Visual stage="hero" />
-      </Card></A>
-
+        <details className="w12-intro min-w-0 xl:w-56"><summary className="cursor-pointer text-primary">Broadcast Tower · Ivy</summary><Week12Visual stage="hero" /></details>
+      </header></A>
       <SourceBanner store={store} />
-
       <Week12Resume stage={stage} guide={guide} onStage={onStage} execOption={store.execOption} />
-
-      <nav aria-label="Week 12 stages" className="overflow-x-hidden">
-        <ol className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+      <nav aria-label="Week 12 stages">
+        <ol className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
           {STAGES.map((s) => {
             const checks = qa.checks.filter((x) => x.stage === s.n);
             const done = checks.length > 0 && checks.every((x) => x.ok);
-            return (
-              <li key={s.n} className="min-w-0">
-                <button type="button" aria-current={s.n === stage ? "step" : undefined} onClick={() => onStage(s.n)}
-                  className={`${btn} w-full min-w-0 text-left text-xs ${s.n === stage ? "border-primary bg-primary/20" : ""}`}>
-                  <span className="block font-mono text-[0.7rem] text-muted-foreground">Stage {s.n}{done ? " ✓" : ""}</span>
-                  <span className="block truncate">{s.title}</span>
-                </button>
-              </li>
-            );
+            return <li key={s.n} className="min-w-0"><Button type="button" variant="outline" aria-current={s.n === stage ? "step" : undefined} onClick={() => onStage(s.n)} className={`${btn} h-auto w-full min-w-0 whitespace-normal text-left ${s.n === stage ? "border-primary bg-primary/20" : ""}`}><span className="block">{s.n}. {s.title}{done ? " ✓" : ""}</span></Button></li>;
           })}
         </ol>
       </nav>
-
-      <Week12Visual stage={st.n} />
-
-      <div className="rounded-xl border border-border bg-surface p-3 text-sm">
-        <p><strong>Stage {st.n}: {st.title}.</strong> {st.doing}</p>
-        <p className="mt-1 text-xs text-muted-foreground"><strong>What proves success?</strong> {st.proves}</p>
-        {stageChecks.length ? <ul className="mt-1 space-y-0.5 text-xs">{stageChecks.map((x) => <li key={x.id}>{x.ok ? "✓" : "◌"} {x.label}</li>)}</ul> : null}
-      </div>
-
-      <Week12Guide stage={st.n} title={st.title} execOption={store.execOption} guide={guide} onStage={onStage} stageReady={stageChecks.length > 0 && stageChecks.every((x) => x.ok)} />
-
-      {stage === 1 ? <StageReview store={store} /> : null}
-      {stage === 2 ? <StageFindings store={store} /> : null}
-      {stage === 3 ? <StageReport store={store} /> : null}
-      {stage === 4 ? <StageExec store={store} /> : null}
-      {stage === 5 ? <StageRecs store={store} /> : null}
-      {stage === 6 ? <StageQA store={store} qa={qa} onStage={onStage} /> : null}
-
-      <div className="flex flex-wrap justify-between gap-2">
-        <button type="button" className={btn} disabled={stage === 1} onClick={() => onStage(stage - 1)}>← Previous stage</button>
-        {stage < 6 ? <button type="button" className={btnPrimary} onClick={() => onStage(stage + 1)}>Next: {STAGES[stage]!.title} →</button> : null}
+      <nav aria-label="Between-stage navigation" className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-border pb-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-2"><Button type="button" className={btn} disabled={stage === 1} onClick={() => onStage(stage - 1)}>← Back a stage</Button><span>Stage {stage} of 6</span></div>
+        <Button type="button" className={`${btnPrimary} h-auto whitespace-normal`} disabled={stage === 6} onClick={() => onStage(stage + 1)}>{stage === 6 ? "Final stage" : `Continue to Stage ${stage + 1} →`}</Button>
+      </nav>
+      <div className="grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+        <aside className="w12-guidance min-w-0 space-y-4">
+          <div><h2 className="font-display text-xl">{st.title}</h2><p className="mt-2 max-w-prose">{st.doing}</p><details className="mt-2"><summary className="cursor-pointer">Stage success checks</summary><p className="mt-2">{st.proves}</p>{stageChecks.length ? <ul className="mt-2 space-y-1">{stageChecks.map((x) => <li key={x.id}>{x.ok ? "✓" : "◌"} {x.label}</li>)}</ul> : null}</details></div>
+          <Week12Guide stage={st.n} title={st.title} execOption={store.execOption} guide={guide} onStage={onStage} stageReady={stageChecks.length > 0 && stageChecks.every((x) => x.ok)} />
+          <div className="w12-stage-art"><Week12Visual stage={st.n} /></div>
+          <p><Link {...WEEK11_CASE_FILE_LINK} className="text-primary underline">Open Week 11 Lab 3</Link> · same account, saved Case File. Week 12 never changes Week 11.</p>
+        </aside>
+        <main className="w12-activity min-w-0" aria-label={`Stage ${stage} activity`}>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2"><p className="font-medium">Your current work</p><SaveStatus store={store} /></div>
+          {stage === 1 ? <StageReview store={store} /> : null}
+          {stage === 2 ? <StageFindings store={store} /> : null}
+          {stage === 3 ? <StageReport store={store} /> : null}
+          {stage === 4 ? <StageExec store={store} /> : null}
+          {stage === 5 ? <StageRecs store={store} /> : null}
+          {stage === 6 ? <StageQA store={store} qa={qa} onStage={onStage} /> : null}
+        </main>
       </div>
     </div>
   );
 }
 
-function SaveStatus({ store }: { store: Week12Store }) {
+function SaveStatus({ store }: { store: LoadedStore }) {
   const s = store.saveState;
   return (
     <span role="status" aria-live="polite" className="text-xs text-muted-foreground">
-      {s.kind === "pending" ? "Saving…" : s.kind === "saving" ? "Saving…" : s.kind === "saved" ? `Saved ${s.at}` : s.kind === "failed" ? `Not saved: ${s.message}` : s.kind === "conflict"
-        ? <>Changed in another tab. <button type="button" className="underline" onClick={() => void store.reloadAfterConflict()}>Save my version</button></> : "Autosaves as you type"}
+      {s.kind === "pending" ? "Waiting to save…" : s.kind === "saving" ? "Saving…" : s.kind === "saved" ? `Saved ${s.at}` : s.kind === "failed" ? `Not saved: ${s.message}` : s.kind === "conflict"
+        ? <>Changed in another tab. <Button type="button" className="underline" onClick={() => void store.reloadAfterConflict()}>Save my version</Button></> : "Autosaves as you type"}
     </span>
   );
 }
 
-function SourceBanner({ store }: { store: Week12Store }) {
-  const v = store.view!;
+function SourceBanner({ store }: { store: LoadedStore }) {
+  const v = store.view;
   const [confirm, setConfirm] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const showDraft = !v.snapshot.sourceComplete;
@@ -118,10 +115,10 @@ function SourceBanner({ store }: { store: Week12Store }) {
         <p><Link {...WEEK11_CASE_FILE_LINK} className="font-medium text-primary underline">Open Week 11 Lab 3 to finish it</Link> — then come back here.</p>
       </> : null}
       {v.sourceChange ? <p><strong>Source changed.</strong> {v.sourceChange.detail}</p> : null}
-      {!confirm ? <button type="button" className={btn} onClick={() => setConfirm(true)}>Refresh from Week 11…</button> : (
+      {!confirm ? <Button type="button" className={btn} onClick={() => setConfirm(true)}>Refresh from Week 11…</Button> : (
         <div className="space-y-2 rounded-md border border-border bg-background p-2">
           <p>This replaces the Week 11 source shown in Week 12 with your current Week 11 case file. Your Week 12 writing stays, but references to evidence that no longer exists will be flagged.</p>
-          <div className="flex flex-wrap gap-2"><button type="button" className={btnPrimary} onClick={doRefresh}>Yes, refresh source</button><button type="button" className={btn} onClick={() => setConfirm(false)}>Cancel</button></div>
+          <div className="flex flex-wrap gap-2"><Button type="button" className={btnPrimary} onClick={doRefresh}>Yes, refresh source</Button><Button type="button" className={btn} onClick={() => setConfirm(false)}>Cancel</Button></div>
         </div>
       )}
       {msg ? <p role="status">{msg}</p> : null}
@@ -131,8 +128,8 @@ function SourceBanner({ store }: { store: Week12Store }) {
 
 /* --------------------------------- Stage 1 -------------------------------- */
 
-function SourcePanel({ store }: { store: Week12Store }) {
-  const s = store.view!.snapshot;
+function SourcePanel({ store }: { store: LoadedStore }) {
+  const s = store.view.snapshot;
   return (
     <Card eyebrow="Read-only · from your Week 11 Case File (Lab 3)" title="Your Week 11 source">
       <p className="text-xs text-muted-foreground">Copied from attempt {s.sourceShortId}{s.sourceStatus === "archived" ? " (archived)" : ""}. In your portfolio this is <span className="break-all font-mono">{WEEK11_CASE_FILE_PATH}</span>.</p>
@@ -159,6 +156,22 @@ function SourcePanel({ store }: { store: Week12Store }) {
   );
 }
 
+function FocusedSource({ store, findingKey, section }: { store: LoadedStore; findingKey?: string | undefined; section?: string | undefined }) {
+  const s = store.view?.snapshot;
+  if (!s) return null;
+  const findings = findingKey ? s.findings.filter(f => f.key === findingKey) : s.findings;
+  return <details className="border-b border-border pb-3"><summary className="cursor-pointer font-medium">Week 11 source for this task · read-only</summary>
+    <div className="mt-3 max-w-prose space-y-3" aria-label="Read-only Week 11 source">
+      <p>Saved Case File from Lab 3 · attempt {s.sourceShortId}. These are source notes, not the writing boxes below.</p>
+      {section ? <p><strong>Current report task:</strong> {section}. Use only the source details relevant to it.</p> : null}
+      {findings.map(f => <details key={f.key} open={Boolean(findingKey)}><summary className="cursor-pointer">{f.key} · {f.title}</summary><p className="mt-2"><strong>Observation:</strong> {f.observation}</p><p><strong>Conclusion:</strong> {f.conclusion}</p><p><strong>Uncertainty:</strong> {f.uncertainty}</p><p className="break-words font-mono">Historical scenario IDs: {f.refs.join(', ') || 'None cited'}</p></details>)}
+      {section?.includes('Limitations') ? <p><strong>Week 11 limitations:</strong> {s.report.limitations || 'Not written yet.'}</p> : null}
+      <details><summary className="cursor-pointer">Saved evidence IDs and captions</summary><ul className="mt-2 space-y-2">{s.evidence.map(e => <li key={e.key} className="break-words"><strong className="font-mono">{e.key}</strong> · {e.slot} · {e.title}<p>{s.captions[e.key] || 'No caption saved.'}</p></li>)}</ul><p className="mt-2">The source copy contains evidence IDs and captions, not raw log records. <Link {...WEEK11_CASE_FILE_LINK} className="text-primary underline">Inspect exact records in Week 11 Lab 3</Link>. Select <strong>Show all record fields</strong> there to compare UTC timestamps and other details; scenario dates are fictional. Nearby times alone do not prove a connection.</p></details>
+      <details><summary className="cursor-pointer">Your simulated activity · separate from historical records</summary><p className="mt-2 whitespace-pre-wrap break-words">{s.report.liveChain || 'No live activity chain saved.'}</p><p>LA-/AT- IDs describe your own simulated actions and results. Historical scenario records are separate.</p></details>
+    </div>
+  </details>;
+}
+
 const LABEL_HELP: Record<ClassLabel, string> = {
   fact: "Directly recorded in a log or the directory — no judgement added.",
   evidence: "A specific record ID you can point to (an EV-… key or an event ID from your source).",
@@ -172,20 +185,20 @@ const LABEL_HELP: Record<ClassLabel, string> = {
 function Pager({ id, noun, index, total, onIndex, labels }: { id: string; noun: string; index: number; total: number; onIndex: (i: number) => void; labels?: string[] }) {
   if (total === 0) return null;
   return (
-    <div id={id} tabIndex={-1} className="flex scroll-mt-64 flex-wrap items-center gap-2 outline-none" role="group" aria-label={`Choose ${noun}`}>
-      <button type="button" className={btn} disabled={index === 0} onClick={() => onIndex(index - 1)}>← Previous {noun}</button>
-      <select aria-label={`${noun[0]!.toUpperCase()}${noun.slice(1)}`} className="min-h-11 max-w-full rounded-md border border-border bg-background px-2 text-sm" value={index} onChange={(e) => onIndex(Number(e.target.value))}>
+    <div id={id} tabIndex={-1} className="flex scroll-mt-4 flex-wrap items-center gap-2 outline-none" role="group" aria-label={`Choose ${noun}`}>
+      <Button type="button" className={btn} disabled={index === 0} onClick={() => onIndex(index - 1)}>← Previous {noun}</Button>
+      <select aria-label={`${noun.charAt(0).toUpperCase()}${noun.slice(1)}`} className="min-h-11 max-w-full rounded-md border border-border bg-background px-2 text-sm" value={index} onChange={(e) => onIndex(Number(e.target.value))}>
         {Array.from({ length: total }, (_, i) => <option key={i} value={i}>{labels?.[i] ?? `${noun} ${i + 1}`} ({i + 1} of {total})</option>)}
       </select>
-      <button type="button" className={btn} disabled={index >= total - 1} onClick={() => onIndex(index + 1)}>Next {noun} →</button>
+      <Button type="button" className={btn} disabled={index >= total - 1} onClick={() => onIndex(index + 1)}>Next {noun} →</Button>
     </div>
   );
 }
 const clamp = (i: number, n: number) => Math.min(Math.max(i, 0), Math.max(n - 1, 0));
 
-function StageReview({ store }: { store: Week12Store }) {
-  const items = classItems(store.view!.snapshot);
-  const c = store.content!;
+function StageReview({ store }: { store: LoadedStore }) {
+  const items = classItems(store.view.snapshot);
+  const c = store.content;
   const done = items.filter((i) => c.classify[i.id]).length;
   const [idx, setIdx] = useState(() => Math.max(0, items.findIndex((i) => !c.classify[i.id])));
   const [all, setAll] = useState(false);
@@ -199,8 +212,8 @@ function StageReview({ store }: { store: Week12Store }) {
     </li>
   );
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <A id="w12-source"><SourcePanel store={store} /></A>
+    <div className="space-y-4">
+      <A id="w12-source"><details><summary className="cursor-pointer font-medium">Inspect your Week 11 source · read-only</summary><SourcePanel store={store} /></details></A>
       <A id="w12-classify"><Card eyebrow={`${done} of ${items.length} labelled`} title="Classify your source statements">
         <p className="mb-2 text-xs text-muted-foreground">This is a learning review activity. There are no right-answer marks and it is not part of Final QA.</p>
         <A id="w12-labels"><details className="mb-2 text-xs"><summary className="cursor-pointer">What do the labels mean?</summary>
@@ -218,8 +231,8 @@ function StageReview({ store }: { store: Week12Store }) {
         {items.length === 0 ? <p className="text-sm text-muted-foreground">Nothing to classify yet — write findings in Week 11 Lab 3 with this same account, then come back and choose "Refresh from Week 11…".</p> : (
           <>
             <Pager id="w12-statement-picker" noun="statement" index={cur} total={items.length} onIndex={setIdx} labels={items.map((i, n) => `Statement ${n + 1}${c.classify[i.id] ? " ✓" : ""}`)} />
-            <ul className="mt-2 space-y-2">{all ? items.map(row) : row(items[cur]!)}</ul>
-            <button type="button" className={`${btn} mt-2 text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one statement at a time" : "Show all statements"}</button>
+            <ul className="mt-2 space-y-2">{all ? items.map(row) : items[cur] ? row(items[cur]) : null}</ul>
+            <Button type="button" className={`${btn} mt-2 text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one statement at a time" : "Show all statements"}</Button>
           </>
         )}
       </Card></A>
@@ -248,7 +261,7 @@ function RefsInput({ value, onChange, valid }: { value: string[]; onChange: (v: 
   );
 }
 
-function CoachList({ store, flags }: { store: Week12Store; flags: CoachFlag[] }) {
+function CoachList({ store, flags }: { store: LoadedStore; flags: CoachFlag[] }) {
   if (!flags.length) return null;
   return (
     <A id="w12-coach"><div className="space-y-2 rounded-md border border-amber/60 bg-amber/10 p-2 text-sm" role="note">
@@ -257,7 +270,7 @@ function CoachList({ store, flags }: { store: Week12Store; flags: CoachFlag[] })
       {flags.map((f) => (
         <label key={f.id} className="block">
           <span className="text-xs">{f.reviewed ? "✓" : "◌"} "<strong>{f.term}</strong>" in {f.fieldLabel}</span>
-          <input className={`${input} mt-1`} placeholder="Evidence note (format only): 'Record XYZ-1 shows …'" value={store.content!.acks[f.id] ?? ""}
+          <input className={`${input} mt-1`} placeholder="Evidence note (format only): 'Record XYZ-1 shows …'" value={store.content.acks[f.id] ?? ""}
             onChange={(e) => store.update((p) => ({ ...p, acks: { ...p.acks, [f.id]: e.target.value } }))} />
         </label>
       ))}
@@ -265,9 +278,9 @@ function CoachList({ store, flags }: { store: Week12Store; flags: CoachFlag[] })
   );
 }
 
-function StageFindings({ store }: { store: Week12Store }) {
-  const c = store.content!;
-  const valid = validRefs(store.view!.snapshot);
+function StageFindings({ store }: { store: LoadedStore }) {
+  const c = store.content;
+  const valid = validRefs(store.view.snapshot);
   const flags = coachFlags(c, store.execOption).filter((f) => f.field.startsWith("finding:"));
   const [idx, setIdx] = useState(0);
   const [all, setAll] = useState(false);
@@ -281,7 +294,7 @@ function StageFindings({ store }: { store: Week12Store }) {
     const linked = f.statement.trim().length >= 20 && f.evidenceRefs.some((r) => valid.has(r));
     return (
       <Card key={f.key} title={`Finding ${f.key}`} eyebrow={f.sourceFindingKey ? `From Week 11 ${f.sourceFindingKey}` : "New finding"}
-        actions={<button type="button" className={`${btn} min-h-9 py-1 text-xs`} onClick={() => { store.update((p) => ({ ...p, findings: p.findings.filter((_, j) => j !== i) })); setIdx(Math.max(0, i - 1)); }}>Remove</button>}>
+        actions={<Button type="button" className={`${btn} min-h-9 py-1 text-xs`} onClick={() => { store.update((p) => ({ ...p, findings: p.findings.filter((_, j) => j !== i) })); setIdx(Math.max(0, i - 1)); }}>Remove</Button>}>
         <div className="space-y-3">
           <A id={all ? `w12-f-statement-${i}` : "w12-f-statement"}><TextArea label="Report-ready finding statement" help='Say what the records show. Starter: "The records show…"' value={f.statement} onChange={(x) => setF(i, { statement: x })} max={3000} /></A>
           <A id={all ? `w12-f-refs-${i}` : "w12-f-refs"}><RefsInput value={f.evidenceRefs} onChange={(x) => setF(i, { evidenceRefs: x })} valid={valid} /></A>
@@ -296,17 +309,18 @@ function StageFindings({ store }: { store: Week12Store }) {
   };
   return (
     <div className="space-y-4">
-      <A id="w12-language"><Card title="Defensible language" eyebrow="Say only what your evidence shows">
+      <A id="w12-language"><details><summary className="cursor-pointer font-medium">Defensible language · examples</summary><div className="mt-2">
         <ul className="list-disc space-y-1 pl-5 text-sm">
           <li>Prefer "The records show…", "This is consistent with…", "We could not confirm…".</li>
           <li>Name the record. Fictional format example: "Door log entries LIB-70 to LIB-77 show eight openings after closing time."</li>
           <li>Separate what happened from what it might mean, and state your confidence.</li>
         </ul>
-      </Card></A>
+      </div></details></A>
+      <FocusedSource store={store} findingKey={c.findings[cur]?.sourceFindingKey} />
       {c.findings.length ? <Pager id="w12-finding-picker" noun="finding" index={cur} total={c.findings.length} onIndex={(i) => { setIdx(i); setAll(false); }} labels={c.findings.map((f, n) => `Finding ${n + 1} · ${f.key}`)} /> : <A id="w12-finding-picker"><p className="text-sm text-muted-foreground">No findings yet. Add one below.</p></A>}
-      {all ? c.findings.map(card) : c.findings[cur] ? card(c.findings[cur]!, cur) : null}
-      {c.findings.length > 1 ? <button type="button" className={`${btn} text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one finding at a time" : "Show all findings"}</button> : null}
-      <div><button type="button" className={btn} onClick={add} disabled={c.findings.length >= 12}>+ Add another evidence-supported finding</button>
+      {all ? c.findings.map(card) : c.findings[cur] ? card(c.findings[cur], cur) : null}
+      {c.findings.length > 1 ? <Button type="button" className={`${btn} text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one finding at a time" : "Show all findings"}</Button> : null}
+      <div><Button type="button" className={btn} onClick={add} disabled={c.findings.length >= 12}>+ Add another evidence-supported finding</Button>
       <p className="mt-1 text-xs text-muted-foreground">Only add another finding if it is supported by evidence already captured in your Week 11 Case File. Week 12 is not a new investigation.</p></div>
       <CoachList store={store} flags={flags} />
     </div>
@@ -330,10 +344,10 @@ const REPORT_STEPS: { n: string; title: string; keys?: ReportKey[]; auto?: "find
 ];
 const REPORT_FIELD_LABELS: Partial<Record<ReportKey, string>> = { title: "Report title", analyst: "Analyst (your name)" };
 
-function StageReport({ store }: { store: Week12Store }) {
-  const r = store.content!.report;
+function StageReport({ store }: { store: LoadedStore }) {
+  const r = store.content.report;
   const set = (k: ReportKey) => (x: string) => store.update((p) => ({ ...p, report: { ...p.report, [k]: x } }));
-  const flags = coachFlags(store.content!, store.execOption).filter((f) => f.field.startsWith("report:"));
+  const flags = coachFlags(store.content, store.execOption).filter((f) => f.field.startsWith("report:"));
   const [idx, setIdx] = useState(0);
   const [all, setAll] = useState(false);
   useEffect(() => {
@@ -341,7 +355,7 @@ function StageReport({ store }: { store: Week12Store }) {
     window.addEventListener("w12:select-section", on);
     return () => window.removeEventListener("w12:select-section", on);
   }, []);
-  const filled = (s: (typeof REPORT_STEPS)[number]) => s.auto === "findings" ? store.content!.findings.length > 0 : s.auto === "recs" ? store.content!.recommendations.length > 0 : (s.keys ?? []).every((k) => r[k].trim().length >= (k === "title" ? 5 : k === "analyst" ? 1 : 20));
+  const filled = (s: (typeof REPORT_STEPS)[number]) => s.auto === "findings" ? store.content.findings.length > 0 : s.auto === "recs" ? store.content.recommendations.length > 0 : (s.keys ?? []).every((k) => r[k].trim().length >= (k === "title" ? 5 : k === "analyst" ? 1 : 20));
   const section = (s: (typeof REPORT_STEPS)[number], i: number) => (
     <Card key={s.n} eyebrow={s.n === "Header" ? `Section ${i + 1} of ${REPORT_STEPS.length}` : `Section ${i + 1} of ${REPORT_STEPS.length} · Report section ${s.n}`} title={s.title}>
       <p className="text-sm"><strong>What belongs here?</strong> {s.belongs}</p>
@@ -349,7 +363,7 @@ function StageReport({ store }: { store: Week12Store }) {
       {s.starter ? <p className="mt-1 text-xs text-muted-foreground"><strong>Sentence starter:</strong> "{s.starter}"</p> : null}
       {s.auto ? (
         <div className="mt-2 rounded-md border border-border p-2 text-sm">
-          {s.auto === "findings" ? <>Pulled in from Stage 2 ({store.content!.findings.length} written).</> : <>Built in Stage 5 ({store.content!.recommendations.length} written). Write recommendations in Stage 5, not in other report sections.</>}
+          {s.auto === "findings" ? <>Pulled in from Stage 2 ({store.content.findings.length} written).</> : <>Built in Stage 5 ({store.content.recommendations.length} written). Write recommendations in Stage 5, not in other report sections.</>}
           <p className="mt-1 text-xs text-muted-foreground">You do not need to copy and paste these sections. Findings from Stage 2 and recommendations from Stage 5 are inserted automatically into your exported Technical Incident Report.</p>
         </div>
       ) : s.n === "Header" ? (
@@ -363,11 +377,11 @@ function StageReport({ store }: { store: Week12Store }) {
   const cur = clamp(idx, REPORT_STEPS.length);
   return (
     <div className="space-y-4">
+      <FocusedSource store={store} section={REPORT_STEPS[cur]?.title} />
       <Pager id="w12-report-picker" noun="section" index={cur} total={REPORT_STEPS.length} onIndex={(i) => { setIdx(i); setAll(false); }} labels={REPORT_STEPS.map((s) => `${s.n === "Header" ? "Header" : `${s.n}.`} ${s.title}${filled(s) ? " ✓" : ""}`)} />
-      <A id="w12-report-section">{all ? <div className="space-y-4">{REPORT_STEPS.map(section)}</div> : section(REPORT_STEPS[cur]!, cur)}</A>
+      <A id="w12-report-section">{all ? <div className="space-y-4">{REPORT_STEPS.map(section)}</div> : REPORT_STEPS[cur] ? section(REPORT_STEPS[cur], cur) : null}</A>
       <div className="flex flex-wrap gap-2">
-        {!all && cur < REPORT_STEPS.length - 1 ? <button type="button" className={btnPrimary} onClick={() => setIdx(cur + 1)}>Save &amp; next section →</button> : null}
-        <button type="button" className={`${btn} text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one section at a time" : "Show all sections"}</button>
+        <Button type="button" className={`${btn} text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one section at a time" : "Show all sections"}</Button>
       </div>
       <p className="text-xs text-muted-foreground">Your typing autosaves. Moving between sections never deletes anything.</p>
       <CoachList store={store} flags={flags} />
@@ -377,12 +391,26 @@ function StageReport({ store }: { store: Week12Store }) {
 
 /* --------------------------------- Stage 4 -------------------------------- */
 
-function StageExec({ store }: { store: Week12Store }) {
-  const c = store.content!;
+/** Navigation-only task position. Anchors reveal their item before focus. */
+function useTaskPosition(anchors: string[]) {
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    const on = (event: Event) => { const anchor = (event as CustomEvent<string>).detail; const i = anchors.indexOf(anchor === "w12-github" ? "w12-download" : anchor); if (i >= 0) setIndex(i); };
+    window.addEventListener("w12:focus-task", on);
+    return () => window.removeEventListener("w12:focus-task", on);
+  }, [anchors.join(",")]);
+  return [index, setIndex] as const;
+}
+
+function StageExec({ store }: { store: LoadedStore }) {
+  const c = store.content;
   const opt = store.execOption;
   const w = c.written, vid = c.video;
   const setW = (k: keyof typeof w) => (x: string) => store.update((p) => ({ ...p, written: { ...p.written, [k]: x } }));
   const setV = (patch: Partial<typeof vid>) => store.update((p) => ({ ...p, video: { ...p.video, ...patch } }));
+  const writtenKeys = ["whatHappened", "whyMatters", "whatFound", "nextSteps", "uncertain"] as const;
+  const videoAnchors = ["url", "meta", "check", "outline", "reflection"] as const;
+  const [task, setTask] = useTaskPosition(opt === "video" ? videoAnchors.map(k => `w12-v-${k}`) : writtenKeys.map(k => `w12-w-${k}`));
   const missing = execMissing(c, opt);
   const words = writtenWords(w);
   const urlErr = vid.url ? validateVideoUrl(vid.url) : null;
@@ -391,11 +419,12 @@ function StageExec({ store }: { store: Week12Store }) {
   return (
     <div className="space-y-4">
       <p className="rounded-md border border-border p-2 text-sm">Your Technical Incident Report (Stage 3) is required for everyone. In this stage you add ONE executive communication on top of it.</p>
+      <details><summary className="cursor-pointer font-medium">Your findings and recommendations · reference only</summary><div className="mt-2 space-y-2">{c.findings.map(f => <p key={f.key}><strong>{f.key}:</strong> {f.statement}</p>)}{c.recommendations.map(r => <p key={r.key}><strong>{r.key}:</strong> {r.action}</p>)}</div></details>
       <A id="w12-exec-choice"><fieldset className="grid gap-3 sm:grid-cols-2">
         <legend className="mb-2 text-sm font-medium">Choose one executive communication — both are equally weighted</legend>
         {([["written", "A. Written Executive Summary", "About 250–400 words in total across the five boxes."], ["video", "B. Video Executive Briefing", "About 2–3 minutes. Paste a link (no uploads), plus a short outline and reflection."]] as const).map(([val, t, d]) => (
           <label key={val} className={`cursor-pointer rounded-xl border p-3 ${opt === val ? "border-primary bg-primary/10" : "border-border"}`}>
-            <input type="radio" name="exec" className="mr-2" checked={opt === val} onChange={() => store.chooseExec(val)} />
+            <input type="radio" name="exec" className="mr-2" checked={opt === val} onChange={() => { store.chooseExec(val); setTask(0); }} />
             <span className="font-medium">{t}</span><span className="mt-1 block text-xs text-muted-foreground">{d}</span>
           </label>
         ))}
@@ -405,30 +434,32 @@ function StageExec({ store }: { store: Week12Store }) {
       {opt === "written" ? (
         <A id="w12-exec-form"><Card title="Written Executive Summary" eyebrow={`${words} words · target about 250–400`}>
           <p className="mb-2 text-xs text-muted-foreground">Write for a leader with no IT background. The word count covers all five boxes together.</p>
-          <div className="space-y-3">
-            <A id="w12-w-whatHappened"><TextArea label="What happened?" help="Two or three plain-language sentences." value={w.whatHappened} onChange={setW("whatHappened")} max={3000} /></A>
-            <A id="w12-w-whyMatters"><TextArea label="Why does it matter?" help="Business impact in plain language — no jargon." value={w.whyMatters} onChange={setW("whyMatters")} max={3000} /></A>
-            <A id="w12-w-whatFound"><TextArea label="What did we find?" help="Your Stage 2 findings, said simply." value={w.whatFound} onChange={setW("whatFound")} max={3000} /></A>
-            <A id="w12-w-nextSteps"><TextArea label="What should happen next?" help="The main actions from your Stage 5 recommendations." value={w.nextSteps} onChange={setW("nextSteps")} max={3000} /></A>
-            <A id="w12-w-uncertain"><TextArea label="What remains uncertain? (if material)" help="Only include open questions a leader needs to know about. Leave empty if none." value={w.uncertain} onChange={setW("uncertain")} max={3000} /></A>
+          <Pager id="w12-writing-picker" noun="writing prompt" index={clamp(task, 5)} total={5} onIndex={setTask} labels={["What happened?", "Why does it matter?", "What did we find?", "What should happen next?", "What remains uncertain?"]} />
+          <div className="mt-3 space-y-3">
+            <A className={task === 0 ? "" : "hidden"} id="w12-w-whatHappened"><TextArea label="What happened?" help="Two or three plain-language sentences." value={w.whatHappened} onChange={setW("whatHappened")} max={3000} /></A>
+            <A className={task === 1 ? "" : "hidden"} id="w12-w-whyMatters"><TextArea label="Why does it matter?" help="Business impact in plain language — no jargon." value={w.whyMatters} onChange={setW("whyMatters")} max={3000} /></A>
+            <A className={task === 2 ? "" : "hidden"} id="w12-w-whatFound"><TextArea label="What did we find?" help="Your Stage 2 findings, said simply." value={w.whatFound} onChange={setW("whatFound")} max={3000} /></A>
+            <A className={task === 3 ? "" : "hidden"} id="w12-w-nextSteps"><TextArea label="What should happen next?" help="The main actions from your Stage 5 recommendations." value={w.nextSteps} onChange={setW("nextSteps")} max={3000} /></A>
+            <A className={task === 4 ? "" : "hidden"} id="w12-w-uncertain"><TextArea label="What remains uncertain? (if material)" help="Only include open questions a leader needs to know about. Leave empty if none." value={w.uncertain} onChange={setW("uncertain")} max={3000} /></A>
           </div>
         </Card></A>
       ) : null}
 
       {opt === "video" ? (
         <A id="w12-exec-form"><Card title="Video Executive Briefing" eyebrow="Link only · about 2–3 minutes">
-          <div className="space-y-3">
-            <A id="w12-v-url"><label className="block"><span className="text-sm font-medium">Video link (https)</span>
+          <Pager id="w12-video-picker" noun="video prompt" index={clamp(task, 5)} total={5} onIndex={setTask} labels={["Video link", "Platform and duration", "Playback check", "Outline", "Reflection"]} />
+          <div className="mt-3 space-y-3">
+            <A className={task === 0 ? "" : "hidden"} id="w12-v-url"><label className="block"><span className="text-sm font-medium">Video link (https)</span>
               <input className={`${input} mt-1`} type="url" inputMode="url" value={vid.url} maxLength={500} onChange={(e) => setV({ url: e.target.value })} aria-invalid={Boolean(urlErr)} />
               {urlErr ? <span className="text-xs" role="alert">{urlErr}</span> : null}</label></A>
-            <A id="w12-v-meta"><div className="grid gap-3 sm:grid-cols-2">
+            <A className={task === 1 ? "" : "hidden"} id="w12-v-meta"><div className="grid gap-3 sm:grid-cols-2">
               <label className="block"><span className="text-sm font-medium">Platform</span><input className={`${input} mt-1`} placeholder="YouTube (unlisted), Google Drive, Loom…" value={vid.platform} maxLength={80} onChange={(e) => setV({ platform: e.target.value })} /></label>
               <label className="block"><span className="text-sm font-medium">Duration</span><input className={`${input} mt-1`} placeholder="2:30" value={vid.duration} maxLength={20} onChange={(e) => setV({ duration: e.target.value })} />
                 <span className="text-xs text-muted-foreground">{dur !== null ? `${Math.floor(dur / 60)}:${String(dur % 60).padStart(2, "0")}` : "Use m:ss"}</span></label>
             </div></A>
-            <A id="w12-v-check"><label className="flex min-h-11 items-start gap-2 text-sm"><input type="checkbox" className="mt-1" checked={vid.accessChecked} onChange={(e) => setV({ accessChecked: e.target.checked })} /> I opened the link in a private/signed-out window and it plays for anyone with the link.</label></A>
-            <A id="w12-v-outline"><TextArea label="Outline / speaker notes" help="Bullet lines — one per point you make. At least 3 lines." value={vid.outline} onChange={(x) => setV({ outline: x })} rows={5} max={4000} /></A>
-            <A id="w12-v-reflection"><TextArea label="Reflection — how did you adapt this for leadership?" help="About 2–4 sentences (at least 20 words)." value={vid.reflection} onChange={(x) => setV({ reflection: x })} rows={3} max={2000} /></A>
+            <A className={task === 2 ? "" : "hidden"} id="w12-v-check"><label className="flex min-h-11 items-start gap-2 text-sm"><input type="checkbox" className="mt-1" checked={vid.accessChecked} onChange={(e) => setV({ accessChecked: e.target.checked })} /> I opened the link in a private/signed-out window and it plays for anyone with the link.</label></A>
+            <A className={task === 3 ? "" : "hidden"} id="w12-v-outline"><TextArea label="Outline / speaker notes" help="Bullet lines — one per point you make. At least 3 lines." value={vid.outline} onChange={(x) => setV({ outline: x })} rows={5} max={4000} /></A>
+            <A className={task === 4 ? "" : "hidden"} id="w12-v-reflection"><TextArea label="Reflection — how did you adapt this for leadership?" help="About 2–4 sentences (at least 20 words)." value={vid.reflection} onChange={(x) => setV({ reflection: x })} rows={3} max={2000} /></A>
             <p className="text-xs text-muted-foreground">The outline and short reflection are submission notes, not an additional essay. They do not need to be included in your recorded briefing.</p>
           </div>
         </Card></A>
@@ -442,8 +473,8 @@ function StageExec({ store }: { store: Week12Store }) {
 
 /* --------------------------------- Stage 5 -------------------------------- */
 
-function StageRecs({ store }: { store: Week12Store }) {
-  const c = store.content!;
+function StageRecs({ store }: { store: LoadedStore }) {
+  const c = store.content;
   const keys = c.findings.map((f) => f.key);
   const [idx, setIdx] = useState(0);
   const [all, setAll] = useState(false);
@@ -458,7 +489,7 @@ function StageRecs({ store }: { store: Week12Store }) {
     const issues = recommendationIssues(r, keys);
     return (
       <Card key={r.key} title={`Recommendation ${r.key}`} eyebrow={issues.length ? `${issues.length} quality check(s) to fix` : "✓ Actionable"}
-        actions={<button type="button" className={`${btn} min-h-9 py-1 text-xs`} onClick={() => { store.update((p) => ({ ...p, recommendations: p.recommendations.filter((_, j) => j !== i) })); setIdx(Math.max(0, i - 1)); }}>Remove</button>}>
+        actions={<Button type="button" className={`${btn} min-h-9 py-1 text-xs`} onClick={() => { store.update((p) => ({ ...p, recommendations: p.recommendations.filter((_, j) => j !== i) })); setIdx(Math.max(0, i - 1)); }}>Remove</Button>}>
         <div className="space-y-3">
           <A id={`w12-r-action${sfx(i)}`}><TextArea label="What — the specific action" help='Name exactly what changes, on which account, group or control. Starter: "Within [timeframe], [team] will…"' value={r.action} onChange={(x) => setR(i, { action: x })} rows={2} max={1500} /></A>
           <A id={`w12-r-meta${sfx(i)}`}><div className="grid gap-3 sm:grid-cols-2">
@@ -481,26 +512,29 @@ function StageRecs({ store }: { store: Week12Store }) {
   };
   return (
     <div className="space-y-4">
-      <A id="w12-recs-format"><Card title="From vague to actionable" eyebrow="These go inside your technical report">
+      <A id="w12-recs-format"><details><summary className="cursor-pointer font-medium">From vague to actionable · format example</summary><div className="mt-2">
         <p className="text-sm">"Improve security" or "monitor logs" can't be acted on. Fictional format example — unrelated to your case, don't copy it: <em>"Replace the shared café Wi-Fi password within 14 days and give each staff member their own login. Owner: Café manager. Priority: Medium. Success measure: no shared password remains in use."</em></p>
         <p className="mt-2 text-sm">You do not need to return to Stage 3. Recommendations you complete here will automatically appear in Section 7 of your exported Technical Incident Report. You need at least one that shows "✓ Actionable".</p>
-      </Card></A>
+      </div></details></A>
+      <details><summary className="cursor-pointer font-medium">Your Stage 2 findings · reference only</summary><ul className="mt-2 space-y-2">{c.findings.map(f => <li key={f.key}><strong>{f.key}:</strong> {f.statement}</li>)}</ul></details>
       {c.recommendations.length ? <Pager id="w12-rec-picker" noun="recommendation" index={cur} total={c.recommendations.length} onIndex={(i) => { setIdx(i); setAll(false); }} labels={c.recommendations.map((r, n) => `Recommendation ${n + 1} · ${r.key}${recommendationIssues(r, keys).length ? "" : " ✓"}`)} /> : <A id="w12-rec-picker"><p className="text-sm text-muted-foreground">No recommendations yet. Choose "+ Add recommendation".</p></A>}
-      {all ? c.recommendations.map(card) : c.recommendations[cur] ? card(c.recommendations[cur]!, cur) : null}
-      {c.recommendations.length > 1 ? <button type="button" className={`${btn} text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one recommendation at a time" : "Show all recommendations"}</button> : null}
-      <div><button type="button" className={btn} onClick={add} disabled={c.recommendations.length >= 12}>+ Add recommendation</button></div>
+      {all ? c.recommendations.map(card) : c.recommendations[cur] ? card(c.recommendations[cur], cur) : null}
+      {c.recommendations.length > 1 ? <Button type="button" className={`${btn} text-xs`} aria-pressed={all} onClick={() => setAll((x) => !x)}>{all ? "Show one recommendation at a time" : "Show all recommendations"}</Button> : null}
+      <div><Button type="button" className={btn} onClick={add} disabled={c.recommendations.length >= 12}>+ Add recommendation</Button></div>
     </div>
   );
 }
 
 /* --------------------------------- Stage 6 -------------------------------- */
 
-function StageQA({ store, qa, onStage }: { store: Week12Store; qa: ReturnType<typeof computeQA>; onStage: (n: number) => void }) {
-  const v = store.view!;
+function StageQA({ store, qa, onStage }: { store: LoadedStore; qa: ReturnType<typeof computeQA>; onStage: (n: number) => void }) {
+  const v = store.view;
   const [busy, setBusy] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [downloaded, setDownloaded] = useState<string | null>(null);
   const paths = week12Paths(store.execOption);
+  const qaAnchors = ["w12-qa", "w12-status", "w12-download", "w12-submit"];
+  const [task, setTask] = useTaskPosition(qaAnchors);
   const one = async (path: string) => {
     setBusy(path);
     try { const r = await store.downloadFile(path.replace(/^week-12\//, "") as Week12File); setStatus(`Downloaded ${r.filename}${r.draft ? " (DRAFT)" : ""}.`); }
@@ -514,21 +548,22 @@ function StageQA({ store, qa, onStage }: { store: Week12Store; qa: ReturnType<ty
   const saved = store.saveState.kind === "saved" || store.saveState.kind === "idle";
   return (
     <div className="space-y-4">
-      <A id="w12-qa"><Card title="Final QA" eyebrow={qa.ready ? "✓ Ready — your download won't be marked DRAFT" : "Fix these, then download"}>
+      <Pager id="w12-final-picker" noun="final action" index={task} total={4} onIndex={setTask} labels={["Final QA", "Where is my work?", "Download & GitHub", "Submit for instructor review"]} />
+      <A className={task === 0 ? "" : "hidden"} id="w12-qa"><Card title="Final QA" eyebrow={qa.ready ? "✓ Ready — your download won't be marked DRAFT" : "Fix these, then download"}>
         <p className="mb-2 text-xs text-muted-foreground">Final QA checks that your work is complete. It is not your instructor's grade.</p>
         <ul className="space-y-2">{qa.checks.map((x) => (
           <li key={x.id} className="rounded-md border border-border p-2 text-sm">
             <div className="flex flex-wrap items-center justify-between gap-2"><span>{x.ok ? "✓" : "◌"} {x.label}</span>
-              {!x.ok ? <button type="button" className={`${btn} min-h-9 py-1 text-xs`} onClick={() => onStage(x.stage)}>Go to Stage {x.stage}</button> : null}</div>
+              {!x.ok ? <Button type="button" className={`${btn} min-h-9 py-1 text-xs`} onClick={() => onStage(x.stage)}>Go to Stage {x.stage}</Button> : null}</div>
             {!x.ok && x.missing.length ? <ul className="mt-1 list-disc pl-5 text-xs">{x.missing.map((m) => <li key={m} className="break-words">{m}</li>)}</ul> : null}
             {!x.ok && x.id === "language" ? <p className="mt-1 text-xs">Reword each flagged sentence, or add an evidence note in the yellow box on that stage. Either fix clears it.</p> : null}
           </li>
         ))}</ul>
       </Card></A>
 
-      <A id="w12-status"><Card title="Where is my work?" eyebrow="Five different things">
+      <A className={task === 1 ? "" : "hidden"} id="w12-status"><Card title="Where is my work?" eyebrow="Five different things">
         <ul className="space-y-1 text-sm">
-          <li>{saved ? "✓" : "◌"} <strong>Autosaved</strong> — your writing is stored in your account on this site.</li>
+          <li>{saved ? "✓" : "◌"} <strong>{saved ? "Autosaved" : "Not yet saved"}</strong> — {saved ? "your writing is stored in your account on this site." : "wait for confirmation or resolve the save message above."}</li>
           <li>{qa.ready ? "✓" : "◌"} <strong>Final-ready</strong> — every Final QA item passes.</li>
           <li>{downloaded ? "✓" : "◌"} <strong>Downloaded</strong> — you have the ZIP on your computer{downloaded ? ` (${downloaded}, this visit)` : ""}.</li>
           <li>◌ <strong>Uploaded</strong> — the week-12 folder is in your GitHub repository. Only you can confirm this.</li>
@@ -536,7 +571,7 @@ function StageQA({ store, qa, onStage }: { store: Week12Store; qa: ReturnType<ty
         </ul>
       </Card></A>
 
-      <A id="w12-download"><Card title="Download & GitHub" eyebrow="Downloading is not submitting">
+      <A className={task === 2 ? "" : "hidden"} id="w12-download"><Card title="Download & GitHub" eyebrow="Downloading is not submitting">
         <p className="text-sm">These files are built from your saved Week 12 work. Your work is not submitted when you download the ZIP. You must upload the Week 12 files to your GitHub portfolio and complete the course submission process.</p>
         <div className="mt-2 rounded-md border border-border p-2 text-sm">
           <p className="font-medium">Your final package includes</p>
@@ -551,11 +586,11 @@ function StageQA({ store, qa, onStage }: { store: Week12Store; qa: ReturnType<ty
         <ul className="mt-3 grid gap-2">{paths.map((p) => (
           <li key={p} className="grid min-w-0 gap-2 rounded-md border border-border p-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
             <span className="break-all font-mono text-xs">{p}</span>
-            <button type="button" className={`${btn} text-xs`} disabled={busy !== null} onClick={() => one(p)}>{busy === p ? "Preparing…" : "Download file"}</button>
+            <Button type="button" className={`${btn} text-xs`} disabled={busy !== null} onClick={() => one(p)}>{busy === p ? "Preparing…" : "Download file"}</Button>
           </li>
         ))}</ul>
         {!store.execOption ? <p className="mt-2 text-xs">Choose your executive communication in Stage 4 to add its file.</p> : null}
-        <button type="button" className={`${btnPrimary} mt-3 w-full sm:w-auto`} disabled={busy !== null} onClick={zip}>{busy === "zip" ? "Preparing…" : "Download complete Week 12 ZIP"}</button>
+        <Button type="button" className={`${btnPrimary} mt-3 w-full sm:w-auto`} disabled={busy !== null} onClick={zip}>{busy === "zip" ? "Preparing…" : "Download complete Week 12 ZIP"}</Button>
         <p className="mt-1 text-xs text-muted-foreground">File name: <span className="font-mono">{week12ZipName(!qa.ready)}</span></p>
         <p className="mt-2 min-h-5 text-sm" role="status" aria-live="polite">{status}</p>
         <A id="w12-github"><ol className="mt-3 space-y-1 text-sm">
@@ -566,7 +601,7 @@ function StageQA({ store, qa, onStage }: { store: Week12Store; qa: ReturnType<ty
         </ol></A>
       </Card></A>
 
-      <A id="w12-submit"><Card title="Submit for instructor review" eyebrow="Last step · outside this site">
+      <A className={task === 3 ? "" : "hidden"} id="w12-submit"><Card title="Submit for instructor review" eyebrow="Last step · outside this site">
         <ol className="space-y-1 text-sm">
           <li>1. Copy the web address of your GitHub repository (the page that shows <span className="font-mono">week-11/</span> and <span className="font-mono">week-12/</span>).</li>
           <li>2. Open your course's <strong>Lab Submissions / Submission Tracker</strong>.</li>
@@ -575,11 +610,13 @@ function StageQA({ store, qa, onStage }: { store: Week12Store; qa: ReturnType<ty
         <p className="mt-2 text-xs text-muted-foreground">This site does not record submissions. Use the Lab Submissions / Submission Tracker link your instructor shared with the course.</p>
       </Card></A>
 
-      <Card title="Optional: volunteer to present live" eyebrow="Not graded · not part of QA">
+      <details><summary className="cursor-pointer">Optional live presentation · not graded</summary><Card title="Optional: volunteer to present live" eyebrow="Not graded · not part of QA">
         <p className="text-sm">Two volunteers will be chosen by your instructor to present live. Volunteering has no effect on your grade or readiness.</p>
         <label className="mt-2 flex items-center gap-2 text-sm"><input type="checkbox" checked={v.volunteerStatus === "volunteered"} onChange={(e) => void store.setVolunteer(e.target.checked)} /> I'd like to be considered for a live presentation.</label>
         {v.presenterSelected ? <p className="mt-1 text-sm" role="status">Your instructor has selected you to present.</p> : null}
       </Card>
+
+      </details>
 
       {v.reviews.length ? (
         <Card title="Instructor feedback">{v.reviews.map((r) => <p key={r.created_at} className="whitespace-pre-wrap text-sm">{r.feedback}</p>)}</Card>
