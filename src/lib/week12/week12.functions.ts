@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { WEEK12_FILES, type ExecOption, type SourceSnapshot, type W12Content, type Week12View } from "./model";
-import { checkedSourceRead } from "./source-read.server";
+import { assertRefreshVersion, checkedSourceRead } from "./source-read.server";
 
 /**
  * Week 12 server operations. The owner is always the authenticated session
@@ -114,20 +114,24 @@ export const saveWeek12Draft = createServerFn({ method: "POST" })
 /** Student-triggered only: replace the frozen source with the current Week 11 case file. Week 12 writing is kept. */
 export const refreshWeek12Source = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ confirm: z.literal("REFRESH") }).parse(d))
-  .handler(async ({ context }) => {
+  .inputValidator((d: unknown) => z.object({ confirm: z.literal("REFRESH"), expectedTextRevision: z.number().int().min(0), expectedSnapshotHash: z.string().min(1).max(128) }).parse(d))
+  .handler(async ({ data, context }) => {
     const db = await admin();
     const row = await loadW12(db, context.userId);
     if (!row) throw new Error("No Week 12 attempt.");
+    assertRefreshVersion(row, data);
     const w11 = await currentW11(db, context.userId);
     if (!w11) throw new Error("No Week 11 attempt found.");
     const { snap, hash } = await snapshotFor(db, w11);
-    const { error } = await db.from("w12_attempts" as never).update({
+    const { data: updated, error } = await db.from("w12_attempts" as never).update({
       source_w11_attempt_id: w11.id, source_snapshot: snap, source_snapshot_hash: hash, source_text_revision: w11.text_revision,
       source_state_revision: w11.state_revision, source_captured_at: new Date().toISOString(),
-    } as never).eq("id", row.id);
+    } as never).eq("id", row.id).eq("text_revision", data.expectedTextRevision).eq("source_snapshot_hash", data.expectedSnapshotHash).select("id");
     if (error) throw new Error("Refresh failed; your Week 12 work is unchanged.");
-    return { view: await view(db, (await loadW12(db, context.userId))!) };
+    if (!updated || !(updated as unknown[]).length) throw new Error("Week 12 changed while refreshing. Source was not refreshed; your writing is kept. Reload and review before trying again.");
+    const refreshed = await loadW12(db, context.userId);
+    if (!refreshed) throw new Error("Could not reopen Week 12 after refresh. Reload to check the saved source; your writing was kept.");
+    return { view: await view(db, refreshed) };
   });
 
 export const setWeek12Volunteer = createServerFn({ method: "POST" })

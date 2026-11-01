@@ -90,6 +90,26 @@ describe("Week 12 readiness", () => {
     expect(q.checks.find((x) => x.id === "findings")!.ok).toBe(false);
     expect(q.checks.find((x) => x.id === "findings")!.missing.join(" ")).toContain("EV-999999-001");
   });
+  it("documents the existing advisory-only invalid-reference behavior without changing readiness", () => {
+    const s = snap();
+    const c = full(s, "written");
+    const first = c.findings[0];
+    if (!first) throw new Error("Missing fixture finding");
+    first.evidenceRefs.push("LIB-NOT-IN-SOURCE");
+    const qa = computeQA(s, c, "written");
+    expect(qa.ready).toBe(true);
+    expect(qa.checks.find(x => x.id === "findings")?.missing).toContain("These references aren't in your Week 11 source: LIB-NOT-IN-SOURCE");
+  });
+  it("normal input parsing canonicalizes lowercase known IDs before validation", async () => {
+    const { parseRefs } = await import("./model");
+    const s = snap();
+    const c = full(s, "written");
+    const first = c.findings[0];
+    if (!first) throw new Error("Missing fixture finding");
+    first.evidenceRefs = parseRefs("s004, s009");
+    expect(first.evidenceRefs).toEqual(["S004", "S009"]);
+    expect(computeQA(s, c, "written").ready).toBe(true);
+  });
   it("recommendations must link a finding and be specific", () => {
     const r = { key: "R1", action: "Improve security", owner: "", why: "", priority: "" as const, timeframe: "", linkedFindings: [], successMeasure: "" };
     const issues = recommendationIssues(r, ["RF1"]);

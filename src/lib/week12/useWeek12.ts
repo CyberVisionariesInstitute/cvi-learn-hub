@@ -106,13 +106,14 @@ export function useWeek12() {
 
   const refreshSource = useCallback(async () => {
     await requireConfirmedSave(flush);
-    const r = await refresh({ data: { confirm: "REFRESH" } });
+    if (!view) throw new Error("Week 12 source is not loaded.");
+    const r = await refresh({ data: { confirm: "REFRESH", expectedTextRevision: rev.current, expectedSnapshotHash: view.snapshotHash } });
     setView(r.view);
     // Only empty Week 12 fields are filled; saved through normal autosave so the status stays truthful.
     const cur = latest.current.content;
     const filled = cur ? fillEmptyFromSource(cur, r.view.snapshot) : null;
     if (filled) update(() => filled);
-  }, [refresh, flush, update]);
+  }, [refresh, flush, update, view]);
 
   const setVolunteer = useCallback(async (v: boolean) => {
     const r = await vol({ data: { volunteer: v } });
