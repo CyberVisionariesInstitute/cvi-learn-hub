@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import type { ExecOption, W12Content, Week12File, Week12View } from "./model";
+import { fillEmptyFromSource, type ExecOption, type W12Content, type Week12File, type Week12View } from "./model";
 import { exportWeek12, exportWeek12File, refreshWeek12Source, saveWeek12Draft, setWeek12Volunteer, startOrResumeWeek12 } from "./week12.functions";
 
 export type SaveState = { kind: "idle" } | { kind: "pending" } | { kind: "saving" } | { kind: "saved"; at: string } | { kind: "failed"; message: string } | { kind: "conflict" };
@@ -98,7 +98,11 @@ export function useWeek12() {
     await flush();
     const r = await refresh({ data: { confirm: "REFRESH" } });
     setView(r.view);
-  }, [refresh, flush]);
+    // Only empty Week 12 fields are filled; saved through normal autosave so the status stays truthful.
+    const cur = latest.current.content;
+    const filled = cur ? fillEmptyFromSource(cur, r.view.snapshot) : null;
+    if (filled) update(() => filled);
+  }, [refresh, flush, update]);
 
   const setVolunteer = useCallback(async (v: boolean) => {
     const r = await vol({ data: { volunteer: v } });
