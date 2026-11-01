@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import type { Week11Store } from "@/lib/week11/useWeek11";
 import type { Nav } from "@/lib/week11/guidance";
 import { denyCoaching, directoryLabel } from "@/lib/week11/instructions";
+import { isComparisonSubstep, recordFieldsCue, showsLogTable } from "@/lib/week11/field-cue";
 import { missions, traceConcepts, type Directory } from "@/lib/week11/seed";
 import {
   FIRST_OPTIONAL, GUIDED_LABS, GUIDED_SCREENS, REQUIRED_COUNT, firstOpenScreen, guidedKey, labScreens, parseGuided, positionLabel, screenChecks, type GuidedScreen,
@@ -77,6 +78,7 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
   const subPosition = Math.max(0, Math.min(subIndex, screen.subs.length - 1));
   const currentSubs = paged ? screen.subs.slice(subPosition, subPosition + 1) : screen.subs;
   const taskScreen = paged ? { ...screen, subs: currentSubs } : screen;
+  const caseFileCue = taskScreen.subs.some((s) => isComparisonSubstep(s.step.id)) && !showsLogTable(taskScreen.subs.flatMap((s) => s.step.links)) ? recordFieldsCue("caseFile") : null;
   const moveSub = (n: number) => {
     const next = Math.max(0, Math.min(n, screen.subs.length - 1));
     setSubIndex(next);
@@ -208,6 +210,7 @@ export function GuidedApp({ store, onClassic }: { store: Week11Store; onClassic:
                 </li>
               ))}
             </ol>
+            {caseFileCue ? <p className="mt-3 rounded-lg border border-reading-border p-3 text-base"><strong>{caseFileCue.lead}</strong> Select <strong>{caseFileCue.label}</strong>{caseFileCue.detail}</p> : null}
             {screen.example ? <p className="mt-3"><strong>What we learned:</strong> one person, two accounts. Group grants open resources; an OU is a folder, not a permission.</p> : null}
             {screen.mission !== "M06" && screen.subs.some((s) => /test|sign in|sign-in/i.test(s.step.doing)) ? (
               <p className="mt-4 rounded-lg border border-reading-border p-3 text-base"><strong>About DENY results:</strong> {denyCoaching}</p>
