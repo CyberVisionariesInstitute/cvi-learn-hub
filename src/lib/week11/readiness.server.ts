@@ -180,15 +180,13 @@ export function computeReadiness(s: SimState, learner: Learner, ev: EvidenceRow[
 }
 
 /** Shown when no completed finding cites a cross-log pair. Generic: never names the answer. */
-export const CORRELATION_MISSING = "Correlation: in one finding, tick a historical sign-in record (S…) and a historical audit record (A…) that share the same correlation_id. Two sign-ins with different correlation IDs don't count. Open the Case File finding's historical record picker and use Show all record fields to compare correlation_id.";
+export const CORRELATION_MISSING = "Correlation: across your findings, cite a historical sign-in record (S…) and a historical audit record (A…) that share the same correlation_id. Two sign-ins with different correlation IDs don't count. Open a Case File finding's historical record picker and use Show all record fields to compare correlation_id.";
 
 const validCorrelation = (v: string | undefined) => { const c = (v ?? "").trim(); return c !== "" && c.toLowerCase() !== "not_available" ? c : null; };
 
-/** True when one completed finding cites a historical sign-in and audit record with the same real correlation ID. */
+/** True when the completed findings together cite a historical sign-in and audit record with the same real correlation ID. */
 export function hasCorrelatedFinding(findings: { refs: string[] }[]): boolean {
-  return findings.some((f) => {
-    const refs = new Set(f.refs.map((r) => r.toUpperCase()));
-    const signinIds = new Set(historicalSignins.filter((x) => refs.has(x.event_id)).map((x) => validCorrelation(x.correlation_id)).filter(Boolean));
-    return historicalAudit.some((a) => refs.has(a.event_id) && signinIds.has(validCorrelation(a.correlation_id)));
-  });
+  const refs = new Set(findings.flatMap((f) => f.refs.map((r) => r.toUpperCase())));
+  const signinIds = new Set(historicalSignins.filter((x) => refs.has(x.event_id)).map((x) => validCorrelation(x.correlation_id)).filter(Boolean));
+  return historicalAudit.some((a) => refs.has(a.event_id) && signinIds.has(validCorrelation(a.correlation_id)));
 }

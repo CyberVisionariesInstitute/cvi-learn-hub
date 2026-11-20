@@ -13,8 +13,13 @@ describe("M06 cross-log correlation", () => {
   it("rejects a failed/successful sign-in pair with different correlation IDs", () => {
     expect(hasCorrelatedFinding([full("F1", ["S002", "S003"])])).toBe(false);
   });
-  it("rejects the pair split across two findings or only one half cited", () => {
-    expect(hasCorrelatedFinding([full("F1", ["S009"]), full("F2", ["A002"])])).toBe(false);
+  it("accepts the pair split across completed findings", () => {
+    expect(hasCorrelatedFinding([full("F1", ["S004", "S009"]), full("F2", ["A002"])])).toBe(true);
+    expect(m06([full("F1", ["S004", "S009"]), full("F2", ["S010", "A002"])]).missing).not.toContain(CORRELATION_MISSING);
+  });
+  it("rejects a single half", () => {
+    expect(hasCorrelatedFinding([full("F1", ["S004", "S009"]), full("F2", ["S010"])])).toBe(false);
+    expect(hasCorrelatedFinding([full("F1", ["A002"]), full("F2", ["S010"])])).toBe(false);
     expect(hasCorrelatedFinding([full("F1", ["S009", "S004"])])).toBe(false);
   });
   it("never matches the not_available sentinel", () => {
@@ -26,7 +31,7 @@ describe("M06 cross-log correlation", () => {
     expect(CORRELATION_MISSING).not.toMatch(/C009|S009|A002/);
   });
   it("ignores incomplete findings even if they cite the pair", () => {
-    expect(m06([{ ...full("F1", ["S009", "A002"]), rationale: "" }, full("F2", ["S012"])]).missing).toContain(CORRELATION_MISSING);
+    expect(m06([{ ...full("F1", ["S009"]), rationale: "" }, full("F2", ["A002"]), full("F3", ["S012"])]).missing).toContain(CORRELATION_MISSING);
   });
 });
 

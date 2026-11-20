@@ -76,7 +76,7 @@ export function CaseFileBuilder({ store, onView, initialFinding }: { initialFind
     else if (stage === 4 && section > 0) setSection(section - 1);
     else go(Math.max(0, stage - 1));
   };
-  const saveContinue = async () => { setSaving(true); setSaveError(""); try { await store.flush(); next(); } catch { setSaveError("Your writing is still here. Check the save message above and try Save again."); } finally { setSaving(false); } };
+  const saveContinue = async () => { setSaving(true); setSaveError(""); try { if (await store.flush()) next(); else setSaveError("Not saved yet — your writing is still here. Check the save message above and try Save again."); } catch { setSaveError("Your writing is still here. Check the save message above and try Save again."); } finally { setSaving(false); } };
   const logButtons = <div className="mt-3 flex flex-wrap gap-2">{(["signins", "audit"] as const).map((view) => <Button key={view} variant="outline" className="min-h-11 whitespace-normal" onClick={() => onView?.(view)} disabled={!onView}>Open {view === "signins" ? "Sign-in Logs" : "Audit Logs"}</Button>)}</div>;
   const writing = writingSteps[findingStep as keyof typeof writingSteps];
   const guidance = sectionGuidance[section];
