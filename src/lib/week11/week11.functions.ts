@@ -153,11 +153,18 @@ export const captureWeek11Evidence = createServerFn({ method: "POST" })
     const key = `EV-${short(row.id)}-${String((count ?? 0) + 1).padStart(3, "0")}`;
     const { error } = await db.from("w11_evidence" as never).insert({ attempt_id: row.id, evidence_key: key, slot: data.slot, mission: data.mission, title: data.title, snapshot, content_hash: createHash("sha256").update(body).digest("hex"), captured_revision: row.state_revision } as never);
     if (error) throw new Error("Evidence not saved. Try again.");
-    if (data.caption.trim()) {
-      const learner = { ...(row.learner ?? {}), captions: { ...(row.learner?.captions ?? {}), [key]: data.caption } };
-      await db.from("w11_attempts" as never).update({ learner, text_revision: row.text_revision + 1 } as never).eq("id", row.id).eq("text_revision", row.text_revision);
+    // The explanation is a separate captions key, so a retry can merge it onto the latest text revision.
+    let captionSaved = !data.caption.trim();
+    let base = row;
+    for (let i = 0; !captionSaved && i < 3; i++) {
+      const learner = { ...(base.learner ?? {}), captions: { ...(base.learner?.captions ?? {}), [key]: data.caption } };
+      const { data: upd, error: capErr } = await db.from("w11_attempts" as never).update({ learner, text_revision: base.text_revision + 1 } as never).eq("id", base.id).eq("text_revision", base.text_revision).select("text_revision");
+      if (!capErr && upd && (upd as unknown[]).length) { captionSaved = true; break; }
+      const fresh = await loadActive(db, context.userId);
+      if (!fresh || fresh.id !== row.id) break;
+      base = fresh;
     }
-    return view(db, (await loadActive(db, context.userId))!);
+    return { ...(await view(db, (await loadActive(db, context.userId))!)), evidenceKey: key, captionSaved };
   });
 
 const learnerSchema = z.object({

@@ -34,3 +34,4 @@
 
 - [x] Week 11 three guided labs (preview only, Option A: requirements unchanged)
 - [x] Week 12: show nonblocking unknown-reference advisory in Final QA; align guide done-condition (preview only)
+- [x] Week 11 Lab 3: correlation check via shared correlation_id, capture/save truthfulness (preview only)

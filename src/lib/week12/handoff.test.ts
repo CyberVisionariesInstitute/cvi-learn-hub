@@ -15,7 +15,7 @@ function requiredOnlyAttempt() {
   const answers = Object.fromEntries(m06.questions.filter((q) => isRequiredQuestion("M06", q.id)).map((q) => [q.id, long]));
   const learner: Learner = {
     displayName: "Pat Practice",
-    findings: [finding("F1", ["S004", "S009"]), finding("F2", ["A002"])],
+    findings: [finding("F1", ["S004", "S009"]), finding("F2", ["S009", "A002"])],
     comparison: { refs: ["S010"], text: long },
     report: { sections: {}, limitations: long, liveChain: "LA-0001 then AT-0002 showed the result." },
     captions: { "EV-17": long, "EV-18": long, "EV-19": long },
@@ -43,7 +43,7 @@ describe("Week 11 → Week 12 handoff (shortened required path)", () => {
     const c = seedContent(snap);
     expect(c.report.analyst).toBe("Pat Practice");
     expect(c.report.limitations).toBe(learner.report!.limitations);
-    expect(c.findings.map((f) => [f.sourceFindingKey, f.evidenceRefs])).toEqual([["F1", ["S004", "S009"]], ["F2", ["A002"]]]);
+    expect(c.findings.map((f) => [f.sourceFindingKey, f.evidenceRefs])).toEqual([["F1", ["S004", "S009"]], ["F2", ["S009", "A002"]]]);
     expect(snap.comparison.refs).toEqual(["S010"]);
     expect(snap.report.liveChain).toContain("LA-0001");
     expect(snap.evidence.map((e) => e.slot)).toEqual(["E17", "E18", "E19"]);

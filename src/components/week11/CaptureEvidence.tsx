@@ -7,6 +7,12 @@ import type { Week11Store } from "@/lib/week11/useWeek11";
 import { btnPrimary, Card, Select, TextArea } from "./ui";
 
 const kindLabels: Record<EvidenceKind, string> = { accounts: "Account snapshot", groups: "Group snapshot", tests: "Access test", signins: "Sign-in", audits: "Audit", tickets: "Ticket snapshot", historical: "Historical record" };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function savedRecordIds(snap: any): string[] {
+  if (!snap) return [];
+  const pick = (arr: unknown, k: string) => (Array.isArray(arr) ? arr.map((x) => (x && typeof x === "object" ? String((x as Record<string, unknown>)[k] ?? "") : "")).filter(Boolean) : []);
+  return [...pick(snap.accounts, "key"), ...pick(snap.groups, "group"), ...pick(snap.tests, "id"), ...pick(snap.signins, "id"), ...pick(snap.audits, "id"), ...pick(snap.tickets, "key"), ...pick(snap.historical, "event_id")];
+}
 const kinds: EvidenceKind[] = ["accounts", "tests", "signins", "audits", "groups", "tickets", "historical"];
 const example = "Example format — not your case answer: In a fictional example, the sign-in record shows that the account authenticated successfully. The access test records the account’s access decision for the requested resource before any changes were made.";
 
@@ -103,17 +109,18 @@ export function CaptureEvidence({ store, mission, slots, initialSlot, compact, g
       <p className="mt-2 font-medium">You are about to save · {selectedCount} record{selectedCount === 1 ? "" : "s"}</p>
       {selectedCount ? <ul className="mt-2 max-h-64 space-y-2 overflow-y-auto text-xs">{availableKinds.flatMap((kind) => refs[kind].map((recordId) => <li key={`${kind}-${recordId}`}><strong>{kindLabels[kind]}:</strong> {options[kind].find((item) => item.id === recordId)?.label ?? recordId}</li>))}</ul> : <p className="mt-2 text-xs text-muted-foreground">Select a record above to include it here.</p>}
       <p className="mt-3">Explanation: {caption.trim() ? "✓ Added" : "Not added yet"}</p>
+      {hasEvidenceRefs(refs) || caption.trim() ? <p className="mt-2 text-xs font-medium" role="status">Unsaved capture input — these selections and this explanation are not saved until you select Capture {slot}. (The Case File "no pending edits" message is about your writing, not this form.)</p> : null}
       <p className="mt-3 max-w-prose text-xs text-muted-foreground"><strong>What happens next?</strong> Capture saves a snapshot of these records. Later simulator changes will not rewrite this saved evidence.</p>
       <Button type="button" className={`${btnPrimary} mt-3 h-auto max-w-full whitespace-normal`} disabled={store.busy || saving || !hasEvidenceRefs(refs)} onClick={async () => {
         const keys = (evidenceRef.current ?? []).map((item) => item.evidence_key);
         setSaving(true); setNotice(""); setSubmitted({ slot, keys });
-        try { await store.captureEvidence({ mission, slot, title: definition.label, refs, caption }); }
+        try { const r = await store.captureEvidence({ mission, slot, title: definition.label, refs, caption }); if (!r.captionSaved) setNotice(`${r.evidenceKey} was saved, but its explanation was not. Open Evidence Tray to add it.`); }
         catch { setSubmitted(null); setNotice("Could not save this evidence. Your selections and explanation are still here; try again."); }
         finally { setSaving(false); }
       }}>{saving ? `Capturing ${slot}…` : `Capture ${slot}`}</Button>
       {notice ? <p role="alert" className="mt-2 text-destructive">{notice}</p> : null}
     </section>
-    {captured.length ? <section aria-label="Saved evidence" aria-live="polite" className="border-t border-border pt-3"><p className="font-semibold">✓ {slot} captured</p><ul className="mt-1 space-y-1 text-xs">{captured.map((e) => <li key={e.evidence_key}>Saved as evidence key {e.evidence_key}</li>)}</ul><p className="mt-2 text-xs">You can review or edit the explanation later in Evidence Tray.</p>{navButtons([{ view: "evidence", label: "Evidence Tray" }])}</section> : null}
+    {captured.length ? <section aria-label="Saved evidence" aria-live="polite" className="border-t border-border pt-3"><p className="font-semibold">✓ {slot} captured</p><ul className="mt-1 space-y-2 text-xs">{captured.map((e) => { const ids = savedRecordIds(e.snapshot); const cap = store.learner.captions?.[e.evidence_key] ?? view.learner.captions?.[e.evidence_key] ?? ""; return <li key={e.evidence_key} className="rounded border border-border p-2 [overflow-wrap:anywhere]"><p><strong>{e.evidence_key}</strong> · saved {new Date(e.created_at).toLocaleString()}</p><p>Records: {ids.length ? ids.join(", ") : "—"}</p><p>Explanation: {cap.trim() ? cap : "Not added — add it in Evidence Tray."}</p></li>; })}</ul><p className="mt-2 text-xs">The form above clears after each capture so you can make another. Clearing it does not remove anything listed here — saved captures stay in Evidence Tray.</p>{navButtons([{ view: "evidence", label: "Evidence Tray" }])}</section> : null}
   </div>;
   if (compact) return <div className="min-w-0 rounded-md border border-border p-3">{body}</div>;
   return <Card title="Capture evidence" eyebrow="Find it → Select it → Explain it → Save it">{body}</Card>;

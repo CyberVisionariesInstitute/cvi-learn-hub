@@ -4,7 +4,7 @@
  * requirements only.
  */
 import { effectiveAccess, type AccessTest, type SimState } from "./engine";
-import { missions, traceConcepts } from "./seed";
+import { historicalAudit, historicalSignins, missions, traceConcepts } from "./seed";
 import type { Learner, EvidenceRow } from "./types";
 import { isRequiredMission, isRequiredQuestion, isRequiredSlot } from "./requirements";
 
@@ -165,11 +165,10 @@ export function computeReadiness(s: SimState, learner: Learner, ev: EvidenceRow[
   // Report and Executive Summary are Week 12 deliverables, not Week 11.
   const fs = (learner.findings ?? []).filter((f) => ["observation", "hypothesis", "conclusion", "uncertainty", "nextAction", "rationale"].every((k) => filled((f as unknown as Record<string, string>)[k], 10)) && f.refs.length > 0 && f.priority);
   const sig = new Set(fs.map((f) => [...f.refs].sort().join(",")));
-  const allRefs = fs.flatMap((f) => f.refs);
   const m06: Item[] = [
     fs.length < 2 && "Complete at least two findings with every reasoning field, a priority and raw-event references.",
     fs.length >= 2 && sig.size < 2 && "Your two findings reference identical events — make them distinct.",
-    !allRefs.includes("S009") && !allRefs.includes("A002") && "Reference the correlated sign-in/audit records you investigated.",
+    !hasCorrelatedFinding(fs) && CORRELATION_MISSING,
     !filled(learner.comparison?.text) || !(learner.comparison?.refs?.length) ? "Record one benign/ambiguous comparison with its source records." : null,
     !filled(learner.report?.liveChain) && "Describe one live simulator audit/access chain from your earlier missions.",
     !filled(learner.report?.limitations) && "Write the explicit simulation/environment limitations section.",
@@ -178,4 +177,18 @@ export function computeReadiness(s: SimState, learner: Learner, ev: EvidenceRow[
   push("M06", [...m06, slot(ev, learner, "E17"), slot(ev, learner, "E18"), slot(ev, learner, "E19"), ...questions("M06")],
     [...m06, reqSlot("M06", "E17"), reqSlot("M06", "E18"), reqSlot("M06", "E19"), ...questions("M06", true)]);
   return out;
+}
+
+/** Shown when no completed finding cites a cross-log pair. Generic: never names the answer. */
+export const CORRELATION_MISSING = "Correlation: in one finding, tick a historical sign-in record (S…) and a historical audit record (A…) that share the same correlation_id. Two sign-ins with different correlation IDs don't count. Open the Case File finding's historical record picker and use Show all record fields to compare correlation_id.";
+
+const validCorrelation = (v: string | undefined) => { const c = (v ?? "").trim(); return c !== "" && c.toLowerCase() !== "not_available" ? c : null; };
+
+/** True when one completed finding cites a historical sign-in and audit record with the same real correlation ID. */
+export function hasCorrelatedFinding(findings: { refs: string[] }[]): boolean {
+  return findings.some((f) => {
+    const refs = new Set(f.refs.map((r) => r.toUpperCase()));
+    const signinIds = new Set(historicalSignins.filter((x) => refs.has(x.event_id)).map((x) => validCorrelation(x.correlation_id)).filter(Boolean));
+    return historicalAudit.some((a) => refs.has(a.event_id) && signinIds.has(validCorrelation(a.correlation_id)));
+  });
 }

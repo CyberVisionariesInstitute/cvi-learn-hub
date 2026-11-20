@@ -133,7 +133,7 @@ export function navForMissing(mission: string, text: string): Nav | null {
   if (tkt && /verification|escalation|record/.test(t)) return tk(tkt);
   if (/resource-group access/.test(t)) return V("roles", "Roles & Access");
   if (/reviewed/.test(t)) return V("groups", "Cloud groups", "CLOUD");
-  if (mission === "M06") return /live|limitations|comparison|findings|correlated/.test(t) ? V("report", "Case File") : null;
+  if (mission === "M06") return /live|limitations|comparison|findings|correlat/i.test(t) ? V("report", "Case File") : null;
   const who: [RegExp, string, Directory][] = [
     [/Jamie/, mission === "M03" ? "ad-jamie" : "cl-jamie", mission === "M03" ? "AD" : "CLOUD"],
     [/Alex/, "cl-alex", "CLOUD"], [/Finley/, "cl-finley", "CLOUD"], [/Casey/, "cl-casey", "CLOUD"], [/Emi/, "cl-emi", "CLOUD"], [/Blair/, "cl-blair", "CLOUD"],

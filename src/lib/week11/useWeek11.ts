@@ -44,8 +44,9 @@ export function useWeek11() {
     (start() as Promise<AttemptView>).then((v) => adopt(v, true)).catch((e: Error) => setLoadError(e.message || "Could not load your attempt."));
   }, [start, adopt]);
 
-  const flush = useCallback(async () => {
-    if (!dirty.current) return;
+  /** Resolves true only when there is nothing pending or the server confirmed the save. */
+  const flush = useCallback(async (): Promise<boolean> => {
+    if (!dirty.current) return true;
     if (timer.current) { clearTimeout(timer.current); timer.current = null; }
     setTextSave({ kind: "saving" });
     const payload = latest.current;
@@ -53,13 +54,16 @@ export function useWeek11() {
       const r = await saveText({ data: { expectedTextRevision: textRev.current, learner: payload } });
       if ("conflict" in r && r.conflict) {
         setTextSave(r.conflict === "TOO_LONG" ? { kind: "failed", message: "Too long to save — shorten some answers. Your text is still here." } : { kind: "conflict" });
-        return;
+        return false;
       }
       textRev.current = r.textRevision;
-      if (latest.current === payload) dirty.current = false;
-      setTextSave({ kind: "saved", at: new Date(r.savedAt!).toLocaleTimeString() });
+      if (latest.current === payload) { dirty.current = false; setTextSave({ kind: "saved", at: new Date(r.savedAt!).toLocaleTimeString() }); return true; }
+      setTextSave({ kind: "pending" });
+      timer.current = setTimeout(() => void flush(), 1200);
+      return false;
     } catch (e) {
       setTextSave({ kind: "failed", message: (e as Error).message || "Not saved." });
+      return false;
     }
   }, [saveText]);
 
@@ -111,15 +115,31 @@ export function useWeek11() {
   }, [exec, view, adopt]);
 
   const captureEvidence = useCallback(async (input: { mission: string; slot: string; title: string; refs: { accounts: string[]; groups: string[]; tests: string[]; signins: string[]; audits: string[]; tickets: string[]; historical: string[] }; caption: string }) => {
-    await flush();
+    const flushed = await flush();
     setBusy(true);
-    try { const v = (await capture({ data: input })) as AttemptView; adopt(v, true); setLastResult({ ok: true, message: `Captured ${input.slot}.` }); }
-    catch (e) { setLastResult({ ok: false, message: (e as Error).message }); }
-    finally { setBusy(false); }
+    try {
+      const v = (await capture({ data: input })) as AttemptView & { evidenceKey: string; captionSaved: boolean };
+      if (flushed && !dirty.current) adopt(v, true);
+      else {
+        // Pending Case File writing stays local; only the server-saved caption for this capture is merged in.
+        setView(v);
+        const merge = (l: Learner): Learner => ({ ...l, captions: { ...(l.captions ?? {}), ...(v.learner.captions?.[v.evidenceKey] !== undefined ? { [v.evidenceKey]: v.learner.captions[v.evidenceKey]! } : {}) } });
+        latest.current = merge(latest.current);
+        setLearnerState(latest.current);
+        if (flushed) { textRev.current = v.textRevision; dirty.current = true; setTextSave({ kind: "pending" }); if (timer.current) clearTimeout(timer.current); timer.current = setTimeout(() => void flush(), 1200); }
+      }
+      setLastResult(v.captionSaved
+        ? { ok: true, message: `Captured ${input.slot} as ${v.evidenceKey}.` }
+        : { ok: false, message: `Captured ${input.slot} as ${v.evidenceKey}, but the explanation was not saved. Add it in Evidence Tray.` });
+      return { evidenceKey: v.evidenceKey, captionSaved: v.captionSaved };
+    } catch (e) {
+      setLastResult({ ok: false, message: (e as Error).message });
+      throw e;
+    } finally { setBusy(false); }
   }, [capture, adopt, flush]);
 
   const exportZip = useCallback(async () => {
-    await flush();
+    if (!(await flush())) throw new Error("Your latest Case File writing is not saved yet. Fix the save message at the top, then try again.");
     const r = await doExport();
     const bin = Uint8Array.from(atob(r.zipBase64), (c) => c.charCodeAt(0));
     const url = URL.createObjectURL(new Blob([bin], { type: "application/zip" }));
@@ -130,7 +150,7 @@ export function useWeek11() {
   }, [doExport, flush]);
 
   const exportLab = useCallback(async (mission: MissionId) => {
-    await flush();
+    if (!(await flush())) throw new Error("Your latest Case File writing is not saved yet. Fix the save message at the top, then try again.");
     const r = await doExportLab({ data: { mission } });
     const url = URL.createObjectURL(new Blob([r.content], { type: "text/markdown;charset=utf-8" }));
     const a = document.createElement("a");
@@ -141,7 +161,7 @@ export function useWeek11() {
 
   const reset = useCallback(async (reason: string) => {
     if (!view) return;
-    await flush();
+    if (!(await flush())) { setLastResult({ ok: false, message: "Reset did not happen: your latest writing is not saved yet. Fix the save message first." }); return; }
     const r = (await doReset({ data: { expectedRevision: view.revision, idempotencyKey: key(), confirm: "RESET", reason } })) as { view?: AttemptView; conflict?: string };
     if ("view" in r && r.view) { dirty.current = false; adopt(r.view, true); setLastResult({ ok: true, message: "New attempt started. Your previous attempt is archived and read-only." }); }
     else setLastResult({ ok: false, message: "Reset did not happen; your attempt is unchanged." });

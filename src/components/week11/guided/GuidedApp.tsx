@@ -100,7 +100,7 @@ export function GuidedApp({ store, onClassic, startLab }: { store: Week11Store; 
           <p className="mt-1 text-base text-muted-foreground">Practice data only — every person and account here is fictional.</p>
         </div>
         <p aria-live="polite" className="max-w-40 shrink-0 break-words border-l border-border pl-3 text-base">
-          {store.busy ? "Recording action…" : save.kind === "pending" || save.kind === "saving" ? "Saving…" : save.kind === "saved" ? `Saved ✓ ${save.at}` : save.kind === "failed" ? `Not saved — ${save.message}` : save.kind === "conflict" ? "Changed in another tab" : "No pending text edits"}
+          {store.busy ? "Recording action…" : save.kind === "pending" || save.kind === "saving" ? "Case File writing: saving…" : save.kind === "saved" ? `Case File writing saved ✓ ${save.at}` : save.kind === "failed" ? `Case File writing not saved — ${save.message}` : save.kind === "conflict" ? "Case File writing changed in another tab" : "Case File writing: no pending edits"}
         </p>
       </header>
       {save.kind === "conflict" ? <Button type="button" variant="link" onClick={() => void store.reloadAfterConflict()}>Review and reapply my text</Button> : null}
@@ -232,7 +232,7 @@ export function GuidedApp({ store, onClassic, startLab }: { store: Week11Store; 
             <ScreenTask key={`${screen.id}:${paged ? subPosition : "all"}`} store={store} screen={taskScreen} />
           </section>
 
-          <CheckYourWork store={store} screen={screen} />
+          <CheckYourWork store={store} screen={screen} onOpenFinding={() => go(GUIDED_SCREENS.findIndex((x) => x.id === "L3-f1"))} />
           </div>
           </div>
 
@@ -355,7 +355,7 @@ function ToolPanel({ store, links, mission, focus, initialFinding, compactAccoun
   );
 }
 
-function CheckYourWork({ store, screen }: { store: Week11Store; screen: GuidedScreen }) {
+function CheckYourWork({ store, screen, onOpenFinding }: { store: Week11Store; screen: GuidedScreen; onOpenFinding: () => void }) {
   const v = store.view!;
   const checks = screenChecks(screen, v, store.learner);
   const r = v.readiness.find((x) => x.mission === screen.mission)!;
@@ -370,7 +370,7 @@ function CheckYourWork({ store, screen }: { store: Week11Store; screen: GuidedSc
         r.ready ? <p className="mt-3 font-semibold">✓ Everything needed for this part is saved. Your instructor reviews your reasoning.</p> : (
           <div className="mt-3">
             <p className="font-semibold">Still needed for this part ({r.missing.length}):</p>
-            <ul className="mt-1 list-disc space-y-1 pl-6 text-base">{r.missing.map((x) => <li key={x}>{x}</li>)}</ul>
+            <ul className="mt-1 list-disc space-y-1 pl-6 text-base">{r.missing.map((x) => <li key={x}>{x}{x.startsWith("Correlation:") ? <> <Button type="button" variant="outline" className="mt-1 h-auto min-h-11 whitespace-normal" onClick={onOpenFinding}>Open Finding 1 record picker</Button></> : null}</li>)}</ul>
             <p className="mt-2 text-base text-reading-muted">That's okay — you can continue and come back. Use Back or the step menu to return.</p>
           </div>
         )
