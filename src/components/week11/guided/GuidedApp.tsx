@@ -21,6 +21,7 @@ import { DownloadsView } from "../DownloadsView";
 import { MissionArt, Week11Hero } from "../Visuals";
 import { traceObjectsFor } from "../Simulator";
 import { suggestRefs } from "@/lib/week11/guided-preselect";
+import { isRequiredQuestion } from "@/lib/week11/requirements";
 
 /** Sentence starters for the short required answers (student writes the rest). */
 const STARTERS: Record<string, string> = {
@@ -50,6 +51,8 @@ export function GuidedApp({ store, onClassic, startLab }: { store: Week11Store; 
   const [index, setIndex] = useState<number | null>(null);
   const [subIndex, setSubIndex] = useState(0);
   const [showCaseFile, setShowCaseFile] = useState(false);
+  const [findingTarget, setFindingTarget] = useState<number | undefined>(undefined);
+  const [secondaryNav, setSecondaryNav] = useState<Nav | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -66,6 +69,7 @@ export function GuidedApp({ store, onClassic, startLab }: { store: Week11Store; 
     const next = Math.max(0, Math.min(GUIDED_SCREENS.length - 1, i));
     setIndex(next);
     setShowCaseFile(false);
+    setSecondaryNav(null); setFindingTarget(undefined);
     try { window.localStorage.setItem(storageKey, JSON.stringify({ index: next })); } catch { /* private mode */ }
     requestAnimationFrame(() => { headingRef.current?.focus(); window.scrollTo({ top: 0 }); });
   };
@@ -91,6 +95,8 @@ export function GuidedApp({ store, onClassic, startLab }: { store: Week11Store; 
   const labDone = (n: number) => labScreens(n).every((s) => screenChecks(s, v, store.learner).every((c) => c.optional || c.done));
   const save = store.textSave;
   const resumed = v.state.seq > 0 || v.textRevision > 0;
+  const openTool = (nav: Nav) => { setSecondaryNav(nav); requestAnimationFrame(() => { document.getElementById("w11-secondary-task")?.focus(); }); };
+  const openFinding = () => { setSecondaryNav(null); setFindingTarget(0); setShowCaseFile(true); requestAnimationFrame(() => { document.getElementById("w11-finding-task")?.focus(); }); };
 
   return (
     <div className="w11-guided mx-auto w-full max-w-[1440px] px-4 py-4 sm:px-6">
@@ -161,8 +167,14 @@ export function GuidedApp({ store, onClassic, startLab }: { store: Week11Store; 
                 ? <Button type="button" size="lg" onClick={() => go(firstOpenScreen(v, store.learner))}>Back to my required steps</Button>
                 : <Button type="button" size="lg" onClick={() => go(index + 1)}>Continue →</Button>}
           </nav>
+      {secondaryNav ? <section aria-label="Opened tool" className="mt-4 space-y-3">
+        <h2 id="w11-secondary-task" tabIndex={-1} className="font-display text-xl">{VIEW_LABELS[secondaryNav.view] ?? secondaryNav.label}</h2>
+        <Button variant="outline" className="min-h-11" onClick={() => { setSecondaryNav(null); requestAnimationFrame(() => { (showCaseFile ? document.getElementById("w11-finding-task") : headingRef.current)?.focus(); }); }}>Back to {showCaseFile ? "my Case File" : "my step"}</Button>
+        <ToolPanel store={store} links={[secondaryNav]} mission={screen.mission} focus="review" compactAccount onNavigate={openTool} />
+      </section> : null}
+      <div hidden={secondaryNav !== null}>
       {showCaseFile ? (
-        <section className="mt-4" aria-label="Case File"><CaseFileBuilder store={store} /></section>
+        <section className="mt-4 space-y-3" aria-label="Case File"><Button variant="outline" className="min-h-11" onClick={() => { setShowCaseFile(false); setFindingTarget(undefined); requestAnimationFrame(() => headingRef.current?.focus()); }}>Back to Connect / my step</Button><CaseFileBuilder store={store} initialFinding={findingTarget} onView={(view) => openTool({ view, label: VIEW_LABELS[view] ?? view })} /></section>
       ) : (
         <>
           <div className="w11-guided-workspace mt-4 grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
@@ -213,6 +225,12 @@ export function GuidedApp({ store, onClassic, startLab }: { store: Week11Store; 
                 </li>
               ))}
             </ol>
+            {screen.id === "L3-correlate" ? <div className="mt-3 space-y-3 border-t border-reading-border pt-3">
+              <p><strong>Connect two kinds of historical records:</strong> a Sign-in record (S ID) and an Audit record (A ID) must share the same real <code>correlation_id</code>. Blank IDs and <code>not_available</code> do not connect records. Two sign-ins alone do not meet this cross-log check.</p>
+              <p>Select their event IDs in your existing Case File findings and write what the connection supports there. The pair can be across your two completed findings; you do not need a third finding. A shared ID is a link, not proof of cause.</p>
+              <Button variant="outline" className="h-auto min-h-11 whitespace-normal" onClick={openFinding}>Open Case File finding record picker</Button>
+              <p className="text-base">Choose Finding 1 or 2, select the records, finish its reasoning, then use <strong>Save Case File writing</strong>. Return here for the separate <strong>Capture E17</strong> action: that saves a snapshot and evidence explanation, not your finding reasoning.</p>
+            </div> : null}
             {caseFileCue ? <p className="mt-3 rounded-lg border border-reading-border p-3 text-base"><strong>{caseFileCue.lead}</strong> Select <strong>{caseFileCue.label}</strong>{caseFileCue.detail}</p> : null}
             {screen.example ? <p className="mt-3"><strong>What we learned:</strong> one person, two accounts. Group grants open resources; an OU is a folder, not a permission.</p> : null}
             {screen.mission !== "M06" && screen.subs.some((s) => /test|sign in|sign-in/i.test(s.step.doing)) ? (
@@ -229,26 +247,27 @@ export function GuidedApp({ store, onClassic, startLab }: { store: Week11Store; 
           <div className="w11-activity min-w-0">
           <section aria-label="Your task" className="min-w-0 space-y-3">
             <h2 className="font-display text-xl">Do it here</h2>
-            <ScreenTask key={`${screen.id}:${paged ? subPosition : "all"}`} store={store} screen={taskScreen} />
+            <ScreenTask key={`${screen.id}:${paged ? subPosition : "all"}`} store={store} screen={taskScreen} onNavigate={openTool} />
           </section>
 
-          <CheckYourWork store={store} screen={screen} onOpenFinding={() => go(GUIDED_SCREENS.findIndex((x) => x.id === "L3-f1"))} />
+          <CheckYourWork store={store} screen={screen} onOpenFinding={openFinding} />
           </div>
           </div>
 
 
         </>
       )}
+      </div>
     </div>
   );
 }
 
 function pagedFinding(screen: GuidedScreen) {
   const id = screen.subs[0]?.step.id;
-  return screen.id === "L3-look" && id === "M06-06" ? 0 : screen.id === "L3-look" && id === "M06-07" ? 1 : undefined;
+  return screen.id === "L3-correlate" || (screen.id === "L3-look" && id === "M06-06") ? 0 : screen.id === "L3-look" && id === "M06-07" ? 1 : undefined;
 }
 
-function ScreenTask({ store, screen }: { store: Week11Store; screen: GuidedScreen }) {
+function ScreenTask({ store, screen, onNavigate }: { store: Week11Store; screen: GuidedScreen; onNavigate: (nav: Nav) => void }) {
   const v = store.view!;
   const m = missions.find((x) => x.key === screen.mission)!;
   const ans = store.learner.missions?.[m.key]?.answers ?? {};
@@ -265,7 +284,7 @@ function ScreenTask({ store, screen }: { store: Week11Store; screen: GuidedScree
 
   return (
     <>
-      {links.length ? <ToolPanel key={screen.id} store={store} compactAccount={!screen.optional} initialFinding={pagedFinding(screen)} links={links} mission={screen.mission} focus={screen.id.includes("check") || screen.id === "L1-test" ? "test" : screen.id.includes("fix") || screen.id.includes("change") || screen.id.includes("leave") ? "change" : "review"} /> : null}
+      {links.length ? <ToolPanel key={screen.id} store={store} onNavigate={onNavigate} compactAccount={!screen.optional} initialFinding={pagedFinding(screen)} links={links} mission={screen.mission} focus={screen.id.includes("check") || screen.id === "L1-test" ? "test" : screen.id.includes("fix") || screen.id.includes("change") || screen.id.includes("leave") ? "change" : "review"} /> : null}
       {traceIds.length ? (
         <div className="rounded-xl border border-border bg-surface-raised p-4">
           <h3 className="text-lg font-semibold">Pick a real object you inspected</h3>
@@ -283,7 +302,8 @@ function ScreenTask({ store, screen }: { store: Week11Store; screen: GuidedScree
       ) : null}
       {questionIds.map((id) => { const q = m.questions.find((x) => x.id === id)!; return (
         <label key={id} className="block rounded-xl border border-border bg-surface-raised p-4 text-base">
-          <span className="text-lg font-semibold">{q.label}</span>
+          <span className="text-lg font-semibold">{q.label} — {isRequiredQuestion(m.key, id) ? "Required answer" : "Optional practice"}</span>
+          {!isRequiredQuestion(m.key, id) && !ans[id]?.trim() ? <span className="mt-1 block text-muted-foreground">Optional practice not completed. This does not block completion.</span> : null}
           <span className="mt-1 block text-muted-foreground">Sentence starter: "{STARTERS[id] ?? "In the records I saw ___, which shows ___."}"</span>
           <textarea className="mt-2 w-full rounded-md border border-border bg-background p-3 text-lg leading-relaxed" rows={4} maxLength={5000} value={ans[id] ?? ""} onChange={(e) => setAns(id, e.target.value)} />
         </label>); })}
@@ -291,7 +311,7 @@ function ScreenTask({ store, screen }: { store: Week11Store; screen: GuidedScree
         <div>
           <p className="mb-2 rounded-lg border border-evidence/60 bg-evidence/10 p-3 text-lg font-semibold">Save your evidence: pick the records you just created, explain them in a sentence, then save.</p>
           {!screen.optional && suggestRefs(slots[0]!.slot, v.state) ? <p className="mb-2 text-base text-muted-foreground">We ticked your most recent matching records to save you copying IDs. Check each one, untick anything that doesn't belong, then explain and save.</p> : null}
-          <CaptureEvidence key={screen.id} store={store} mission={m.key} slots={slots} initialSlot={slots[0]!.slot} preselect={screen.optional ? undefined : suggestRefs(slots[0]!.slot, v.state)} />
+          <CaptureEvidence key={screen.id} store={store} go={onNavigate} mission={m.key} slots={slots} initialSlot={slots[0]!.slot} preselect={screen.optional ? undefined : suggestRefs(slots[0]!.slot, v.state)} />
         </div>
       ) : null}
       {store.lastResult ? <p aria-live="polite" className={`rounded-lg border p-3 text-base ${store.lastResult.ok ? "border-evidence/60" : "border-amber/60"}`}>{store.lastResult.ok ? "Done: " : "Not yet: "}{store.lastResult.message}</p> : null}
@@ -299,7 +319,7 @@ function ScreenTask({ store, screen }: { store: Week11Store; screen: GuidedScree
   );
 }
 
-function ToolPanel({ store, links, mission, focus, initialFinding, compactAccount }: { compactAccount: boolean; initialFinding?: number | undefined; store: Week11Store; links: Nav[]; mission: string; focus: "test" | "change" | "review" }) {
+function ToolPanel({ store, links, mission, focus, initialFinding, compactAccount, onNavigate }: { compactAccount: boolean; initialFinding?: number | undefined; store: Week11Store; links: Nav[]; mission: string; focus: "test" | "change" | "review"; onNavigate: (nav: Nav) => void }) {
   const v = store.view!;
   const [active, setActive] = useState(0);
   const [fullAccount, setFullAccount] = useState(false);
@@ -321,6 +341,7 @@ function ToolPanel({ store, links, mission, focus, initialFinding, compactAccoun
   const go = (n: Nav) => {
     const i = links.findIndex((l) => l.view === n.view);
     if (i >= 0) pick(i);
+    else { onNavigate(n); return; }
     const a = n.account ? v.state.accounts.find((x) => x.key === n.account) : undefined;
     if (a) { setDir(a.dir); setSelected(a.key); }
   };
@@ -348,7 +369,7 @@ function ToolPanel({ store, links, mission, focus, initialFinding, compactAccoun
         {link.view === "signins" ? <LogsView store={store} kind="signin" guided /> : null}
         {link.view === "audit" ? <LogsView store={store} kind="audit" guided /> : null}
         {link.view === "evidence" ? <EvidenceView store={store} /> : null}
-        {link.view === "report" ? <CaseFileBuilder store={store} initialFinding={initialFinding} /> : null}
+        {link.view === "report" ? <CaseFileBuilder store={store} initialFinding={initialFinding} onView={(view) => onNavigate({ view, label: VIEW_LABELS[view] ?? view })} /> : null}
         {link.view === "downloads" ? <DownloadsView store={store} /> : null}
       </div>
     </div>

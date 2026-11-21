@@ -5,6 +5,7 @@ import { historicalAudit, historicalAuditTsv, historicalSignins, historicalSigni
 import type { SimState } from "./engine";
 import type { EvidenceRow, Learner } from "./types";
 import type { MissionReadiness } from "./readiness.server";
+import { GUIDED_EXPORT_MAPPING, isRequiredMission, isRequiredQuestion } from "./requirements";
 
 const esc = (v: unknown) => String(v ?? "").replace(/[<>]/g, (c) => (c === "<" ? "&lt;" : "&gt;")).replace(/\r/g, "");
 const block = (v: string | undefined) => (v && v.trim() ? esc(v.trim()) : "_Not written yet._");
@@ -53,7 +54,11 @@ export function buildFiles(p: ExportInput): Record<string, string> {
   const files: Record<string, string> = {};
   for (const m of missions) {
     let body = header(`${m.lab} — ${m.title}`, m.key) + `## Objective\n\n${m.objective}\n\n## My answers\n\n`;
-    body += m.questions.map((qq) => `### ${esc(qq.label)}\n\n${block(learner.missions?.[m.key]?.answers?.[qq.id])}\n`).join("\n");
+    body += m.questions.map((qq) => {
+      const required = isRequiredQuestion(m.key, qq.id);
+      const answer = learner.missions?.[m.key]?.answers?.[qq.id];
+      return `### ${esc(qq.label)}\n\n**${required ? "Required answer" : "Optional practice"}**\n\n${!required && !answer?.trim() ? "_Optional practice not completed._" : block(answer)}\n`;
+    }).join("\n");
     if (m.key === "M01") {
       const tr = learner.missions?.["M01"]?.trace ?? {};
       body += `\n## Directory trace\n\n| Concept | Object |\n|---|---|\n${Object.entries(tr).map(([k, v]) => `| ${esc(k)} | ${esc(v)} |`).join("\n")}\n`;
@@ -72,8 +77,10 @@ export function buildFiles(p: ExportInput): Record<string, string> {
     body += `\n## Evidence\n\n${evList(m.key)}\n`;
     files[m.exportPath] = body;
   }
-  files["week-11/README.md"] = header("Week 11 — IAM & Active Directory: Who Gets Access to What?") + `Browser-based simulated AD/IAM administration in Cloud Heights Identity Center. No real domain, tenant or Azure subscription was configured.\n\nLab 06 is the **IAM Investigation Case File (Portfolio Deliverable 4)** — a technical case file. Week 12 uses it as source material for the professional Technical Incident Report and Executive Summary and the final portfolio presentation.\n\n${missions.map((m) => `- [${m.lab}: ${m.title}](labs/${m.exportPath.split("/").pop()})`).join("\n")}\n\nStatus: ${allReady ? "all required labs evidence-ready (Labs 01, 03 and 04 are optional practice)" : "**DRAFT** — some missions incomplete"}.\n`;
+  const mapping = (prefix: string) => `## Three guided labs → six legacy files\n\nThe filenames stay unchanged for your portfolio. One guided lab can use more than one file, and classic Lab 02 holds work from guided Labs 1 and 2.\n\n${GUIDED_EXPORT_MAPPING.map((group) => `### ${group.title}\n\n${group.detail}\n\n${group.missions.map((key) => { const m = missions.find((item) => item.key === key); return m ? `- [${m.exportPath.split("/").pop()}](${prefix}${m.exportPath.split("/").pop()})` : ""; }).join("\n")}`).join("\n\n")}\n\nRequired answers are labelled **Required answer**. Every optional question is labelled **Optional practice**; an empty optional answer says **Optional practice not completed**, not missing required work. Saved optional answers are kept.\n\n`;
+  files["week-11/README.md"] = header("Week 11 — IAM & Active Directory: Who Gets Access to What?") + `Browser-based simulated AD/IAM administration in Cloud Heights Identity Center. No real domain, tenant or Azure subscription was configured.\n\nLab 06 is the **IAM Investigation Case File (Portfolio Deliverable 4)** — a technical case file. Week 12 uses it as source material for the professional Technical Incident Report and Executive Summary and the final portfolio presentation.\n\n${mapping("labs/")}${missions.map((m) => { const r = readiness.find((item) => item.mission === m.key); return `- [${m.lab}: ${m.title}](labs/${m.exportPath.split("/").pop()}) — ${!isRequiredMission(m.key) ? "Optional practice" : r?.ready ? "Required work evidence-ready" : "Required work DRAFT"}`; }).join("\n")}\n\nStatus: ${allReady ? "all required work evidence-ready; optional blanks do not block completion" : "**DRAFT** — required work remains incomplete; optional blanks do not block completion"}.\n`;
   files["week-11/labs/README.md"] = `# Week 11 submission guide\n\n1. Unzip this export. Keep the folder structure.\n2. Open **your own** CyberFoundations portfolio repository on GitHub (not the template).\n3. Go into (or create) \`week-11/labs/\`. Use **Add file → Upload files**, drag in the six lab files, this README and the \`evidence/\` folder, preview the changes, write a descriptive commit message and choose **Commit changes**.\n4. Upload \`week-11/README.md\` to \`week-11/\`. If a README already exists there, replace it only on purpose.\n5. Open the committed files and check your name and latest answers appear.\n\nDownloading or uploading does not submit anything for grading. Grading submission instructions are provided separately. Screenshots are optional (\`assets/screenshots/week-11/\`). Don't delete other weeks' work.\n`;
+  files["week-11/labs/README.md"] += `\n${mapping("")}`;
   const evJson = evidence.map((e) => ({ id: e.evidence_key, slot: e.slot, mission: e.mission, title: e.title, captured_revision: e.captured_revision, content_hash: e.content_hash, origin: "simulator_capture", caption: learner.captions?.[e.evidence_key] ?? "", snapshot: e.snapshot }));
   files["week-11/labs/evidence/week11-evidence.json"] = JSON.stringify(evJson, null, 2);
   files["week-11/labs/evidence/week11-evidence-index.md"] = `# Week 11 evidence index\n\nSimulator captures from ${p.attemptLabel}. Hash detects content changes; it is not proof of live AD administration.\n\n${evJson.map((e) => `## ${e.id}\n\n- Slot ${e.slot} · ${e.mission} · revision ${e.captured_revision}\n- ${esc(e.title)}\n- SHA-256 ${e.content_hash}\n- Caption: ${block(e.caption)}\n`).join("\n")}`;

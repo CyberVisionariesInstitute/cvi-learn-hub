@@ -51,6 +51,41 @@ const baseView = (learner = {}, textRevision = 1) => ({ id: "a", shortId: "A", s
 describe("useWeek11 flush/capture", () => {
   beforeEach(() => { for (const k of Object.keys(fns)) delete fns[k]; fns["startOrResumeWeek11"] = async () => baseView(); vi.useFakeTimers(); });
 
+  it("joins concurrent flush callers instead of sending the same revision twice", async () => {
+    const { useWeek11 } = await import("./useWeek11");
+    const s = useWeek11();
+    let confirm: ((r: unknown) => void) | undefined;
+    let requests = 0;
+    fns["saveWeek11Text"] = async () => { requests++; return await new Promise((resolve) => { confirm = resolve; }); };
+    s.setLearner(() => ({ displayName: "pending writing" }));
+    const first = s.flush();
+    const second = s.flush();
+    expect(requests).toBe(1);
+    if (!confirm) throw new Error("Save was not requested");
+    confirm({ textRevision: 1, savedAt: new Date().toISOString() });
+    expect(await first).toBe(true);
+    expect(await second).toBe(true);
+  });
+
+  it("does not confirm a newer edit when an older save finishes", async () => {
+    const { useWeek11 } = await import("./useWeek11");
+    const s = useWeek11();
+    let confirm: ((r: unknown) => void) | undefined;
+    fns["saveWeek11Text"] = async () => await new Promise((resolve) => { confirm = resolve; });
+    s.setLearner(() => ({ displayName: "older" }));
+    const first = s.flush();
+    s.setLearner(() => ({ displayName: "newer" }));
+    const second = s.flush();
+    if (!confirm) throw new Error("Save was not requested");
+    confirm({ textRevision: 1, savedAt: new Date().toISOString() });
+    expect(await first).toBe(false);
+    expect(await second).toBe(false);
+    let sent: unknown;
+    fns["saveWeek11Text"] = async (a) => { sent = a; return { textRevision: 2, savedAt: new Date().toISOString() }; };
+    expect(await s.flush()).toBe(true);
+    expect(sent).toMatchObject({ data: { learner: { displayName: "newer" }, expectedTextRevision: 1 } });
+  });
+
   it("flush reports false on conflict and keeps pending writing for capture", async () => {
     const { useWeek11 } = await import("./useWeek11");
     const s = useWeek11();

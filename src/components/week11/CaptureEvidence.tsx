@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { slotHints, type Nav } from "@/lib/week11/guidance";
 import { emptyEvidenceRefs, evidenceRecipes, hasEvidenceRefs, type EvidenceKind } from "@/lib/week11/evidence-recipes";
@@ -22,25 +22,15 @@ export function CaptureEvidence({ store, mission, slots, initialSlot, compact, g
   const [refs, setRefs] = useState(withPreselect);
   const [caption, setCaption] = useState("");
   const [saving, setSaving] = useState(false);
-  const [submitted, setSubmitted] = useState<{ slot: string; keys: string[] } | null>(null);
   const [notice, setNotice] = useState("");
   const id = useId();
   const view = store.view;
-  const evidence = view?.evidence;
-  const evidenceRef = useRef(evidence);
-  evidenceRef.current = evidence;
   // Mission switches retain the component in the existing mission page.
   useEffect(() => {
     setSlot(initialSlot && slots.some((x) => x.slot === initialSlot) ? initialSlot : slots[0]?.slot ?? "");
-    setRefs(withPreselect()); setCaption(""); setSubmitted(null); setNotice("");
+    setRefs(withPreselect()); setCaption(""); setNotice("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mission, initialSlot]);
-  useEffect(() => {
-    if (!submitted || !evidence) return;
-    const saved = evidence.find((item) => item.mission === mission && item.slot === submitted.slot && !submitted.keys.includes(item.evidence_key));
-    if (!saved) return;
-    setRefs(emptyEvidenceRefs()); setCaption(""); setSubmitted(null); setNotice("");
-  }, [evidence, mission, submitted]);
   if (!view) return null;
   const s = view.state;
   const definition = slots.find((item) => item.slot === slot);
@@ -112,15 +102,17 @@ export function CaptureEvidence({ store, mission, slots, initialSlot, compact, g
       {hasEvidenceRefs(refs) || caption.trim() ? <p className="mt-2 text-xs font-medium" role="status">Unsaved capture input — these selections and this explanation are not saved until you select Capture {slot}. (The Case File "no pending edits" message is about your writing, not this form.)</p> : null}
       <p className="mt-3 max-w-prose text-xs text-muted-foreground"><strong>What happens next?</strong> Capture saves a snapshot of these records. Later simulator changes will not rewrite this saved evidence.</p>
       <Button type="button" className={`${btnPrimary} mt-3 h-auto max-w-full whitespace-normal`} disabled={store.busy || saving || !hasEvidenceRefs(refs)} onClick={async () => {
-        const keys = (evidenceRef.current ?? []).map((item) => item.evidence_key);
-        setSaving(true); setNotice(""); setSubmitted({ slot, keys });
-        try { const r = await store.captureEvidence({ mission, slot, title: definition.label, refs, caption }); if (!r.captionSaved) setNotice(`${r.evidenceKey} was saved, but its explanation was not. Open Evidence Tray to add it.`); }
-        catch { setSubmitted(null); setNotice("Could not save this evidence. Your selections and explanation are still here; try again."); }
+        setSaving(true); setNotice("");
+        try { const r = await store.captureEvidence({ mission, slot, title: definition.label, refs, caption });
+          if (r.captionSaved) { setRefs(emptyEvidenceRefs()); setCaption(""); }
+          else setNotice(`${r.evidenceKey} was saved, but its explanation was not. Your explanation is still in this form. Open Evidence Tray to add it to the saved capture.`);
+        }
+        catch { setNotice("Could not save this evidence. Your selections and explanation are still here; try again."); }
         finally { setSaving(false); }
       }}>{saving ? `Capturing ${slot}…` : `Capture ${slot}`}</Button>
       {notice ? <p role="alert" className="mt-2 text-destructive">{notice}</p> : null}
     </section>
-    {captured.length ? <section aria-label="Saved evidence" aria-live="polite" className="border-t border-border pt-3"><p className="font-semibold">✓ {slot} captured</p><ul className="mt-1 space-y-2 text-xs">{captured.map((e) => { const ids = savedRecordIds(e.snapshot); const cap = store.learner.captions?.[e.evidence_key] ?? view.learner.captions?.[e.evidence_key] ?? ""; return <li key={e.evidence_key} className="rounded border border-border p-2 [overflow-wrap:anywhere]"><p><strong>{e.evidence_key}</strong> · saved {new Date(e.created_at).toLocaleString()}</p><p>Records: {ids.length ? ids.join(", ") : "—"}</p><p>Explanation: {cap.trim() ? cap : "Not added — add it in Evidence Tray."}</p></li>; })}</ul><p className="mt-2 text-xs">The form above clears after each capture so you can make another. Clearing it does not remove anything listed here — saved captures stay in Evidence Tray.</p>{navButtons([{ view: "evidence", label: "Evidence Tray" }])}</section> : null}
+    {captured.length ? <section aria-label="Saved evidence" aria-live="polite" className="border-t border-border pt-3"><p className="font-semibold">✓ {slot} captured</p><ul className="mt-1 space-y-2 text-xs">{captured.map((e) => { const ids = savedRecordIds(e.snapshot); const cap = view.learner.captions?.[e.evidence_key] ?? ""; return <li key={e.evidence_key} className="rounded border border-border p-2 [overflow-wrap:anywhere]"><p><strong>{e.evidence_key}</strong> · saved {new Date(e.created_at).toLocaleString()}</p><p>Records: {ids.length ? ids.join(", ") : "—"}</p><p>Saved explanation: {cap.trim() ? cap : "Not added — add it in Evidence Tray."}</p></li>; })}</ul><p className="mt-2 text-xs">After a confirmed capture and explanation save, the form clears so you can make another. Clearing it does not remove anything listed here — saved captures stay in Evidence Tray. Saving Case File writing does not capture evidence.</p>{navButtons([{ view: "evidence", label: "Evidence Tray" }])}</section> : null}
   </div>;
   if (compact) return <div className="min-w-0 rounded-md border border-border p-3">{body}</div>;
   return <Card title="Capture evidence" eyebrow="Find it → Select it → Explain it → Save it">{body}</Card>;

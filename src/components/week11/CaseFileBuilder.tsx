@@ -28,7 +28,7 @@ function HistoricalPicker({ value, onChange, label }: { value: string[]; onChang
   return <fieldset className="min-w-0"><legend className="text-sm font-medium">{label}</legend>
     <label className="mt-2 block text-xs">Filter event IDs<input className={`${input} mt-1 max-w-xs`} value={filter} onChange={(e) => setFilter(e.target.value.trim().toUpperCase())} /></label>
     <p className="mt-2 break-words text-xs text-muted-foreground">Selected: {value.length ? value.join(", ") : "No records selected yet."}</p>
-    <details className="mt-2"><summary className="min-h-11 cursor-pointer content-center text-sm focus-visible:outline focus-visible:outline-primary">Choose historical event IDs</summary>
+    <details className="mt-2" open><summary className="min-h-11 cursor-pointer content-center text-sm focus-visible:outline focus-visible:outline-primary">Choose historical event IDs</summary>
       <div className="mt-2 flex flex-wrap gap-2">{eventIds.filter((id) => !filter || id.includes(filter) || value.includes(id)).map((id) => <label key={id} className="flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-border px-3 font-mono text-xs"><input type="checkbox" checked={value.includes(id)} onChange={(e) => onChange(e.target.checked ? [...value, id] : value.filter((x) => x !== id))} />{id}</label>)}</div>
     </details>
   </fieldset>;
@@ -45,6 +45,7 @@ export function CaseFileBuilder({ store, onView, initialFinding }: { initialFind
   const [section, setSection] = useState(0);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [saveNotice, setSaveNotice] = useState("");
   const v = store.view;
   if (!v) return null;
   const { learner, setLearner } = store;
@@ -77,6 +78,12 @@ export function CaseFileBuilder({ store, onView, initialFinding }: { initialFind
     else go(Math.max(0, stage - 1));
   };
   const saveContinue = async () => { setSaving(true); setSaveError(""); try { if (await store.flush()) next(); else setSaveError("Not saved yet — your writing is still here. Check the save message above and try Save again."); } catch { setSaveError("Your writing is still here. Check the save message above and try Save again."); } finally { setSaving(false); } };
+  const saveWriting = async () => {
+    setSaving(true); setSaveError(""); setSaveNotice("");
+    try { if (await store.flush()) setSaveNotice("Case File writing saved — this does not capture E17 evidence."); else setSaveError("Not saved yet — your writing is still here. Try Save Case File writing again."); }
+    catch { setSaveError("Not saved yet — your writing is still here. Try again."); }
+    finally { setSaving(false); }
+  };
   const logButtons = <div className="mt-3 flex flex-wrap gap-2">{(["signins", "audit"] as const).map((view) => <Button key={view} variant="outline" className="min-h-11 whitespace-normal" onClick={() => onView?.(view)} disabled={!onView}>Open {view === "signins" ? "Sign-in Logs" : "Audit Logs"}</Button>)}</div>;
   const writing = writingSteps[findingStep as keyof typeof writingSteps];
   const guidance = sectionGuidance[section];
@@ -113,7 +120,7 @@ export function CaseFileBuilder({ store, onView, initialFinding }: { initialFind
       {stage === 1 ? <>
         <div className="flex flex-wrap gap-2" role="group" aria-label="Choose finding">{findings.map((f, i) => <Button key={f.key} variant={findingIndex === i ? "secondary" : "outline"} className="min-h-11" aria-pressed={findingIndex === i} onClick={() => { setFindingIndex(i); setFindingStep(0); }}>Finding {i + 1}</Button>)}</div>
         <label className="block text-sm">Choose a finding step<select className={`${input} mt-1`} value={findingStep} onChange={(e) => setFindingStep(Number(e.target.value))}>{findingLabels.map((label, i) => <option key={label} value={i}>{i + 1}. {label}</option>)}</select></label>
-        <h3 className="font-display text-lg">Finding {findingIndex + 1} · Step {findingStep + 1} of 9 — {findingLabels[findingStep]}</h3>
+        <h3 id="w11-finding-task" tabIndex={-1} className="font-display text-lg">Finding {findingIndex + 1} · Step {findingStep + 1} of 9 — {findingLabels[findingStep]}</h3>
         <p className="text-xs text-muted-foreground">{findingIndex < 2 ? "Core finding · one of the two baseline findings" : "Additional finding · optional, with its own progress"}</p>
         {findingStep === 0 ? <label className="block text-sm">Give this finding a short title.<span className="block text-xs text-muted-foreground">What are you investigating in this finding?</span><input className={`${input} mt-2`} value={finding.title} maxLength={200} onChange={(e) => setF({ title: e.target.value })} /></label> : null}
         {findingStep === 1 ? <><p className="text-sm">Choose only the historical event IDs that directly support this finding.</p><HistoricalPicker label="Exact historical events this finding rests on" value={finding.refs} onChange={(refs) => setF({ refs })} />{logButtons}</> : null}
@@ -166,13 +173,16 @@ export function CaseFileBuilder({ store, onView, initialFinding }: { initialFind
       </> : null}
       {stage === 7 ? <>
         <h3 className="font-display text-lg">When your Case File is complete:</h3><ol className="list-decimal space-y-2 pl-5 text-sm"><li>Review your Case File</li><li>Download your Week 11 files</li><li>Upload them to your GitHub portfolio</li><li>Keep using the same account for Week 12</li></ol>
-        <DownloadsView store={store} afterZip="Next: capture E19 from the Current Mission panel or Mission Progress." />
+        <DownloadsView store={store} />
       </> : null}
     </section>
     <footer className="space-y-2 border-t border-border pt-4">
+      <Button variant="outline" className="min-h-11" disabled={saving} onClick={() => void saveWriting()}>Save Case File writing</Button>
+      <p className="text-xs text-muted-foreground">This saves your finding selections and writing. Capture E17 separately to save an evidence snapshot and its explanation.</p>
       <div className="flex flex-wrap justify-between gap-2"><Button variant="outline" className="min-h-11" disabled={stage === 0 || saving} onClick={previous}>Previous</Button>{stage < 7 ? <Button className="min-h-11" disabled={saving} onClick={() => void saveContinue()}>{saving ? "Saving…" : "Save & Continue"}</Button> : null}</div>
       <p className="text-xs text-muted-foreground">Move backward or choose any step without re-entering your writing. Check the save message above before leaving.</p>
       {saveError ? <p role="alert" className="text-sm">{saveError}</p> : null}
+      {saveNotice && (store.textSave.kind === "saved" || store.textSave.kind === "idle") ? <p role="status" className="text-sm">{saveNotice}</p> : null}
     </footer>
   </div>;
 }

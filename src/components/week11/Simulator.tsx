@@ -15,6 +15,7 @@ export type { Nav };
 import { ConceptGuides, MissionArt, Week11Hero } from "./Visuals";
 import { CurrentMissionPanel } from "./CurrentMissionPanel";
 import { DownloadsView } from "./DownloadsView";
+import { isRequiredQuestion } from "@/lib/week11/requirements";
 
 export const VIEWS = ["dashboard", "missions", "users", "groups", "ous", "roles", "resources", "tickets", "signins", "audit", "evidence", "report", "downloads"] as const;
 export type View = (typeof VIEWS)[number];
@@ -199,7 +200,7 @@ function MissionView({ store, mission, onMission, onView, go }: { store: Week11S
         </Card>
       ) : null}
       <Card title="Your explanations" eyebrow="Saved automatically">
-        <div className="space-y-3">{m.questions.map((qq) => <TextArea key={qq.id} label={qq.label} value={ans[qq.id] ?? ""} onChange={(x) => setAns(qq.id, x)} />)}</div>
+        <div className="space-y-3">{m.questions.map((qq) => <TextArea key={qq.id} label={`${qq.label} — ${isRequiredQuestion(m.key, qq.id) ? "Required answer" : "Optional practice"}`} help={!isRequiredQuestion(m.key, qq.id) ? (ans[qq.id]?.trim() ? "Optional practice — your answer is kept." : "Optional practice not completed. This does not block completion.") : ""} value={ans[qq.id] ?? ""} onChange={(x) => setAns(qq.id, x)} />)}</div>
         {m.key === "M06" ? <button type="button" className={`${btn} mt-3`} onClick={() => onView("report")}>Open Case File</button> : null}
       </Card>
       <CaptureEvidence store={store} mission={m.key} slots={m.evidence} go={go} />

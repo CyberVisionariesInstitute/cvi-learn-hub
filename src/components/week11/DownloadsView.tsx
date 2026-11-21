@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { missions, type MissionId } from "@/lib/week11/seed";
 import type { Week11Store } from "@/lib/week11/useWeek11";
+import { GUIDED_EXPORT_MAPPING, isRequiredMission, isRequiredQuestion } from "@/lib/week11/requirements";
 import { Badge, btn, btnPrimary, Card } from "./ui";
 
 const fileOf = (path: string) => path.split("/").pop()!;
@@ -31,13 +32,18 @@ export function DownloadsView({ store, afterZip }: { store: Week11Store; afterZi
     <div className="space-y-4">
       <Card eyebrow="Download is not submission" title="Download & GitHub">
         {!name ? <p className="mb-3 rounded-md border border-amber/60 bg-amber/10 p-2 text-sm" role="note">Reminder: enter your name on the Dashboard before downloading, so your files show who wrote them.</p> : null}
-        <p className="text-sm">Your files are built from your saved simulator work — answers, evidence captions, findings and Case File. You don't need to copy anything by hand. Unfinished labs still download and are marked <strong>DRAFT</strong> inside the file, with the missing items listed.</p>
+        <p className="text-sm">Your files are built from your saved simulator work — answers, evidence captions, findings and Case File. You don't need to copy anything by hand. Missing required work is marked <strong>DRAFT</strong>. Empty optional answers say <strong>Optional practice not completed</strong> and do not block completion. Saved optional answers are kept.</p>
         <p className="mt-2 text-sm"><strong>Recommended:</strong> download the complete ZIP at the end. Single-lab files are for adding labs to GitHub as you finish them.</p>
         <button type="button" className={`${btnPrimary} mt-3 w-full sm:w-auto`} disabled={busy !== null} onClick={zip}>{busy === "zip" ? "Preparing…" : "Download complete Week 11 ZIP"}</button>
         <p className="mt-1 text-xs text-muted-foreground">File name: <span className="font-mono">week-11-portfolio{allReady ? "" : "-DRAFT"}.zip</span></p>
         <p className="mt-2 min-h-5 text-sm" role="status" aria-live="polite">{status}</p>
       </Card>
 
+      <section aria-labelledby="w11-file-map" className="space-y-3 border-t border-border py-4">
+        <h2 id="w11-file-map" className="font-display text-xl">Three guided labs → six legacy files</h2>
+        <p className="text-sm">The filenames stay unchanged. Classic Lab 02 contains work from both guided Labs 1 and 2.</p>
+        <ul className="space-y-3 text-sm">{GUIDED_EXPORT_MAPPING.map((group) => <li key={group.title}><p className="font-semibold">{group.title}</p><p>{group.detail}</p><ul className="mt-1 space-y-1">{group.missions.map((key) => { const m = missions.find((item) => item.key === key); return m ? <li key={key} className="break-all font-mono text-xs">{fileOf(m.exportPath)}</li> : null; })}</ul></li>)}</ul>
+      </section>
       <Card title="Your six lab files" eyebrow="Status comes from required work being present — not a grade">
         <ul className="grid gap-2">
           {missions.map((m) => {
@@ -47,6 +53,7 @@ export function DownloadsView({ store, afterZip }: { store: Week11Store; afterZi
                 <div className="min-w-0">
                   <p className="text-sm font-medium">{m.lab} · {m.title}</p>
                   <p className="break-all font-mono text-xs text-muted-foreground">{fileOf(m.exportPath)}</p>
+                  <p className="mt-1 text-sm">{isRequiredMission(m.key) ? "Required work plus optional practice" : "Optional practice only"}. {m.questions.filter((q) => isRequiredQuestion(m.key, q.id)).length} required short answer(s); {m.questions.filter((q) => !isRequiredQuestion(m.key, q.id)).length} optional question(s).{m.key === "M06" ? " The Case File findings and other required writing remain required." : ""}</p>
                   <p className="mt-1">{r?.required === false ? <Badge>Optional practice</Badge> : r?.ready ? <Badge tone="allow">✓ Evidence-ready</Badge> : <Badge tone="warn">DRAFT · {r?.missing.length ?? 0} item(s) missing</Badge>}</p>
                   {!r?.ready && r?.missing.length ? (
                     <details className="mt-1 text-xs"><summary className="cursor-pointer">What's missing</summary>

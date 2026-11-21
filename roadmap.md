@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Week 11 demo usability/export: optional-question labels and unchanged six-file mapping; direct Connect finding picker; confirmed writing/capture actions; 272 tests and 15 fictional browser checks passed, preview build OK. No student writes/publication. Hosted persistence and actual browser downloads untested.
 - [x] Week 12 compact source status and integration-concern diagnosis: task 144px earlier at 1440px; 32 fictional browser checks, 172 Week 10–12 regressions / 253 total tests; checked reads distinguish failures, explicit refresh revision/hash guards; practice page removed; preview only. Authenticated operations and concurrent hosted sessions unverified. Advisory-only invalid refs remain an assessment decision, not a shortened-path blocker.
 - [x] Week 12 wide guided visual pass and Week 11 integration follow-through: before/after fictional six-stage inspection, 53 browser checks (1366/1440/820/390 + enlarged text, keyboard, local drafts/refresh, simulated downloads), 163 regression tests; serialized confirmed saves protect refresh/download; harness removed; preview only. Authenticated saves/import and screen reader not tested.
 

@@ -30,6 +30,7 @@ export function useWeek11() {
   const dirty = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latest = useRef<Learner>({});
+  const inFlightSave = useRef<Promise<boolean> | null>(null);
 
   const adopt = useCallback((v: AttemptView, replaceText = false) => {
     setView(v);
@@ -46,10 +47,12 @@ export function useWeek11() {
 
   /** Resolves true only when there is nothing pending or the server confirmed the save. */
   const flush = useCallback(async (): Promise<boolean> => {
+    if (inFlightSave.current) return (await inFlightSave.current) && !dirty.current;
     if (!dirty.current) return true;
     if (timer.current) { clearTimeout(timer.current); timer.current = null; }
     setTextSave({ kind: "saving" });
     const payload = latest.current;
+    const pending = (async () => {
     try {
       const r = await saveText({ data: { expectedTextRevision: textRev.current, learner: payload } });
       if ("conflict" in r && r.conflict) {
@@ -57,7 +60,8 @@ export function useWeek11() {
         return false;
       }
       textRev.current = r.textRevision;
-      if (latest.current === payload) { dirty.current = false; setTextSave({ kind: "saved", at: new Date(r.savedAt!).toLocaleTimeString() }); return true; }
+      setView((previous) => previous ? { ...previous, learner: payload, textRevision: r.textRevision } : previous);
+      if (latest.current === payload) { dirty.current = false; setTextSave({ kind: "saved", at: new Date(r.savedAt ?? Date.now()).toLocaleTimeString() }); return true; }
       setTextSave({ kind: "pending" });
       timer.current = setTimeout(() => void flush(), 1200);
       return false;
@@ -65,6 +69,10 @@ export function useWeek11() {
       setTextSave({ kind: "failed", message: (e as Error).message || "Not saved." });
       return false;
     }
+    })();
+    inFlightSave.current = pending;
+    try { return await pending; }
+    finally { if (inFlightSave.current === pending) inFlightSave.current = null; }
   }, [saveText]);
 
   const setLearner = useCallback((fn: (l: Learner) => Learner) => {
